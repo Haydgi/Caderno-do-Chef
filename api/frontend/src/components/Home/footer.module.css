@@ -75,6 +75,17 @@
 }
  
 @media(max-width: 767px) {
+  .footer-container {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .btnUltraViolet {
+    display: none;
+  }
+  
   .footer-row {
     gap: var(--dl-layout-space-oneandhalfunits);
     align-items: center;

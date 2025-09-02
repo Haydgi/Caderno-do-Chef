@@ -10,7 +10,7 @@
 }
 
 .texto p {
-    margin-top: 15px;
+    margin-top: 30px;
     margin-bottom: 30px;
     font-size: 20px;
     text-align: justify;
@@ -22,6 +22,7 @@
 }
 
 .imagem {
+    margin-top: 50px;
     display: block;
     height: 450px;
     width: 450px;

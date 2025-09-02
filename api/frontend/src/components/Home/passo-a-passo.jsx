@@ -17,7 +17,7 @@ const PassoAPasso = (props) => {
           </div>
           <div className={styles['passo-a-passo-container3']}>
             <div className={`${styles['passo-a-passo-container4']} thq-card`}>
-              <h2 className={styles['card-roxo']}>
+              <h2 className={`${styles['card-roxo']} thq-heading-2`}>
                 {props.step1Title ?? (
                   <Fragment>
                     <span className={styles['passo-a-passo-text27']}>Cadastre os ingredientes</span>
@@ -54,7 +54,7 @@ const PassoAPasso = (props) => {
               <h2 className={styles['card-roxo']}>
                 {props.step3Title ?? (
                   <Fragment>
-                    <span className={styles['passo-a-passo-text28']}>Crie suas receitas</span>
+                    <span className={`${styles['passo-a-passo-text28']} thq-heading-2`}>Crie suas receitas</span>
                   </Fragment>
                 )}
               </h2>

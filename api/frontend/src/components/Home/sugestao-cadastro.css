@@ -100,20 +100,28 @@
 
 @media(max-width: 767px) {
   .sugestao-cadastro-container2 {
-    gap: var(--dl-layout-space-oneandhalfunits);
-    flex-direction: column;
-    justify-content: flex-start;
+    display: none;
+  }
+
+  .thq-section-padding {
+    display: none;
+  }
+
+  .sugestao-cadastro-accent2-bg {
+    display:none;
   }
 }
 
 @media(max-width: 479px) {
   .sugestao-cadastro-actions {
-    flex-wrap: wrap;
-    align-self: stretch;
-    justify-content: center;
+    display:none;
   }
 
   .sugestao-cadastro-button {
-    flex: 1;
+    display:none;
+  }
+
+  .sugestao-cadastro-accent2-bg {
+    display:none;
   }
 }

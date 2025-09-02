@@ -13,7 +13,7 @@
   display: flex;
   align-items: flex-start;
   flex-direction: row;
-  padding-top: 100px;
+  padding-top: 175px;
 }
  
 .passo-a-passo-container2 {
@@ -169,6 +169,7 @@
  
 .passo-a-passo-text29 {
   display: inline-block;
+  font-size: 18px;
 }
  
 .passo-a-passo-text30 {
@@ -204,8 +205,8 @@
   }
 
  .passo-a-passo-image {
-  width: 75% !important;
-  height: 75% !important;
+  width: 100% !important;
+  height: 100% !important;
   display: block; /* Garante que a imagem seja tratada como um bloco */
   margin: 0 auto; /* Centraliza horizontalmente */
 }
