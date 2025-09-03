@@ -25,7 +25,7 @@ const Equipe = (props) => {
                   <span className="equipe-text40">
                     Esse projeto foi desenvolvido por uma equipe de estudantes
                     do curso de Análise e Desenvolvimento de Sistemas da
-                    Faculdade de Tecnologia de Guaratinguetá (FATEC GTA).
+                    <strong> Faculdade de Tecnologia de Guaratinguetá (FATEC GTA) </strong>.
                     <br />
                     Cada membro trouxe suas habilidades únicas para criar uma
                     solução inovadora que ajuda chefs a gerenciarem seus
@@ -234,14 +234,14 @@ const Equipe = (props) => {
                     </div>
                   </div>
                   <span className="equipe-text25">
-                    Sou Desenvolvedor Web Fullstack com foco em aplicações
+                    Desenvolvedor Web Fullstack com foco em aplicações
                     modernas e funcionais utilizando JavaScript, HTML, CSS,
-                    React e Node.js. No projeto Caderno do Chef, atuei na
+                    React e Node.js. No projeto Caderno do Chef, atuou na
                     construção das interfaces da aplicação com React + Vite e
                     Bootstrap, sempre buscando criar uma experiência fluida,
                     intuitiva e alinhada às necessidades de quem atua na cozinha
-                    profissional. Tenho facilidade em aprender novas tecnologias
-                    e gosto de colaborar ativamente com o time, trocando ideias,
+                    profissional. Possui disposição para aprender novas tecnologias
+                    e colaborar ativamente com o time, trocando ideias,
                     testando soluções e garantindo que cada entrega avance o
                     projeto.
                   </span>

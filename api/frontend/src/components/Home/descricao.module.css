@@ -64,9 +64,23 @@
 
 @media (max-width: 1100px) {
   .descricao-flex-container {
-    flex-direction: column-reverse;
+    flex-direction: column;
     align-items: center;
     gap: 24px;
+  }
+  .imagemchef {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    display: flex;
+  }
+  .texto h2 {
+    order: 1;
+    width: 100%;
+  }
+  .texto p {
+    order: 3;
+    width: 100%;
   }
 }
 

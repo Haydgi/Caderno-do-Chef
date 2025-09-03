@@ -98,27 +98,13 @@
   padding: 12px 24px;
 }
 
-@media(max-width: 767px) {
+@media(max-width: 1100px) {
   .sugestao-cadastro-container2 {
     display: none;
   }
 
   .thq-section-padding {
     display: none;
-  }
-
-  .sugestao-cadastro-accent2-bg {
-    display:none;
-  }
-}
-
-@media(max-width: 479px) {
-  .sugestao-cadastro-actions {
-    display:none;
-  }
-
-  .sugestao-cadastro-button {
-    display:none;
   }
 
   .sugestao-cadastro-accent2-bg {

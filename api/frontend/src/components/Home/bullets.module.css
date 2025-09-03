@@ -122,32 +122,35 @@
 /* Responsividade para telas menores que 1100px */
 @media (max-width: 1100px) {
   .passo-a-passo-section-header {
-    position: static;
-    margin-bottom: var(--dl-layout-space-twounits);
+    order: 1;
+    width: 100%;
   }
-  .passo-a-passo-container1 {
-    padding: 0 20px; /* Adiciona padding lateral */
+  .passo-a-passo-image {
+    order: 2;
+    margin: 24px auto 0 auto;
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
   }
-
+  .list {
+    order: 3;
+    width: 100%;
+  }
   .passo-a-passo-max-width {
-    flex-direction: column; /* Empilha os elementos verticalmente */
+    display: flex;
+    flex-direction: column;
     align-items: center;
   }
-
-  .passo-a-passo-image {
-    width: 400px; /* Reduz ainda mais a largura da imagem */
-    height: 400px; /* Reduz ainda mais a altura da imagem */
-  }
-
-  .list {
-    font-size: 22px; /* Reduz o tamanho da fonte da lista */
+  .appeal {
+    margin-top: 20px;
   }
 }
 
 /* Responsividade para telas menores que 900px */
 @media (max-width: 900px) {
   .passo-a-passo-container1 {
-    margin-bottom: 80px; /* Reduz o espaçamento inferior */
+    margin-bottom: 0px; /* Reduz o espaçamento inferior */
   }
 
   .passo-a-passo-image {
@@ -173,7 +176,7 @@
 
   .passo-a-passo-image {
     width: 100%; /* Faz a imagem ocupar toda a largura disponível */
-    height: auto; /* Ajusta a altura proporcionalmente */
+    height: 100%; /* Ajusta a altura proporcionalmente */
   }
 
   .passo-a-passo-section-header {

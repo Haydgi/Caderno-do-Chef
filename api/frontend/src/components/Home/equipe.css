@@ -486,6 +486,16 @@
     flex-direction: column; /* Empilha os elementos dos contêineres */
     align-items: center; /* Centraliza os elementos */
   }
+
+  .equipe-text13 {
+    text-align: center;
+    margin: 0px auto 32px auto;
+    max-width: 90vw;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    padding: 0 12px;
+    display: block;
+  }
 }
 
 /* Responsividade para telas menores que 576px (celulares) */

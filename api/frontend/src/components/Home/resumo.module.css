@@ -128,12 +128,36 @@
 /* Media Queries */
 @media (max-width: 1200px) {
   .resumo-container {
-    
+
   }
 
   .resumo-mulher-img {
-    right: 150px; /* Ajusta a posição para telas menores */
-    margin-top: 100px;
+    width: 70%;
+    left: 90px; /* Ajusta a posição para telas menores */
+    top: -140px;
+  }
+
+  .container {
+    max-height: 102vh;
+  }
+
+  .resumo-card-container {
+    top: -25px;
+    left: 50px;
+    margin: 0 auto;       
+    width: 60%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .resumo-content1 {
+    max-width: 550px;       
+    width: 100%;
+    max-height: 350px;
+    height: 100%;
+    padding: 20px;
+    margin: 0;               
+    box-sizing: border-box;
   }
 }
 
@@ -148,42 +172,39 @@
   }
 }
 
-@media (max-width: 991px) {
+@media (max-width: 992px) {
   .resumo-mulher-img {
     display: none;
   }
+
   .resumo-container {
     flex-direction: column;
-    gap: 32px; /* Substitui var(--dl-layout-space-twounits) por valor fixo */
-    padding: 200px 8px 0; /* Ajustado para consistência */
-    align-items: center; /* Centraliza conteúdo */
-  }
-  .resumo-mulher-container,
-  .resumo-image-container {
-    max-width: 100%;
-    margin: 50px 0;
+    gap: 40px;
+    padding: 20px 8px 0;
+    align-items: center;      /* Centraliza horizontalmente */
     justify-content: center;
   }
-  .resumo-content1 {
-    max-width: 90%;
-    padding: 20px;
-    margin: 0 auto; /* Centraliza horizontalmente */
-  }
-}
 
-@media (max-width: 768px) {
+  .resumo-card-container {
+    top: 100px;
+    left: 0;
+    margin: 0 auto;       
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
   .resumo-content1 {
-    max-width: 90%;
-    padding: 20px; /* Reduz padding para telas menores */
-    gap: 22px;
+    max-width: 600px;       
+    width: 100%;
+    padding: 20px;
+    margin: 0;               
+    box-sizing: border-box;
   }
-  .resumo-content1 h1 {
-    font-size: 28px;
+  .container {
+    min-height: 70vh;
   }
-  .resumo-content1 p {
-    font-size: 18px;
-    max-width: 300px;
-  }
+
 }
 
 @media (max-width: 576px) {
@@ -212,8 +233,15 @@
     font-size: 16px; /* Ajustado para telas pequenas */
   }
   .resumo-card-container {
-    top: 0; /* Remove deslocamento desnecessário */
+    top: -200px; /* Remove deslocamento desnecessário */
     left: 0; /* Remove deslocamento desnecessário */
     margin: 0 auto; /* Centraliza */
+  }
+  .thq-section-padding#bullets {
+    scroll-margin-top: 200px;
+  }
+
+  .container {
+    max-height: 0vh;
   }
 }

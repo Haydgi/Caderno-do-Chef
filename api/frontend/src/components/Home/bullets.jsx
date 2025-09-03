@@ -18,7 +18,7 @@ const Bullets = (props) => {
           <div className={styles['passo-a-passo-container3']}>
                 <h2 className = "thq-heading-2"> Os erros invisíveis que drenam o seu lucro</h2>
                 <text className={styles.appeal} >A verdade é simples: <strong>cozinhar bem não garante um negócio lucrativo</strong>.
-                <br/>Esses são os erros mais comuns que impedem bons chefs de crescer:</text>
+                <br/><br/> Esses são os erros mais comuns que impedem bons chefs de crescer:</text>
                 <ul className={`${styles['list']}`}>
                     <li>
                     A precificação não cobre os custos reais — o lucro some sem que você perceba.
