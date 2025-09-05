@@ -19,7 +19,7 @@
 
 .resumo-mulher-img {
   position: relative; /* Permite usar top e left */
-  top: 0px; /* Move a imagem para cima */
+  top: 30px; /* Move a imagem para cima */
   right: 250px; /* Move a imagem para a direita */
   width: auto; /* Mantém o tamanho original */
   max-width: 100%; /* Garante que a imagem não ultrapasse o container */
@@ -127,9 +127,7 @@
 
 /* Media Queries */
 @media (max-width: 1200px) {
-  .resumo-container {
-
-  }
+  
 
   .resumo-mulher-img {
     width: 70%;
