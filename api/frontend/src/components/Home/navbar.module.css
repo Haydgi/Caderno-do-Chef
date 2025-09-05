@@ -81,12 +81,15 @@ html {
   .links {
     font-size: 20px; /* Diminui o tamanho da fonte */
     gap: 20px; /* Reduz o espaçamento entre os links */
+    position: relative;
+    right: 30px;
   }
 }
 
 @media (max-width: 1250px) {
   .links {
-    display: none;
+    font-size: 18px; /* Diminui o tamanho da fonte */
+    gap: 2px;
   }
 }
 
@@ -99,7 +102,7 @@ html {
 /* Ajustes para telas menores que 1000px */
 @media (max-width: 1000px) {
   .btnUltraViolet {
-    padding: 10px 16px; /* Reduz o padding do botão */
+    padding: 12px 20px; /* Reduz o padding do botão */
     font-size: 18px; /* Reduz o tamanho da fonte */
   }
 }
