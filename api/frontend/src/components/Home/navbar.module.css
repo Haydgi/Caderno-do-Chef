@@ -110,7 +110,7 @@ html {
 /* Ajustes para telas menores que 576px */
 @media (max-width: 576px) {
   .btnUltraViolet {
-    padding: 8px 12px; /* Reduz ainda mais o padding do botão */
+    padding: 12px 20px; /* Reduz ainda mais o padding do botão */
     font-size: 18px; /* Reduz ainda mais o tamanho da fonte */
   }
 }
