@@ -95,15 +95,15 @@ html {
 
 @media (max-width: 1050px) {
   .links {
-    display: none;
+    font-size: 18px; /* Diminui o tamanho da fonte */
+    gap: 2px;
   }
 }
 
 /* Ajustes para telas menores que 1000px */
-@media (max-width: 1000px) {
-  .btnUltraViolet {
-    padding: 12px 20px; /* Reduz o padding do botão */
-    font-size: 18px; /* Reduz o tamanho da fonte */
+@media (max-width: 992px) {
+  .links {
+    display: none;
   }
 }
 
