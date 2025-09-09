@@ -137,7 +137,7 @@ const IngredientHistory = ({ usuarioId }) => {
             />
             <Tooltip
               formatter={(value, name) =>
-                name === 'Custo por Unidade'
+                name === 'Custo pela Unidade de Medida'
                   ? [`R$ ${Number(value).toFixed(2)}`, name]
                   : [`${value}%`, name]
               }
@@ -147,7 +147,7 @@ const IngredientHistory = ({ usuarioId }) => {
               yAxisId="left"
               type="monotone"
               dataKey="cost"
-              name="Custo por Unidade"
+              name="Custo pela Unidade de Medida"
               stroke="var(--primary)"
               strokeWidth={3}
               dot={{ r: 5 }}
