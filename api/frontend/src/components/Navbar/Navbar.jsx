@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import "./Navbar.css";
-import { MdMenu } from "react-icons/md";
+import { MdMenu, MdMenuBook, MdBarChart, MdShoppingCart, MdAttachMoney } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
@@ -34,19 +34,27 @@ export default function Navbar() {
         {/* Navbar Desktop original */}
         <ul className="nav-list">
           <li>
-            <NavLink to="/receitas" className="hoverable" activeClassName="active">Receitas</NavLink>
+            <NavLink to="/receitas" className="hoverable" activeClassName="active">
+              <MdMenuBook style={{ verticalAlign: 'middle', marginRight: 6 }} /> Receitas
+            </NavLink>
           </li>
           <li>
-            <NavLink to="/relatorios" className="hoverable" activeClassName="active">Relatórios</NavLink>
+            <NavLink to="/relatorios" className="hoverable" activeClassName="active">
+              <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
+            </NavLink>
           </li>
           <li>
             <img src={`${import.meta.env.BASE_URL}midia/logo_caderno_do_che2.png`} alt="Logo" className="" />
           </li>
           <li>
-            <NavLink to="/ingredientes" className="hoverable" activeClassName="active">Ingredientes</NavLink>
+            <NavLink to="/ingredientes" className="hoverable" activeClassName="active">
+              <MdShoppingCart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Ingredientes
+            </NavLink>
           </li>
           <li>
-            <NavLink to="/despesas" className="hoverable" activeClassName="active">Despesas</NavLink>
+            <NavLink to="/despesas" className="hoverable" activeClassName="active">
+              <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
+            </NavLink>
           </li>
         </ul>
         <button className="btnLogout" onClick={handleLogout}>
@@ -80,16 +88,24 @@ export default function Navbar() {
           </div>
           <ul className="navbar-nav flex-column px-3">
             <li className="nav-item">
-              <NavLink to="/receitas" className="nav-link" onClick={() => setMenuAberto(false)}>Receitas</NavLink>
+              <NavLink to="/receitas" className="nav-link" onClick={() => setMenuAberto(false)}>
+                <MdMenuBook style={{ verticalAlign: 'middle', marginRight: 6 }} /> Receitas
+              </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>Relatórios</NavLink>
+              <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
+                <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
+              </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/ingredientes" className="nav-link" onClick={() => setMenuAberto(false)}>Ingredientes</NavLink>
+              <NavLink to="/ingredientes" className="nav-link" onClick={() => setMenuAberto(false)}>
+                <MdShoppingCart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Ingredientes
+              </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>Despesas</NavLink>
+              <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>
+                <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
+              </NavLink>
             </li>
             <li className="nav-item mt-2">
               <button className="btnLogoutCelular" onClick={handleLogout}>
