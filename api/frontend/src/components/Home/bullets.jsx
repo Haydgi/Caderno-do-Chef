@@ -4,7 +4,7 @@ import ChefTriste from '/midia/chef_triste.png';
 
 const Bullets = (props) => {
   return (
-    <div className={`${styles['passo-a-passo-container1']} thq-section-padding ${props.rootClassName}`} id='bullets'>
+    <div className={`${styles['passo-a-passo-container1']} thq-section-padding ${props.rootClassName}`} >
       <div className={`${styles['passo-a-passo-max-width']} thq-section-max-width`}>
         <div className={styles['passo-a-passo-section-header']}>
             
@@ -15,7 +15,7 @@ const Bullets = (props) => {
             />
         </div>
         <div className={`${styles['passo-a-passo-container2']}`}>
-          <div className={styles['passo-a-passo-container3']}>
+          <div className={styles['passo-a-passo-container3']} id='bullets'>
                 <h2 className = "thq-heading-2"> Os erros invisíveis que drenam o seu lucro</h2>
                 <text className={styles.appeal} >A verdade é simples: <strong>cozinhar bem não garante um negócio lucrativo</strong>.
                 <br/><br/> Esses são os erros mais comuns que impedem bons chefs de crescer:</text>
