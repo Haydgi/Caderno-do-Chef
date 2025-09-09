@@ -232,7 +232,8 @@
   color: var(--primary-light);
   text-align: center;
   padding: 1rem;
-  font-style: italic;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 /* Container para o botão e menu */
