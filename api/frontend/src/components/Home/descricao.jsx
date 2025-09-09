@@ -7,8 +7,8 @@ const PassoAPasso = (props) => {
     <div className={`${styles['passo-a-passo-container1']} thq-section-padding ${props.rootClassName}`}>
       <div className={`${styles['passo-a-passo-max-width']} thq-section-max-width`}>
         <div className={styles['descricao-flex-container']}>
-          <div className={styles.texto} id="descricao">
-            <h2 className='thq-heading-2'>O que é o Caderno do Chef?</h2>
+          <div className={styles.texto} >
+            <h2 className='thq-heading-2' id="descricao">O que é o Caderno do Chef?</h2>
             <div className={styles['descricao-text']}>
               <p>
                 O Caderno do Chef é um sistema inovador desenvolvido por uma equipe de estudantes, com o objetivo de transformar a forma como empreendedores do setor gastronômico realizam a precificação de suas receitas.

@@ -242,3 +242,9 @@
     width: 100%;
   }
 }
+@media (max-width: 576px) {
+  .passo-a-passo-image{
+    max-width: 350px;
+  }
+
+}
