@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { recipes, ingredients } from '../../Data/recipes';
 import ProfitChart from './ProfitChart';
 import TimeChart from './TimeChart';
 import RecipeCount from './RecipeCount';

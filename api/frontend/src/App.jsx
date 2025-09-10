@@ -13,6 +13,7 @@ import Cadastro from './features/Auth/CadastroUsuarios/CadastroUsuarios';
 import AuthUser from './features/Auth/AuthUser/AuthUser';
 import EsqueciSenha from './features/Auth/ForgotPasswordEmail/ForgotPswdEmail';
 import RedefinirSenha from './features/Auth/ForgotPassword/ForgotPswd';
+import ExpiredLink from './features/Auth/ExpiredLink/ExpiredLink';
 
 function App() {
   const [logado, setLogado] = useState(false);
@@ -73,6 +74,10 @@ function App() {
         <Route 
           path="/auth" 
           element={<AuthUser />} // Rota para o componente Cadastro
+        />
+        <Route 
+          path="/expired-link" 
+          element={<ExpiredLink />}
         />
         <Route
           path="/ingredientes"
