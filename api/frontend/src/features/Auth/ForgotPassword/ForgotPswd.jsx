@@ -3,18 +3,16 @@ import "../../../Styles/global.css";
 import "../globalAuth.css";
 import styles from "./ForgotPswd.module.css";
 import Password, { validarSenha, validarConfirmacaoSenha } from "../PswdLogic.jsx";
+import { toast } from "react-toastify"; // ✅ import toast
 
 export default function ForgotPassword() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [camposInvalidos, setCamposInvalidos] = useState([]);
-  const [popUpMessage, setPopUpMessage] = useState("");
 
   const handleRedefinirSenha = (e) => {
     e.preventDefault();
-    setPopUpMessage("");
 
-    const camposNaoPreenchidos = [];
     const camposInvalidosTemp = [];
 
     if (!validarSenha(senha)) {
@@ -25,11 +23,9 @@ export default function ForgotPassword() {
       camposInvalidosTemp.push("confirmarSenha");
     }
 
-    if (camposNaoPreenchidos.length > 0 || camposInvalidosTemp.length > 0) {
-      setTimeout(() => {
-        setPopUpMessage("Por favor, corrija os campos destacados.");
-      }, 0);
-      setCamposInvalidos([...camposNaoPreenchidos, ...camposInvalidosTemp]);
+    if (camposInvalidosTemp.length > 0) {
+      setCamposInvalidos(camposInvalidosTemp);
+      toast.error("Por favor, corrija os campos destacados."); // 🔴 toast de erro
       return;
     }
 
@@ -37,9 +33,7 @@ export default function ForgotPassword() {
     setSenha("");
     setConfirmarSenha("");
     setCamposInvalidos([]);
-    setTimeout(() => {
-      setPopUpMessage("Senha redefinida com sucesso!");
-    }, 0);
+    toast.success("Senha redefinida com sucesso!"); // 🟢 toast de sucesso
   };
 
   const handleInputChange = (campo, valor) => {
@@ -75,18 +69,6 @@ export default function ForgotPassword() {
             </div>
           </div>
         </form>
-        {popUpMessage && (
-          <div
-            className={
-              popUpMessage ===
-                "Por favor, corrija os campos destacados."
-                ? styles.popUpError
-                : styles.popUpSucess
-            }
-          >
-            {popUpMessage}
-          </div>
-        )}
       </div>
     </div>
   );

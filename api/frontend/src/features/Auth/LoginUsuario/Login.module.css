@@ -135,3 +135,17 @@ input[type="password"]::-ms-reveal {
 .linkCriarConta:hover {
   color: #502d5a; /* Cor ao passar o mouse */
 }
+
+/* Borda vermelha quando inválido */
+.inputInvalido {
+  border: 2px solid #e53935 !important; /* vermelho intenso */
+  box-shadow: 0 0 5px rgba(229, 57, 53, 0.5);
+}
+
+/* Asterisco vermelho ao lado do label */
+.asterisco {
+  color: #e53935;
+  margin-left: 4px;
+  font-weight: bold;
+}
+

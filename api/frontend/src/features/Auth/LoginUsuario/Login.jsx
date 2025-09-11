@@ -11,24 +11,33 @@ export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [invalidFields, setInvalidFields] = useState([]); // ✅ controla campos inválidos
 
-  // Manipulador simplificado para inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === "email") setEmail(value);
     else if (name === "senha") setSenha(value);
+
+    // ✅ remove da lista de inválidos quando o usuário começa a digitar
+    setInvalidFields((prev) => prev.filter((field) => field !== name));
   };
 
-  const handleSignUp = () => {
-    navigate("/sign-up");
-  };
-
-  const handleForgotPassword = () => {
-    navigate("/forgot-password-email");
-  };
+  const handleSignUp = () => navigate("/sign-up");
+  const handleForgotPassword = () => navigate("/forgot-password-email");
 
   const handleCadastro = async (e) => {
     e.preventDefault();
+
+    // ✅ checagem simples antes do axios
+    const fields = [];
+    if (!email.trim()) fields.push("email");
+    if (!senha.trim()) fields.push("senha");
+
+    if (fields.length) {
+      setInvalidFields(fields);
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
 
     try {
       const response = await axios.post("http://localhost:3001/api/login", {
@@ -37,10 +46,8 @@ export default function Login() {
       });
 
       if (response.status === 200) {
-        // Tenta pegar o userId do retorno da API
         const userId =
           response.data.usuario?.id || response.data.usuario?.ID_Usuario;
-
         if (!userId) {
           toast.error("ID do usuário não encontrado na resposta.");
           return;
@@ -48,13 +55,12 @@ export default function Login() {
 
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", userId);
-
         navigate("/receitas");
       } else {
         toast.error("Falha no login. Tente novamente.");
       }
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.mensagem) {
+      if (error.response?.data?.mensagem) {
         toast.error(error.response.data.mensagem);
       } else {
         toast.error("Erro ao fazer login. Verifique seu e-mail e senha.");
@@ -70,8 +76,14 @@ export default function Login() {
             <div className={styles.teste}>
               <h2>Acesse seu Caderno!</h2>
 
+              {/* EMAIL */}
               <div className={styles.formGroup}>
-                <label htmlFor="email">E-mail</label>
+                <label htmlFor="email">
+                  E-mail
+                  {invalidFields.includes("email") && (
+                    <span className={styles.asterisco}> *</span>
+                  )}
+                </label>
                 <div className={styles.inputIconContainer}>
                   <i className="bi bi-envelope"></i>
                   <input
@@ -80,14 +92,21 @@ export default function Login() {
                     value={email}
                     onChange={handleInputChange}
                     placeholder="Insira seu e-mail"
-                    className={styles.inputField}
-                    required
+                    className={`${styles.inputField} ${
+                      invalidFields.includes("email") ? styles.inputInvalido : ""
+                    }`}
                   />
                 </div>
               </div>
 
+              {/* SENHA */}
               <div className={styles.formGroup}>
-                <label htmlFor="senha">Senha</label>
+                <label htmlFor="senha">
+                  Senha
+                  {invalidFields.includes("senha") && (
+                    <span className={styles.asterisco}> *</span>
+                  )}
+                </label>
                 <div className={styles.inputIconContainer}>
                   <i className="bi bi-lock"></i>
                   <input
@@ -97,8 +116,9 @@ export default function Login() {
                     value={senha}
                     onChange={handleInputChange}
                     placeholder="Insira sua senha"
-                    className={styles.inputField}
-                    required
+                    className={`${styles.inputField} ${
+                      invalidFields.includes("senha") ? styles.inputInvalido : ""
+                    }`}
                   />
                   <button
                     type="button"

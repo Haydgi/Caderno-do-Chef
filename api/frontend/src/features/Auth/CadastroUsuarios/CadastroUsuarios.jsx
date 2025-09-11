@@ -81,7 +81,8 @@ export default function Cadastro() {
     // Se houver campos inválidos ou não preenchidos
     if (camposNaoPreenchidos.length > 0 || camposInvalidosTemp.length > 0) {
       setTimeout(() => {
-        setPopUpMessage("Por favor, corrija os campos destacados."); }, 0);
+        toast.error("Por favor, corrija os campos destacados."); }, 0);
+        
       setCamposInvalidos([...camposNaoPreenchidos, ...camposInvalidosTemp]);
       return;
     }
@@ -116,7 +117,7 @@ fetch("http://localhost:3001/api/cadastrar", {
 })
 .catch(error => {
   console.error("Erro ao cadastrar:", error);
-  setPopUpMessage("Erro ao cadastrar usuário.");
+  toast.error("Erro ao cadastrar usuário.");
 });
 
   }

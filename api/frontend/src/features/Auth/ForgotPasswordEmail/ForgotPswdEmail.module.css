@@ -113,6 +113,7 @@ input[type="password"]::-ms-reveal {
   z-index: 1;
   display: flex;
   gap: 0.5rem;
+  background-color: var(--white-smoke);
 }
 
 .buttonContainer {

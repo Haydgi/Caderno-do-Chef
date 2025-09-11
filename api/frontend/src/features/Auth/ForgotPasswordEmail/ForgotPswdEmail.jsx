@@ -3,15 +3,13 @@ import "../globalAuth.css";
 import styles from "./ForgotPswdEmail.module.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "react-toastify"; // ✅ import toast
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [mostrarErroEmail, setMostrarErroEmail] = useState(false); // controla borda e asterisco
-  const [popUpMessage, setPopUpMessage] = useState(""); // controla o popup de erro
-
-  const emailTemErro = email !== "" && !email.includes("@");
 
   const handleVoltarParaTelaInicial = () => {
     navigate('/sign-in');
@@ -21,22 +19,21 @@ export default function ForgotPassword() {
     e.preventDefault();
 
     if (!email.includes("@")) {
-      setMostrarErroEmail(true); // ativa erro visual
-      setMensagem(""); // não mostra sucesso
-      setPopUpMessage("Por favor, insira um e-mail válido."); // define mensagem do popup
+      setMostrarErroEmail(true);          // ativa erro visual no input
+      setMensagem("");                     // não mostra mensagem de sucesso
+      toast.error("Por favor, insira um e-mail válido."); // 🔴 toast de erro
       return;
     }
 
     setMensagem("Verifique seu email. Um link para redefinir sua senha foi enviado.");
-    setMostrarErroEmail(false); // tudo certo
-    setPopUpMessage(""); // limpa o popup de erro
+    setMostrarErroEmail(false);            // tudo certo
+    toast.success("Verifique seu e-mail para redefinir a senha."); // 🟢 toast de sucesso
   };
 
   const handleEmailChange = (valor) => {
     setEmail(valor);
     setMensagem("");
-    setMostrarErroEmail(false); // sempre remove erro ao digitar algo
-    setPopUpMessage(""); // limpa o popup de erro ao digitar
+    setMostrarErroEmail(false);            // remove erro ao digitar
   };
 
   return (
@@ -86,13 +83,6 @@ export default function ForgotPassword() {
               </button>
             </div>
           </form>
-
-          {/* Pop-up para mensagens */}
-          {popUpMessage && (
-            <div className={styles.popUpError}>
-              {popUpMessage}
-            </div>
-          )}
         </div>
       </div>
     </div>
