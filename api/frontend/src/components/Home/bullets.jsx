@@ -13,6 +13,7 @@ const Bullets = (props) => {
               alt={props.imageAlt}
               className={styles['passo-a-passo-image']}
             />
+            
         </div>
         <div className={`${styles['passo-a-passo-container2']}`}>
           <div className={styles['passo-a-passo-container3']} id='bullets'>

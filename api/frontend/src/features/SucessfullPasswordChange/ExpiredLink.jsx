@@ -6,31 +6,31 @@ export default function LinkExpirado() {
   const navigate = useNavigate();
 
   const handleVoltar = () => {
-    navigate("/sign-in");
+    navigate("/login");
   };
 
   const handleReenviar = () => {
-    toast.success("Um novo link foi enviado para o seu e-mail!");
+    toast.success("Novo link enviado para seu e-mail!");
   };
 
   return (
     <div className={styles.background}>
       <div className={styles.banner}>
         <div className={styles.textContainer}>
-          <h2 className={styles.title}>Link expirado...</h2>
+          <h2 className={styles.title}>Link expirado</h2>
           <p className={styles.message}>
-            <strong>Este link de confirmação não é mais válido.</strong><br />
-            Solicite um novo para recuperar sua senha.
+            Este link de confirmação não é mais válido.<br />
+            Solicite um novo para continuar.
           </p>
           <div className={styles.actions}>
             <button
-              className={`${styles.btnCustomHeight}  ${styles.btnReenviar}`}
+              className={`btnUltraViolet ${styles.btnCustomHeight}`}
               onClick={handleReenviar}
             >
               <i className="bi bi-arrow-clockwise"></i> Reenviar link
             </button>
             <button
-              className={`${styles.btnCustomHeight} ${styles.btnVoltar}`}
+              className={`btnUltraViolet ${styles.btnCustomHeight} ${styles.btnCustomBack}`}
               onClick={handleVoltar}
             >
               <i className="bi bi-arrow-left"></i> Voltar para o login

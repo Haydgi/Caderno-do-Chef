@@ -9,7 +9,7 @@
 
 .banner {
   margin: 300px auto 0 auto;
-  background: linear-gradient(135deg, rgba(127, 89, 149, 0.95), rgba(81, 51, 99, 0.95));
+  background: linear-gradient(135deg, rgba(103, 71, 122, 0.95), rgba(64, 41, 77, 0.95));
   border-radius: 20px;
   padding: 30px 50px;
   display: flex;
@@ -43,13 +43,13 @@
 .title {
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .message {
   font-size: 1.05rem;
   line-height: 1.6;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   color: #f0e9f7;
 }
 
@@ -63,42 +63,8 @@
   padding: 10px;
 }
 
-.btnReenviar,
-.btnVoltar {
-  background-size: 200% 100%;
-  background-position: right;
-  color: var(--white-smoke);
-  border: none;
-  border-radius: 12px;
-  padding: 10px 20px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  transition: all 0.3s ease-in-out;
-  display: block;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.btnReenviar {
-  background: linear-gradient(to right, #e9a24d, var(--tangerine));
-}
-
-.btnVoltar {
-  background: linear-gradient(to right, #8f62a8, var(--ultra-violet));
-}
-
-.btnReenviar:hover::before,
-.btnVoltar:hover::before {
-  left: 105%;
-}
-
-.btnReenviar:hover,
-.btnVoltar:hover {
-  background-position: left;
-  transform: scale(1.05);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+.btnCustomBack {
+  background-color: #e2a50b !important; /* Escolha a cor desejada */
 }
 
 @media (max-width: 992px) {
