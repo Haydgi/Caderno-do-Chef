@@ -14,6 +14,7 @@ import AuthUser from './features/Auth/AuthUser/AuthUser';
 import EsqueciSenha from './features/Auth/ForgotPasswordEmail/ForgotPswdEmail';
 import RedefinirSenha from './features/Auth/ForgotPassword/ForgotPswd';
 import ExpiredLink from './features/Auth/ExpiredLink/ExpiredLink';
+import SuccessfullPasswordChange from './features/Auth/SuccessfullPasswordChange/SuccessfullPasswordChange';
 
 function App() {
   const [logado, setLogado] = useState(false);
@@ -78,6 +79,10 @@ function App() {
         <Route 
           path="/expired-link" 
           element={<ExpiredLink />}
+        />
+        <Route 
+          path="/password-changed-successfully" 
+          element={<SuccessfullPasswordChange />}
         />
         <Route
           path="/ingredientes"

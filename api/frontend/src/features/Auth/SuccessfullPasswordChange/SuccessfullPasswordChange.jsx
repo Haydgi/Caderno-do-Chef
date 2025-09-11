@@ -1,7 +1,7 @@
-import styles from "./AuthUser.module.css";
+import styles from "./SuccessfullPasswordChange.module.css";
 import { useNavigate } from "react-router-dom";
 
-export default function AuthUser() {
+export default function LinkExpirado() {
   const navigate = useNavigate();
 
   const handleVoltar = () => {
@@ -12,7 +12,10 @@ export default function AuthUser() {
     <div className={styles.background}>
       <div className={styles.banner}>
         <div className={styles.textContainer}>
-          <h2 className={styles.title}>E-mail confirmado com sucesso!</h2>
+          <h2 className={styles.title}>Senha alterada com sucesso!</h2>
+          <p className={styles.message}>
+            Utilize a sua nova senha para acessar o sistema à partir de agora.<br />
+          </p>
           <div className={styles.actions}>
             <button
               className={`btnUltraViolet ${styles.btnCustomHeight} ${styles.btnCustomBack}`}
