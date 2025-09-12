@@ -207,7 +207,7 @@ function Receitas() {
             />
           ) : (
             <div
-              className={`rounded mb-2 d-flex align-items-center justify-content-center ${styles.semImagem}`}
+              className={`rounded d-flex align-items-center justify-content-center ${styles.semImagem}`}
               style={{
                 width: "170px",
                 height: "170px",
@@ -219,7 +219,7 @@ function Receitas() {
             </div>
           )}
 
-          <h5 className="fw-bold mb-1">{receita.Nome_Receita || "Sem Nome"}</h5>
+          <h5 className={`fw-bold mb-1  ${styles.tituloReceita}`}>{receita.Nome_Receita || "Sem Nome"}</h5>
           <p className="mb-1 fs-6">{receita.Categoria || "Sem Categoria"}</p>
 
           <div className="d-flex justify-content-between fs-6 mb-1">

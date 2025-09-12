@@ -16,7 +16,7 @@
 }
 
 .semImagem {
-background-color: var(--white-smoke);
+  background-color: var(--white-smoke);
 }
 
 .Trash{
@@ -33,6 +33,29 @@ background-color: var(--white-smoke);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 1050px) {
+  .iconeReceitaVazia {
+    width: 60%;
+    height: 60%;
+  }
+  .cardReceita {
+    width: 200px;
+
+  }
+
+}
+
+@media (max-width: 991px) {
+  .iconeReceitaVazia {
+    width: 60%;
+    height: 60%;
+  }
+  .cardReceita {
+    height: 299px;
+  }
+
 }
 
 @media (max-width: 576px) {
