@@ -37,6 +37,8 @@ function App() {
         body: formData
       });
       if (res.ok) {
+        const data = await res.json();
+        console.log(data); // Veja no console se vem { mensagem: "Usuário cadastrado com sucesso!" }
         toast.success("Receita cadastrada com sucesso!");
         // ...outros comandos...
       } else {
@@ -50,7 +52,7 @@ function App() {
   return (
     <>
       {logado && <Navbar onLogout={logout} />}
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         <Route
           path="/sign-in"

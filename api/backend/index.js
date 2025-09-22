@@ -21,7 +21,7 @@ import cadastroReceitas from "./routes/cadastroReceitas.js";
 import cadastroDespesas from "./routes/cadastroDespesas.js";
 import LucroPorReceita from "./routes/LucroPorReceita.js";
 import receitaDetalhadaRouter from './routes/receitaDetalhada.js';
-import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js'; // ajuste o caminho conforme estrutura
+import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js'; 
 
 
 
@@ -43,10 +43,10 @@ app.use(
 
 app.use(express.json());
 
-// Corrigido: serve a pasta 'uploads' no mesmo nível do app.js
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Registro das rotas
+// Registro das rotas ;)
 app.use("/api", cadastroRoutes);
 app.use("/api", loginRoutes);
 app.use("/api/ingredientes", ingredientesRoutes);

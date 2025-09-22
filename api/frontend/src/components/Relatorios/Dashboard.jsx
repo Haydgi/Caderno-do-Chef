@@ -12,9 +12,7 @@ import IngredientHistory from './IngredientHistory';
 import { MdPictureAsPdf } from 'react-icons/md';
 import styles from './Dashboard.module.css';
 import axios from 'axios';
-import { createPortal } from 'react-dom';
 import ModalExportDashboard from './ModalExportDashboard';
-
 
 const Dashboard = () => {
   const [userId, setUserId] = useState(null);
@@ -22,6 +20,7 @@ const Dashboard = () => {
   const [ingredientList, setIngredientList] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
 
+  // Recupera userId do localStorage
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
     if (storedUserId) {
@@ -29,10 +28,11 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Busca ingredientes do backend
   useEffect(() => {
     if (!userId) return;
-    // Busca ingredientes do backend
-    axios.get('/api/ingredientes?usuario=' + userId)
+
+    axios.get(`/api/ingredientes?usuario=${userId}`)
       .then(res => {
         const nomes = [...new Set(res.data.map(ing => ing.Nome_Ingrediente))].sort();
         setIngredientList(nomes);
@@ -48,27 +48,26 @@ const Dashboard = () => {
   };
 
   const handleExport = async () => {
-  if (selectedIngredients.length === 0) return;
+    if (selectedIngredients.length === 0) return;
 
-  const formData = new FormData();
-  selectedIngredients.forEach(ing => formData.append('ingredientes[]', ing));
+    const formData = new FormData();
+    selectedIngredients.forEach(ing => formData.append('ingredientes[]', ing));
 
-  try {
-    const response = await fetch('/api/export-dashboard.php', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const response = await fetch('/api/export-dashboard.php', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, '_blank');
-  } catch (err) {
-    console.error('Erro ao gerar PDF:', err);
-  }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Erro ao gerar PDF:', err);
+    }
 
-  setShowExportModal(false);
-};
-
+    setShowExportModal(false);
+  };
 
   return (
     <div className={styles.dashboard}>
@@ -77,46 +76,45 @@ const Dashboard = () => {
         <IngredientHistory usuarioId={userId} />
       </div>
 
-      {/* Linha 2 - Lucro Por Receita: ProfitChart*/}
+      {/* Linha 2 - Lucro Por Receita: ProfitChart */}
       <div className={styles.row}>
         <ProfitChart userId={userId} />
       </div>
 
       {/* Linha 3 - Ingredientes com Maior Desperdício WasteChart /// Desperdício Médio AvgWaste */}
       <div className={styles.row}>
-        <WasteChart userId={userId}/>
+        <WasteChart userId={userId} />
         <AvgWaste userId={userId} />
       </div>
 
-      {/* Linha 4 - Tempo Médio Por Categoria TimeChart  */}
+      {/* Linha 4 - Tempo Médio Por Categoria TimeChart */}
       <div className={styles.row}>
         <TimeChart userId={userId} />
       </div>
 
-      {/* Linha 5 - Receitas Cadastradas: RecipeCount recipes /// Ingredientes Cadastrados IngredientCount ingredients /// Distribuição Por Categoria: CategoriesChart recipes */}
+      {/* Linha 5 - Receitas Cadastradas: RecipeCount / IngredientCount / CategoriesChart */}
       {userId && (
-  <div className={styles.row}>
-    <RecipeCount userId={userId} />
-    <IngredientCount userId={userId} />
-    <CategoriesChart userId={userId} />
-  </div>
-)}
+        <div className={styles.row}>
+          <RecipeCount userId={userId} />
+          <IngredientCount userId={userId} />
+          <CategoriesChart userId={userId} />
+        </div>
+      )}
 
-      {/* Linha 6 - Ingredientes Subutilizados: UnderusedIngredients recipes */}
+      {/* Linha 6 - Ingredientes Subutilizados */}
       <div className={styles.row}>
-        <UnderusedIngredients userId={userId} ingredients={ingredients} />
+        <UnderusedIngredients userId={userId} ingredients={ingredientList} />
       </div>
 
       {/* Botão flutuante Exportar PDF */}
       <button
         className={styles.fabExport}
-        onClick={() => setShowExportModal(true)} // abre o modal
+        onClick={() => setShowExportModal(true)}
         title="Exportar PDF"
       >
         <MdPictureAsPdf size={24} style={{ marginRight: 8 }} />
         Exportar
       </button>
-
 
       {/* Modal de Exportação */}
       {showExportModal && (
@@ -124,11 +122,11 @@ const Dashboard = () => {
           onClose={() => setShowExportModal(false)}
           ingredientList={ingredientList}
           onExport={(selectedIngredients) => {
-            // aqui você coloca a função de exportação
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/api/export-dashboard.php';
             form.target = '_blank';
+
             selectedIngredients.forEach(ing => {
               const input = document.createElement('input');
               input.type = 'hidden';
@@ -136,14 +134,13 @@ const Dashboard = () => {
               input.value = ing;
               form.appendChild(input);
             });
+
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
           }}
         />
       )}
-
-
     </div>
   );
 };

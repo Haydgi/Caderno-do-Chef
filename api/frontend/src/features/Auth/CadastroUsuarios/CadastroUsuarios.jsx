@@ -43,83 +43,29 @@ export default function Cadastro() {
     return value;
   };
 
-  const handleCadastro = (e) => {
+  const handleCadastro = async (e) => {
     e.preventDefault();
+    const usuario = { nome, email, telefone, senha };
 
-    // Redefine o pop-up para garantir que ele reapareça
-    setPopUpMessage("");
+    try {
+      const response = await fetch("http://localhost:3001/api/cadastrar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(usuario)
+      });
 
-    const camposNaoPreenchidos = [];
-    const camposInvalidosTemp = [];
+      const data = await response.json(); // Lê o JSON retornado do backend
 
-    // Validações
-    if (nome.length < 3) camposInvalidosTemp.push("nome");
-
-    if (!email) {
-      camposNaoPreenchidos.push("email");
-    } else if (!email.includes("@")) {
-      camposInvalidosTemp.push("email"); // Adiciona o campo de e-mail como inválido
+      if (response.ok) {
+        toast.success(data.mensagem); // Exibe "Usuário cadastrado com sucesso!"
+        // Limpar campos, navegar, etc.
+      } else {
+        toast.error(data.mensagem); // Exibe mensagem de erro do backend
+      }
+    } catch (err) {
+      console.error("Erro ao cadastrar:", err);
+      toast.error("Erro ao cadastrar usuário.");
     }
-    if (!confirmarEmail || email !== confirmarEmail)
-      camposInvalidosTemp.push("confirmarEmail");
-
-    // Validação do telefone
-    const telefoneNumeros = telefone.replace(/\D/g, ""); // Remove caracteres não numéricos
-    if (!telefone || telefoneNumeros.length < 10 || telefoneNumeros.length > 15) {
-      camposInvalidosTemp.push("telefone");
-    }
-
-    // Validação da senha
-    if (!validarSenha(senha)) {
-      camposInvalidosTemp.push("senha");
-    }
-
-    if (!confirmarSenha || !validarConfirmacaoSenha(senha, confirmarSenha)) {
-    camposInvalidosTemp.push("confirmarSenha");
-  }
-
-    // Se houver campos inválidos ou não preenchidos
-    if (camposNaoPreenchidos.length > 0 || camposInvalidosTemp.length > 0) {
-      setTimeout(() => {
-        toast.error("Por favor, corrija os campos destacados."); }, 0);
-        
-      setCamposInvalidos([...camposNaoPreenchidos, ...camposInvalidosTemp]);
-      return;
-    }
-
-    // Cadastro bem-sucedido
-    const usuario = {
-  nome,
-  email,
-  telefone,
-  senha,
-};
-
-fetch("http://localhost:3001/api/cadastrar", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(usuario)
-})
-.then(response => response.json())
-.then(data => {
-  toast.success("Cadastro realizado com sucesso!");
-
-  // Limpa os campos após sucesso
-  setNome("");
-  setEmail("");
-  setConfirmarEmail("");
-  setSenha("");
-  setConfirmarSenha("");
-  setTelefone("");
-  setCamposInvalidos([]);
-})
-.catch(error => {
-  console.error("Erro ao cadastrar:", error);
-  toast.error("Erro ao cadastrar usuário.");
-});
-
   }
 
   const handleInputChange = (campo, valor) => {

@@ -434,6 +434,19 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     return 1;
   };
 
+  // Função para exibir unidade padrão amigável
+  function unidadePadraoExibicao(unidade) {
+    if (!unidade) return "";
+    const u = unidade.toLowerCase().trim();
+    // Massa
+    if (["kg", "hg", "dag", "g", "dg", "cg", "mg"].includes(u)) return "g";
+    // Volume
+    if (["kl", "hl", "dal", "l", "dl", "cl", "ml"].includes(u)) return "ml";
+    // Contáveis
+    if (["un", "unidade", "unidades", "dúzia", "duzia"].includes(u)) return "un";
+    return unidade;
+  }
+
   const unidadeCorrigida = (unidade) => {
     if (!unidade) return "";
     const u = unidade.toLowerCase();
@@ -605,7 +618,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         min={1}
                         onChange={(e) => handleIngredienteChange(index, "quantidade", e.target.value)}
                       />
-                      <span className="d-flex justify-content-center">{unidadeCorrigida(ingrediente.unidade)}</span>
+                      <span className="d-flex justify-content-center">{unidadePadraoExibicao(ingrediente.unidade)}</span>
                       <button
                         type="button"
                         className={styles.btnRemoveIngrediente}

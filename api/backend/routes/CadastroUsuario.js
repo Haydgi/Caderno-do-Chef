@@ -4,6 +4,13 @@ import bcrypt from "bcrypt";
 
 const router = express.Router();
 
+// Função chamada após cadastro bem-sucedido
+function onCadastroBemSucedido({ nome, email, telefone }) {
+  // Aqui você pode adicionar qualquer lógica extra, como logs, envio de e-mail, etc.
+  console.log(`[EVENTO] Novo usuário cadastrado: ${nome} (${email}, ${telefone})`);
+  // Exemplo: enviarEmailBoasVindas(email, nome);
+}
+
 router.post("/cadastrar", async (req, res) => {
   console.log("Requisição recebida:", req.body); // <- AJUDA MUITO
 
@@ -23,9 +30,12 @@ router.post("/cadastrar", async (req, res) => {
 
     db.query(query, [nome, email, telefone, senhaCriptografada], (err, result) => {
       if (err) {
-        console.error("Erro ao inserir no banco:", err); // <- ESSENCIAL
+        console.error("Erro ao inserir no banco:", err);
         return res.status(500).json({ mensagem: "Erro no servidor ao cadastrar usuário." });
       }
+
+      // Chama a função de cadastro bem-sucedido
+      onCadastroBemSucedido({ nome, email, telefone });
 
       return res.status(201).json({ mensagem: "Usuário cadastrado com sucesso!" });
     });
