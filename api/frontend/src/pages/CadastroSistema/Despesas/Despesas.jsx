@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
+import ModelPage from '../ModelPage';
 import ModalCadastroDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalCadastroDespesa';
 import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalEditaDespesa';
-import ModelPage from '../ModelPage';
 import styles from './Despesas.module.css';
 import { FaMoneyBillWave, FaTrash, FaRegClock } from 'react-icons/fa';
-import Swal from 'sweetalert2';
 import { MdOutlineCalendarMonth } from 'react-icons/md';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 function Despesas() {
+  const [termoBusca, setTermoBusca] = useState('');
   const [despesas, setDespesas] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(12);
-  const [termoBusca, setTermoBusca] = useState('');
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -35,106 +38,138 @@ function Despesas() {
     return () => window.removeEventListener('resize', ajustarItensPorTamanho);
   }, []);
 
-  // 🔧 Função para buscar despesas (com ou sem filtro)
-  const fetchDespesas = async (termo = "") => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(
-        `http://localhost:3001/api/despesas?limit=10000&search=${encodeURIComponent(termo)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Erro ao buscar despesas");
+  const getToken = () => localStorage.getItem('token');
 
-      const dados = await res.json();
-      const despesasNormalizadas = dados.map((d) => ({
-        id: d.ID_Despesa,
-        nome: d.Nome_Despesa,
-        custoMensal: d.Custo_Mensal,
-        tempoOperacional: d.Tempo_Operacional,
-        data: d.Data_Despesa,
+  const fetchDespesas = async (termo = '') => {
+    const token = getToken();
+    if (!token) {
+      console.log('Sem token, não busca despesas');
+      return;
+    }
+
+    try {
+      console.log('Buscando despesas com termo:', termo);
+      
+      // Adiciona timestamp para evitar cache no Firefox
+      const timestamp = new Date().getTime();
+      const url = `${API_URL}/api/despesas?limit=10000&search=${encodeURIComponent(termo)}&_t=${timestamp}`;
+      
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
+      
+      if (!res.ok) {
+        console.error('Erro na resposta:', res.status);
+        throw new Error('Erro ao buscar despesas');
+      }
+      
+      const data = await res.json();
+      console.log('Dados recebidos da API:', data);
+      
+      // Normaliza os dados
+      const despesasNormalizadas = data.map(item => ({
+        ...item,
+        id: item.ID_Despesa,
+        nome: item.Nome_Despesa,
+        custoMensal: item.Custo_Mensal,
+        tempoOperacional: item.Tempo_Operacional,
+        data: item.Data_Despesa,
       }));
+      
+      console.log('Despesas normalizadas:', despesasNormalizadas);
       setDespesas(despesasNormalizadas);
     } catch (error) {
-      console.error("Erro ao buscar despesas:", error);
-      Swal.fire('Erro', 'Erro ao buscar despesas. Verifique sua autenticação.', 'error');
+      console.error('Erro no fetchDespesas:', error);
+      setDespesas([]);
+      toast.error('Falha ao buscar despesas.');
     }
   };
 
-  // 🔁 Buscar ao carregar ou quando o termoBusca mudar
+  // Força limpeza de cache no Firefox
   useEffect(() => {
-    fetchDespesas(termoBusca);
-  }, [termoBusca]);
+    // Detecta se é Firefox
+    const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    
+    if (isFirefox) {
+      console.log('🦊 Firefox detectado - aplicando correções');
+      // Força recarregamento sem cache
+      const timer = setTimeout(() => {
+        fetchDespesas(termoBusca);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      fetchDespesas(termoBusca);
+    }
+  }, [API_URL, termoBusca]);
+  
+  // Força busca inicial ao montar componente (especialmente para Firefox)
+  useEffect(() => {
+    console.log('Componente montado - busca inicial');
+    fetchDespesas('');
+  }, []);
 
-  const salvarDespesa = (nova) => {
-    setDespesas((prev) => [
-      ...prev,
-      {
-        ...nova,
-        id: prev.length + 1,
-      },
-    ]);
-    setMostrarModal(false);
+  const salvarDespesa = async (novaDespesa) => {
+    // Não faz POST aqui, apenas recarrega a lista
+    // O modal já fez o POST
+    await fetchDespesas();
   };
 
-  const atualizarDespesa = async (atualizada) => {
-  const token = localStorage.getItem("token");
+  const atualizarDespesa = async (despesaAtualizada) => {
+    const token = getToken();
+    if (!token) return;
 
-  try {
-    const params = new URLSearchParams();
-    params.append("nome", atualizada.nome);
-    params.append("custoMensal", atualizada.custoMensal.toString());
-    params.append("tempoOperacional", atualizada.tempoOperacional.toString());
-
-    await axios.put(
-      `http://localhost:3001/api/despesas/${atualizada.id}`,
-      params,
-      {
+    try {
+      const res = await fetch(`${API_URL}/api/despesas/${despesaAtualizada.id}`, {
+        method: 'PUT',
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/x-www-form-urlencoded', // 👈 essencial
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-      }
-    );
+        body: new URLSearchParams({
+          nome: despesaAtualizada.nome,
+          custoMensal: despesaAtualizada.custoMensal,
+          tempoOperacional: despesaAtualizada.tempoOperacional
+        })
+      });
 
-    await fetchDespesas(); // recarrega lista
-    Swal.fire("Sucesso", "Despesa atualizada com sucesso!", "success");
-  } catch (err) {
-    console.error("Erro ao atualizar despesa:", err);
-    Swal.fire("Erro", "Erro ao atualizar a despesa.", "error");
-  } finally {
-    setMostrarModalEditar(false);
-    setDespesaSelecionada(null);
-  }
-};
+      if (!res.ok) throw new Error('Erro ao atualizar despesa');
+
+      // Recarrega todas as despesas após editar
+      await fetchDespesas();
+
+      setMostrarModalEditar(false);
+      setDespesaSelecionada(null);
+      toast.success('Despesa atualizada com sucesso!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao atualizar despesa.');
+    }
+  };
 
   const removerDespesa = async (id) => {
-    const token = localStorage.getItem('token');
-    try {
-      await axios.delete(`http://localhost:3001/api/despesas/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setDespesas((prev) => prev.filter((d) => d.id !== id));
-      Swal.fire('Excluída!', 'A despesa foi removida.', 'success');
-    } catch (error) {
-      console.error('Erro ao excluir despesa:', error);
-      Swal.fire('Erro', 'Não foi possível remover a despesa.', 'error');
-    }
-  };
+    const token = getToken();
+    if (!token) return;
 
-  const adicionarDespesaGenerica = () => {
-    const despesaGenerica = {
-      id: despesas.length + 1,
-      nome: "Despesa Genérica",
-      custoMensal: 100.0,
-      tempoOperacional: 10,
-    };
-    setDespesas((prev) => [...prev, despesaGenerica]);
+    try {
+      const res = await fetch(`${API_URL}/api/despesas/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error('Erro ao remover despesa');
+
+      setDespesas(prev => prev.filter(d => d.id !== id));
+      toast.success('Despesa removida com sucesso!');
+    } catch (err) {
+      toast.error('Erro ao remover despesa.');
+    }
   };
 
   const renderCard = (despesa) => (
@@ -162,23 +197,28 @@ function Despesas() {
             className={styles.Trash}
             onClick={(e) => {
               e.stopPropagation();
+              
+              // SweetAlert para confirmação
               Swal.fire({
                 title: 'Tem certeza?',
                 text: 'Você deseja excluir esta despesa?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#EF4444',
+                confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Sim, excluir',
                 cancelButtonText: 'Cancelar',
               }).then((result) => {
                 if (result.isConfirmed) {
                   removerDespesa(despesa.id);
+                  Swal.fire(
+                    'Excluído!',
+                    'A despesa foi removida com sucesso.',
+                    'success'
+                  );
                 }
               });
             }}
-            title="Excluir"
-            style={{ marginLeft: -30, cursor: 'pointer' }}
           >
             <FaTrash />
           </i>
@@ -189,14 +229,7 @@ function Despesas() {
 
   return (
     <ModelPage
-      titulo={
-        <span
-          onClick={adicionarDespesaGenerica}
-          style={{ cursor: "pointer", textDecoration: "underline" }}
-        >
-          Despesas cadastradas
-        </span>
-      }
+      titulo="Despesas cadastradas"
       dados={despesas}
       salvarItem={salvarDespesa}
       removerItem={removerDespesa}

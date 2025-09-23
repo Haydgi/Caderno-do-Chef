@@ -63,6 +63,8 @@ function ModalCadastroDespesa({ onClose, onSave }) {
 
     try {
       const token = localStorage.getItem("token");
+      console.log('🔑 Token disponível:', token ? 'sim' : 'não');
+      console.log('📦 Dados da despesa a serem enviados:', despesa);
 
       if (!token) {
         toast.error("Usuário não autenticado");
@@ -77,10 +79,13 @@ function ModalCadastroDespesa({ onClose, onSave }) {
         },
         body: JSON.stringify(despesa),
       });
+      
+      console.log('📊 Status da resposta POST:', response.status, response.statusText);
 
       if (response.ok) {
         const data = await response.json();
-        toast.success("Despesa cadastrada com sucesso!");
+        console.log('✅ Despesa criada com sucesso:', data);
+        console.log('🔄 Chamando onSave com dados:', data);
         onSave?.(data);
         handleClose();
       } else {

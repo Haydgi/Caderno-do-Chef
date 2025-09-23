@@ -39,8 +39,9 @@ function ModelPage({
   }, []);
 
   useEffect(() => {
-    if (totalPaginas > prevTotalPaginas.current) {
-      setPaginaAtual(totalPaginas - 1);
+    // Só muda a página se realmente há novos dados
+    if (totalPaginas > prevTotalPaginas.current && dados.length > 0) {
+      setPaginaAtual(Math.max(0, totalPaginas - 1));
     }
     prevTotalPaginas.current = totalPaginas;
   }, [dados, totalPaginas]);
@@ -50,6 +51,13 @@ function ModelPage({
       setPaginaAtual(totalPaginas - 1);
     }
   }, [paginaAtual, totalPaginas]);
+  
+  // Reset página para 0 quando dados mudarem drasticamente
+  useEffect(() => {
+    if (dados.length > 0 && paginaAtual >= Math.ceil(dados.length / itensPorPagina)) {
+      setPaginaAtual(0);
+    }
+  }, [dados.length, itensPorPagina]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -177,7 +185,7 @@ function ModelPage({
               </div>
             ) : (
               <div className="row">
-                {dados.slice(paginaAtual * itensPorPagina, (paginaAtual + 1) * itensPorPagina).map(renderCard)}
+                {dadosExibidos.map(renderCard)}
               </div>
             )}
           </div>
