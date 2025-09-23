@@ -82,7 +82,7 @@ function Ingredientes() {
         id: item.ID_Ingredientes,
         nome: item.Nome_Ingrediente,
         preco: item.Custo_Ingrediente,
-        unidadeCompra: item.Unidade_Compra,
+        unidadeCompra: item.Unidade_Compra || item.Unidade_De_Medida,
         categoria: item.Categoria,
         icone: iconesCategorias[item.Categoria] || "❓",
       })));
@@ -183,7 +183,7 @@ function Ingredientes() {
         <div className={styles.cardIcon}>{ingrediente.icone}</div>
         <h5 className={styles.cardTitle}>{ingrediente.nome}</h5>
         <p className={styles.cardPrice}>
-          {(ingrediente.preco || 0).toFixed(2)} R$ / {ingrediente.unidadeCompra}
+          R$ {(ingrediente.preco || 0).toFixed(2).replace('.', ',')}/{ingrediente.unidadeCompra}
         </p>
         <div className={styles.cardAction}>
           <i
