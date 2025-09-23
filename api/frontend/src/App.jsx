@@ -25,34 +25,22 @@ function App() {
     navigate('/'); // Redireciona para a página inicial (Sobre)
   };
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    try {
-      const res = await fetch("http://localhost:3001/api/receitas", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`
-          // NÃO coloque Content-Type aqui, o browser define para FormData!
-        },
-        body: formData
-      });
-      if (res.ok) {
-        const data = await res.json();
-        console.log(data); // Veja no console se vem { mensagem: "Usuário cadastrado com sucesso!" }
-        toast.success("Receita cadastrada com sucesso!");
-        // ...outros comandos...
-      } else {
-        toast.error("Erro ao cadastrar receita!");
-      }
-    } catch (error) {
-      toast.error("Erro inesperado!");
-    }
-  }
 
   return (
     <>
       {logado && <Navbar onLogout={logout} />}
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <Routes>
         <Route
           path="/sign-in"

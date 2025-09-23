@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 
@@ -33,9 +34,16 @@ const PORT = process.env.PORT || 3001;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Garante que o diretório uploads existe
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('✌️ Diretório uploads criado:', uploadsDir);
+}
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -44,7 +52,20 @@ app.use(
 app.use(express.json());
 
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Servir imagens com headers de cache otimizados
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
+  maxAge: '7d', // Cache por 7 dias
+  etag: true, // Habilita ETags
+  lastModified: true, // Habilita Last-Modified header
+  setHeaders: (res, path, stat) => {
+    // Adiciona headers de segurança para imagens
+    res.set({
+      'Cache-Control': 'public, max-age=604800', // 7 dias em segundos
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; img-src 'self';"
+    });
+  }
+}));
 
 // Registro das rotas ;)
 app.use("/api", cadastroRoutes);

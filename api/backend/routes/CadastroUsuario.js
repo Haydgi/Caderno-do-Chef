@@ -12,7 +12,7 @@ function onCadastroBemSucedido({ nome, email, telefone }) {
 }
 
 router.post("/cadastrar", async (req, res) => {
-  console.log("Requisição recebida:", req.body); // <- AJUDA MUITO
+  console.log("Requisição recebida:", req.body);
 
   const { nome, email, telefone, senha } = req.body;
 
@@ -28,19 +28,29 @@ router.post("/cadastrar", async (req, res) => {
       VALUES (?, ?, ?, ?)
     `;
 
-    db.query(query, [nome, email, telefone, senhaCriptografada], (err, result) => {
-      if (err) {
-        console.error("Erro ao inserir no banco:", err);
-        return res.status(500).json({ mensagem: "Erro no servidor ao cadastrar usuário." });
-      }
-
+    // USAR AWAIT COM MYSQL2/PROMISE
+    const [result] = await db.query(query, [nome, email, telefone, senhaCriptografada]);
+    
+    console.log("Resultado da inserção:", result);
+    
+    if (result.affectedRows > 0) {
       // Chama a função de cadastro bem-sucedido
       onCadastroBemSucedido({ nome, email, telefone });
-
+      
+      // IMPORTANTE: Responder antes do fim do try/catch
       return res.status(201).json({ mensagem: "Usuário cadastrado com sucesso!" });
-    });
+    } else {
+      return res.status(500).json({ mensagem: "Erro ao inserir usuário." });
+    }
+    
   } catch (error) {
-    console.error("Erro ao processar dados:", error); // <- ESSENCIAL
+    console.error("Erro ao processar dados:", error);
+    
+    // Verificar se é erro de duplicação
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ mensagem: "Email já cadastrado!" });
+    }
+    
     return res.status(500).json({ mensagem: "Erro interno no servidor." });
   }
 });

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Password, { validarSenha, validarConfirmacaoSenha } from "../PswdLogic.jsx";
+import Password from "../PswdLogic.jsx";
 import { useNavigate } from "react-router-dom";
 import "../../../Styles/global.css";
 import "../globalAuth.css";
@@ -10,102 +10,123 @@ import { toast } from "react-toastify";
 export default function Cadastro() {
   const navigate = useNavigate();
 
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [confirmarEmail, setConfirmarEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [telefone, setTelefone] = useState("");
+  // Estados dos campos
+  const [formData, setFormData] = useState({
+    nome: "",
+    email: "",
+    confirmarEmail: "",
+    senha: "",
+    confirmarSenha: "",
+    telefone: ""
+  });
 
-  const [popUpMessage, setPopUpMessage] = useState(""); // Estado para o pop-up
-  const [camposInvalidos, setCamposInvalidos] = useState([]); // Campos inválidos
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [camposInvalidos, setCamposInvalidos] = useState([]);
 
-  const formatTelefone = (value) => {
-    // Remove todos os caracteres que não sejam números
-    value = value.replace(/\D/g, "");
-
-    // Se o campo estiver vazio, retorna uma string vazia
-    if (value === "") {
-      return "";
-    }
-
-    // Adiciona os parênteses e o traço conforme o usuário digita
-    if (value.length > 10) {
-      value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
-    } else if (value.length > 6) {
-      value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
-    } else if (value.length > 2) {
-      value = value.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
-    } else {
-      value = value.replace(/^(\d*)/, "($1");
-    }
-
-    return value;
+  // Função para resetar completamente o formulário
+  const resetarFormulario = () => {
+    setFormData({
+      nome: "",
+      email: "",
+      confirmarEmail: "",
+      senha: "",
+      confirmarSenha: "",
+      telefone: ""
+    });
+    setCamposInvalidos([]);
   };
 
-  const handleCadastro = async (e) => {
-    e.preventDefault();
-    const usuario = { nome, email, telefone, senha };
+  // Formatar telefone
+  const formatTelefone = (value) => {
+    value = value.replace(/\D/g, "");
+    if (!value) return "";
+    
+    if (value.length > 10) {
+      return value.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+    } else if (value.length > 6) {
+      return value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+    } else if (value.length > 2) {
+      return value.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+    }
+    return value.replace(/^(\d*)/, "($1");
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    
+    // Validações
+    if (!formData.nome || !formData.email || !formData.telefone || !formData.senha) {
+      toast.error("Preencha todos os campos obrigatórios!");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formData.email !== formData.confirmarEmail) {
+      toast.error("Os e-mails não coincidem!");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (formData.senha !== formData.confirmarSenha) {
+      toast.error("As senhas não coincidem!");
+      setIsSubmitting(false);
+      return;
+    }
+    
+    const dadosParaEnviar = {
+      nome: formData.nome.trim(),
+      email: formData.email.trim().toLowerCase(),
+      telefone: formData.telefone.trim(),
+      senha: formData.senha
+    };
+    
     try {
       const response = await fetch("http://localhost:3001/api/cadastrar", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(usuario)
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dadosParaEnviar)
       });
-
-      const data = await response.json(); // Lê o JSON retornado do backend
-
+      
+      const data = await response.json();
+      
       if (response.ok) {
-        toast.success(data.mensagem); // Exibe "Usuário cadastrado com sucesso!"
-        // Limpar campos, navegar, etc.
+        toast.success(data.mensagem || "Usuário cadastrado com sucesso!");
+        resetarFormulario();
+        
+        setTimeout(() => {
+          navigate('/sign-in');
+        }, 2000);
       } else {
-        toast.error(data.mensagem); // Exibe mensagem de erro do backend
+        toast.error(data.mensagem || "Erro ao cadastrar usuário");
       }
-    } catch (err) {
-      console.error("Erro ao cadastrar:", err);
-      toast.error("Erro ao cadastrar usuário.");
+      
+    } catch (error) {
+      console.error("Erro ao cadastrar:", error);
+      toast.error("Erro de conexão com o servidor");
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
 
+  // Handler para mudança dos campos
   const handleInputChange = (campo, valor) => {
-    switch (campo) {
-      case "nome":
-        setNome(valor);
-        break;
-      case "email":
-        setEmail(valor);
-        break;
-      case "confirmarEmail":
-        setConfirmarEmail(valor);
-        break;
-      case "senha":
-        setSenha(valor);
-        break;
-      case "confirmarSenha":
-        setConfirmarSenha(valor);
-        break;
-      case "telefone":
-        // Atualiza o estado com o valor formatado
-        setTelefone(formatTelefone(valor));
-
-        // Validação do telefone
-        const telefoneNumeros = valor.replace(/\D/g, ""); // Remove caracteres não numéricos
-        if (telefoneNumeros.length >= 10 && telefoneNumeros.length <= 15) {
-          // Número válido: remove o campo da lista de inválidos
-          setCamposInvalidos((prev) =>
-            prev.filter((item) => item !== "telefone")
-          );
-        }
-        break;
-
-      default:
-        setCamposInvalidos((prev) => prev.filter((item) => item !== campo));
-        break;
+    if (campo === 'telefone') {
+      valor = formatTelefone(valor);
     }
-
-    // Remove o campo da lista de inválidos assim que o usuário começa a preenchê-lo
-    setCamposInvalidos((prev) => prev.filter((item) => item !== campo));
+    
+    setFormData(prev => ({
+      ...prev,
+      [campo]: valor
+    }));
+    
+    // Remover erro do campo quando usuário começa a digitar
+    setCamposInvalidos(prev => prev.filter(item => item !== campo));
   };
 
   return (
@@ -123,7 +144,7 @@ export default function Cadastro() {
       <div className={styles.ladoDireito}>
         <form
           className={styles.formulario}
-          onSubmit={handleCadastro}
+          onSubmit={handleSubmit}
           noValidate
         >
           <div className={styles.topoForms}>
@@ -149,7 +170,7 @@ export default function Cadastro() {
                   minLength="2"
                   maxLength="100"
                   placeholder="Ex: João Oliveira da Silva"
-                  value={nome}
+                  value={formData.nome}
                   onChange={(e) => handleInputChange("nome", e.target.value)}
                   required
                   className={`${styles.inputField} ${camposInvalidos.includes("nome") ? styles.inputInvalido : ""
@@ -171,10 +192,8 @@ export default function Cadastro() {
                 <input
                   id="telefone"
                   type="text"
-                  value={telefone}
-                  onChange={(e) =>
-                    handleInputChange("telefone", formatTelefone(e.target.value))
-                  }
+                  value={formData.telefone}
+                  onChange={(e) => handleInputChange("telefone", e.target.value)}
                   placeholder="(XX) XXXXX-XXXX"
                   required
                   className={`${styles.inputField} ${camposInvalidos.includes("telefone") ? styles.inputInvalido : ""
@@ -182,9 +201,9 @@ export default function Cadastro() {
                 />
               </div>
               {/* Exibe a mensagem de erro apenas se o telefone não for válido */}
-              {telefone.replace(/\D/g, "").length > 0 &&
-                (telefone.replace(/\D/g, "").length < 10 ||
-                  telefone.replace(/\D/g, "").length > 15) && (
+              {formData.telefone.replace(/\D/g, "").length > 0 &&
+                (formData.telefone.replace(/\D/g, "").length < 10 ||
+                  formData.telefone.replace(/\D/g, "").length > 15) && (
                   <p className={styles.textErroTelefone}>
                     Número de telefone inválido
                   </p>
@@ -202,7 +221,7 @@ export default function Cadastro() {
                   )}
               </label>
               {/* Mensagem de erro para formato inválido de e-mail */}
-              {!email.includes("@") && email && (
+              {!formData.email.includes("@") && formData.email && (
                 <p className={styles.textErroFormatoEmail}>
                   Formato de e-mail inválido
                 </p>
@@ -214,7 +233,7 @@ export default function Cadastro() {
                   type="email"
                   minLength="5"
                   maxLength="50"
-                  value={email}
+                  value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
                   className={`${styles.inputField} ${camposInvalidos.includes("email") ? styles.inputInvalido : ""
@@ -239,17 +258,15 @@ export default function Cadastro() {
                   type="email"
                   minLength="5"
                   maxLength="50"
-                  value={confirmarEmail}
-                  onChange={(e) =>
-                    handleInputChange("confirmarEmail", e.target.value)
-                  }
+                  value={formData.confirmarEmail}
+                  onChange={(e) => handleInputChange("confirmarEmail", e.target.value)}
                   required
                   className={`${styles.inputField} ${camposInvalidos.includes("confirmarEmail") || camposInvalidos.includes("email") ? styles.inputInvalido : ""
                     }`}
                 />
               </div>
               {/* Mensagem de erro se os e-mails não coincidirem */}
-              {confirmarEmail && confirmarEmail !== email && (
+              {formData.confirmarEmail && formData.confirmarEmail !== formData.email && (
                 <p className={styles.textErroConfirmarEmail}>
                   Os e-mails não coincidem
                 </p>
@@ -258,16 +275,20 @@ export default function Cadastro() {
           </div>
 
           <Password
-            senha={senha}
-            setSenha={setSenha}
-            confirmarSenha={confirmarSenha}
-            setConfirmarSenha={setConfirmarSenha}
+            senha={formData.senha}
+            setSenha={(valor) => handleInputChange("senha", valor)}
+            confirmarSenha={formData.confirmarSenha}
+            setConfirmarSenha={(valor) => handleInputChange("confirmarSenha", valor)}
             camposInvalidos={camposInvalidos}
             setCamposInvalidos={setCamposInvalidos}
           />
 
-          <button type="submit" className={styles.btnCadastrar}>
-            Cadastrar-se
+          <button 
+            type="submit" 
+            className={styles.btnCadastrar}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Cadastrando..." : "Cadastrar-se"}
           </button>
 
           <div className="mt-1 text-center">
@@ -283,19 +304,6 @@ export default function Cadastro() {
           </div>
         </form>
 
-        {/* Pop-up para mensagens */}
-        {popUpMessage && (
-          <div
-            className={
-              popUpMessage ===
-                "Cadastro realizado com sucesso! Verifique seu e-mail para ativar sua conta."
-                ? styles.popUpSucess
-                : styles.popUpError
-            }
-          >
-            {popUpMessage}
-          </div>
-        )}
       </div>
     </div>
   );
