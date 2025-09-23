@@ -8,6 +8,17 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   margin-bottom: 0px !important;
+  
+  /* Tamanho fixo para uniformizar todos os cards */
+  height: 280px;
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
+  
+  /* Flexbox para distribuir o conteúdo */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .cardReceita:hover {
@@ -35,16 +46,37 @@
   justify-content: center;
 }
 
+/* Estilo para o título da receita */
+.tituloReceita {
+  font-size: 1rem;
+  line-height: 1.2;
+  height: 2.4em; /* Fixa altura para 2 linhas */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin: 8px 0 4px 0 !important;
+}
+
+/* Container para conteúdo de texto do card */
+.cardContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
 @media (max-width: 1050px) {
   .iconeReceitaVazia {
     width: 60%;
     height: 60%;
   }
   .cardReceita {
-    width: 200px;
-
+    height: 280px; /* Mantém altura fixa */
+    max-width: 220px;
   }
-
 }
 
 @media (max-width: 991px) {
@@ -53,16 +85,19 @@
     height: 60%;
   }
   .cardReceita {
-    height: 299px;
+    height: 280px; /* Mantém altura fixa */
+    max-width: 200px;
   }
-
 }
 
 @media (max-width: 576px) {
   .cardReceita {
-    max-width: 440px;
+    height: 280px; /* Mantém altura fixa */
+    max-width: 300px;
     margin: 0 auto 16px auto;
-    margin-left: 40px !important;
   }
-
+  
+  .tituloReceita {
+    font-size: 0.9rem; /* Texto menor em telas pequenas */
+  }
 }

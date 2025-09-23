@@ -14,6 +14,7 @@ function Receitas() {
   const [receitaSelecionada, setReceitaSelecionada] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(8);
   const [termoBusca, setTermoBusca] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false); // Flag para evitar múltiplas atualizações
 
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const apiUrl = `${baseUrl}/api/receitas`;
@@ -52,7 +53,10 @@ function Receitas() {
   }, [termoBusca]);
 
   const fetchReceitas = async (busca = '') => {
+    if (isUpdating) return; // Evita múltiplas chamadas
+    
     try {
+      setIsUpdating(true);
       const url = busca ? `${apiUrl}?search=${encodeURIComponent(busca)}` : apiUrl;
       console.log("URL de busca:", url);
 
@@ -81,6 +85,19 @@ function Receitas() {
     } catch (err) {
       console.error("Erro no fetchReceitas:", err);
       setReceitas([]);
+    } finally {
+      setTimeout(() => setIsUpdating(false), 500); // Reset após 500ms
+    }
+  };
+  
+  // Função wrapper para onSave que evita múltiplas execuções
+  const handleSaveReceita = async () => {
+    if (!isUpdating) {
+      await fetchReceitas();
+      // Garante que ambos os modais sejam fechados e estados limpos
+      setMostrarModal(false);
+      setMostrarModalEditar(false);
+      setReceitaSelecionada(null);
     }
   };
 
@@ -115,7 +132,12 @@ function Receitas() {
 
       await res.json(); // Se precisar validar resposta, salve aqui
       await fetchReceitas(); // Atualiza as receitas na tela
+      
+      // Limpa completamente os estados para evitar abertura do modal de edição
       setMostrarModal(false);
+      setMostrarModalEditar(false);
+      setReceitaSelecionada(null);
+      
       Swal.fire('Sucesso', 'Receita criada com sucesso!', 'success');
     } catch (error) {
       console.error(error);
@@ -177,12 +199,26 @@ function Receitas() {
 
 
   const renderCard = (receita) => {
-
-    console.log('Imagem carregada:', receita.Imagem_URL);
-
-
     if (!receita) return null;
 
+    // Verifica se há imagem válida - testa todos os campos possíveis
+    const imagemCampo = receita.imagem_URL || receita.Imagem_URL || receita.imagem || receita.IMAGEM;
+    const temImagem = imagemCampo && typeof imagemCampo === 'string' && imagemCampo.trim() !== "";
+    const urlImagem = temImagem ? imagemCampo.trim() : null;
+    
+    console.log('Card debug:', { 
+      imagemCampo, 
+      temImagem, 
+      urlImagem, 
+      receita: receita.Nome_Receita,
+      campos_originais: {
+        imagem_URL: receita.imagem_URL,
+        Imagem_URL: receita.Imagem_URL,
+        imagem: receita.imagem,
+        IMAGEM: receita.IMAGEM
+      }
+    });
+    
     return (
       <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={receita.id || receita.ID_Receita}>
         <div
@@ -193,67 +229,106 @@ function Receitas() {
           }}
           style={{ cursor: "pointer" }}
         >
-          {receita.Imagem_URL ? (
-            <div
-              className="rounded mb-2 border"
-              style={{
-                width: "170px",
-                height: "170px",
-                backgroundImage: `url(${baseUrl}/uploads/${receita.Imagem_URL})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                margin: "0 auto",
-              }}
-            />
-          ) : (
-            <div
-              className={`rounded d-flex align-items-center justify-content-center ${styles.semImagem}`}
-              style={{
-                width: "170px",
-                height: "170px",
-                margin: "0 auto",
-                background: "transparent", // Fundo transparente
-              }}
-            >
-              <GiKnifeFork className={styles.iconeReceitaVazia} />
+          {/* Imagem ou Placeholder - NUNCA ambos */}
+          {(() => {
+            console.log('🔍 Debug Card (renderizando):', {
+              receita: receita.Nome_Receita,
+              imagemCampo,
+              temImagem,
+              urlImagem,
+              tipoImagemCampo: typeof imagemCampo
+            });
+            
+            if (temImagem) {
+              console.log('✅ Card mostrando IMAGEM para:', receita.Nome_Receita);
+              return (
+                <div
+                  className="rounded mb-2 border"
+                  style={{
+                    width: "150px",
+                    height: "120px",
+                    backgroundImage: `url(${baseUrl}/uploads/${urlImagem})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    margin: "0 auto",
+                    display: "block", // Garante display consistente
+                    flexShrink: 0, // Impede que o elemento mude de tamanho
+                  }}
+                  onError={(e) => {
+                    console.log('❌ Erro ao carregar imagem no card:', urlImagem);
+                    // Se der erro, esconde a imagem e força o placeholder
+                    e.target.style.display = 'none';
+                    // Adiciona um placeholder no lugar
+                    const placeholder = document.createElement('div');
+                    placeholder.className = `rounded d-flex align-items-center justify-content-center ${styles.semImagem}`;
+                    placeholder.style.cssText = 'width: 150px; height: 120px; margin: 0 auto; background: transparent; display: flex; flex-shrink: 0;';
+                    placeholder.innerHTML = '<svg class="${styles.iconeReceitaVazia}"><!-- ícone --></svg>';
+                    e.target.parentNode.appendChild(placeholder);
+                  }}
+                />
+              );
+            } else {
+              console.log('⭕ Card mostrando PLACEHOLDER para:', receita.Nome_Receita);
+              return (
+                <div
+                  className={`rounded d-flex align-items-center justify-content-center ${styles.semImagem}`}
+                  style={{
+                    width: "150px",
+                    height: "120px",
+                    margin: "0 auto",
+                    background: "transparent",
+                    display: "flex", // Garante display consistente
+                    flexShrink: 0, // Impede que o elemento mude de tamanho
+                    minWidth: "150px", // Força largura mínima
+                    minHeight: "120px", // Força altura mínima
+                  }}
+                >
+                  <GiKnifeFork className={styles.iconeReceitaVazia} />
+                </div>
+              );
+            }
+          })()}
+
+          {/* Container para o conteúdo de texto com altura flexível */}
+          <div className={styles.cardContent}>
+            <div>
+              <h5 className={`fw-bold ${styles.tituloReceita}`}>{receita.Nome_Receita || "Sem Nome"}</h5>
+              <p className="mb-1 fs-6" style={{margin: '4px 0'}}>{receita.Categoria || "Sem Categoria"}</p>
+              
+              <div className="d-flex justify-content-between fs-6 mb-1" style={{fontSize: '0.85rem'}}>
+                <span>{receita.Tempo_Preparo ?? 0} min</span>
+                <span>Lucro: {receita.Porcentagem_De_Lucro ?? 0}%</span>
+              </div>
             </div>
-          )}
 
-          <h5 className={`fw-bold mb-1  ${styles.tituloReceita}`}>{receita.Nome_Receita || "Sem Nome"}</h5>
-          <p className="mb-1 fs-6">{receita.Categoria || "Sem Categoria"}</p>
-
-          <div className="d-flex justify-content-between fs-6 mb-1">
-            <span> {receita.Tempo_Preparo ?? 0} min</span>
-            <span>Lucro: {receita.Porcentagem_De_Lucro ?? 0}%</span>
-          </div>
-
-          <div className="d-flex justify-content-between align-items-center">
-            <p className="fw-bold mb-0">
-              Custo: R$ {Number(receita.Custo_Total_Ingredientes ?? 0).toFixed(2)}
-            </p>
-            <i
-              className={styles.Trash}
-              onClick={(e) => {
-                e.stopPropagation();
-                Swal.fire({
-                  title: 'Tem certeza?',
-                  text: 'Você deseja excluir esta receita?',
-                  icon: 'warning',
-                  showCancelButton: true,
-                  confirmButtonColor: '#EF4444',
-                  cancelButtonColor: '#3085d6',
-                  confirmButtonText: 'Sim, excluir',
-                  cancelButtonText: 'Cancelar',
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    removerReceita(receita.id || receita.ID_Receita);
-                  }
-                });
-              }}
-              title="Excluir"
-            >
-              <FaTrash />
-            </i>
+            <div className="d-flex justify-content-between align-items-center mt-auto">
+              <p className="fw-bold mb-0" style={{fontSize: '0.9rem'}}>
+                Custo: R$ {Number(receita.Custo_Total_Ingredientes ?? 0).toFixed(2)}
+              </p>
+              <i
+                className={styles.Trash}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  Swal.fire({
+                    title: 'Tem certeza?',
+                    text: 'Você deseja excluir esta receita?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, excluir',
+                    cancelButtonText: 'Cancelar',
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      removerReceita(receita.id || receita.ID_Receita);
+                    }
+                  });
+                }}
+                title="Excluir"
+              >
+                <FaTrash />
+              </i>
+            </div>
           </div>
         </div>
       </div>
@@ -277,14 +352,14 @@ function Receitas() {
       mostrarModalEditar={mostrarModalEditar}
       ModalCadastro={() => (
         <ModalCadastroReceita
-          onSave={fetchReceitas}
+          onSave={handleSaveReceita}
           onClose={() => setMostrarModal(false)}
         />
       )}
       ModalEditar={() => (
         <ModalEditaReceita
           receita={receitaSelecionada}
-          onSave={fetchReceitas}
+          onSave={handleSaveReceita}
           onClose={() => {
             setMostrarModalEditar(false);
             setReceitaSelecionada(null);

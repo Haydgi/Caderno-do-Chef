@@ -15,6 +15,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     descricao: "",
     custoTotalIngredientes: "0.00",
     id: null,
+    imagemRemovida: false, // Flag para indicar se a imagem foi removida
   });
 
   const [ingredienteBusca, setIngredienteBusca] = useState("");
@@ -35,7 +36,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     async function fetchIngredientes() {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/api/ingredientes", {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const res = await fetch(`${baseUrl}/api/ingredientes`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -50,22 +52,40 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
   }, []);
 
   useEffect(() => {
-    if (!receita?.ID_Receita && !receita?.id) return;
+    console.log('📄 Receita recebida no modal:', receita);
+    console.log('🔍 Campos de imagem na receita:', {
+      imagem_URL: receita?.imagem_URL,
+      Imagem_URL: receita?.Imagem_URL,
+      ID_Receita: receita?.ID_Receita,
+      id: receita?.id
+    });
+    
+    if (!receita?.ID_Receita && !receita?.id) {
+      console.log('⚠️ Nenhuma receita válida recebida');
+      return;
+    }
 
     async function fetchReceitaDetalhada() {
       try {
         const token = localStorage.getItem("token");
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         const id = receita.ID_Receita || receita.id;
-        const res = await fetch(`http://localhost:3001/api/receita-detalhada/${id}`, {
+        const res = await fetch(`${baseUrl}/api/receita-detalhada/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
         const data = await res.json();
         console.log("Receita detalhada recebida:", data);
+        console.log("Campo imagem_URL:", data.imagem_URL);
+        
+        // Determina a URL da imagem (do endpoint ou da receita passada)
+        const imagemUrl = data.imagem_URL || receita?.imagem_URL || receita?.Imagem_URL || null;
+        console.log('🇺🇷L da imagem determinada:', imagemUrl);
+        
         // Atualize o estado com os dados detalhados
         setForm({
-          imagem: data.imagem_URL || null,
+          imagem: imagemUrl, // URL da imagem (string) ou null
           nome: data.Nome_Receita || "",
           categoria: data.Categoria || "",
           tempoDePreparo: data.Tempo_Preparo || "",
@@ -73,6 +93,13 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
           descricao: data.Descricao || "",
           custoTotalIngredientes: data.Custo_Total_Ingredientes || "0.00",
           id: data.ID_Receita || data.id || null,
+          imagemRemovida: false, // Reset da flag ao carregar
+        });
+        
+        console.log("Estado do form após carregar:", {
+          imagem: imagemUrl,
+          temImagem: !!(imagemUrl && imagemUrl.trim() !== ""),
+          imagemRemovida: false
         });
         setIngredientesSelecionados(
           (data.ingredientes || []).map(i => {
@@ -129,11 +156,34 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm((prev) => ({ ...prev, imagem: file }));
+    const arquivo = e.target.files[0];
+    
+    if (arquivo) {
+      // Validações do arquivo
+      const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const tamanhoMaximo = 5 * 1024 * 1024; // 5MB
+      
+      if (!tiposPermitidos.includes(arquivo.type)) {
+        toast.error(`Formato de imagem não aceito! O arquivo "${arquivo.name}" tem formato ${arquivo.type}. Apenas imagens JPG, PNG e WEBP são permitidas.`);
+        e.target.value = ''; // Limpa o input
+        return;
+      }
+      
+      if (arquivo.size > tamanhoMaximo) {
+        const tamanhoMB = (arquivo.size / (1024 * 1024)).toFixed(1);
+        toast.error(`Imagem muito grande! O arquivo "${arquivo.name}" tem ${tamanhoMB}MB. O tamanho máximo permitido é 5MB.`);
+        e.target.value = ''; // Limpa o input
+        return;
+      }
+      
+      setForm((prev) => ({ 
+        ...prev, 
+        imagem: arquivo,
+        imagemRemovida: false // Reset da flag quando nova imagem é selecionada
+      }));
+      toast.success('Nova imagem carregada com sucesso!');
     } else {
-      setForm((prev) => ({ ...prev, imagem: [] }));
+      setForm((prev) => ({ ...prev, imagem: null }));
     }
   };
 
@@ -324,6 +374,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
     try {
       const token = localStorage.getItem("token");
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const formData = new FormData();
       formData.append('Nome_Receita', form.nome || "");
       formData.append('Descricao', form.descricao || "");
@@ -331,11 +382,14 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       formData.append('Custo_Total_Ingredientes', Number(precoFinal));
       formData.append('Porcentagem_De_Lucro', Number(form.porcentagemDeLucro) || 0);
       formData.append('Categoria', form.categoria || "");
-      if (form.imagem instanceof File) {
-        formData.append('imagem_URL', form.imagem);
-      } else if (typeof form.imagem === "string" && form.imagem.trim() !== "") {
+      
+      // Controle de imagem
+      if (form.imagemRemovida) {
+        formData.append('remover_imagem', 'true');
+      } else if (form.imagem instanceof File) {
         formData.append('imagem_URL', form.imagem);
       }
+      // Se nem removida nem nova imagem, mantém a imagem atual
       const ingredientesCorrigidos = ingredientesSelecionados.map(i => ({
         ID_Ingredientes: i.ID_Ingredientes, // <-- ESSENCIAL!
         nome: i.nome,
@@ -348,7 +402,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       formData.append('ingredientes', JSON.stringify(ingredientesCorrigidos));
       console.log('Dados para enviar no PUT:', ingredientesCorrigidos);
 
-      const res = await fetch(`http://localhost:3001/api/receitas/${form.id}`, {
+      const res = await fetch(`${baseUrl}/api/receitas/${form.id}`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -393,7 +447,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       console.log("Ingredientes para enviar:", ingredientesParaEnviar);
 
       // Envio para o backend
-      await fetch(`http://localhost:3001/api/receita-detalhada/${form.id}/ingredientes`, {
+      await fetch(`${baseUrl}/api/receita-detalhada/${form.id}/ingredientes`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -468,22 +522,82 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
               <div className="row">
                 <div className="col-6">
                   <div className={`${styles.formGroup} align-items-center`}>
-                    <label htmlFor="imagemInput" className={styles.imagePreviewBox}>
-                      {form.imagem instanceof File ? (
-                        <div
-                          style={{
-                            backgroundImage: `url(${URL.createObjectURL(form.imagem)})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            width: "100%",
-                            height: "100%",
-                            borderRadius: "10px"
-                          }}
-                        />
-                      ) : (
-                        <GiKnifeFork className={styles.iconeReceitaVazia} />
-                      )}
+                    <label htmlFor="imagemInputEdit" className={styles.imagePreviewBox}>
+                      {(() => {
+                        console.log('🔍 Debug Modal Preview:', {
+                          'form.imagem': form.imagem,
+                          'tipo': typeof form.imagem,
+                          'isFile': form.imagem instanceof File,
+                          'isEmpty': !form.imagem || form.imagem === '',
+                          'imagemRemovida': form.imagemRemovida,
+                          'condicaoString': form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida
+                        });
+                        
+                        if (form.imagem instanceof File) {
+                          console.log('✅ Mostrando imagem nova (File)');
+                          return (
+                            <div
+                              style={{
+                                backgroundImage: `url(${URL.createObjectURL(form.imagem)})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "10px"
+                              }}
+                            />
+                          );
+                        } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
+                          const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                          const imageUrl = `${baseUrl}/uploads/${form.imagem}`;
+                          console.log('✅ Mostrando imagem existente:', imageUrl);
+                          return (
+                            <div
+                              style={{
+                                backgroundImage: `url(${imageUrl})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "10px"
+                              }}
+                              onError={(e) => {
+                                console.log('❌ Erro ao carregar imagem no modal:', imageUrl);
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          );
+                        } else {
+                          console.log('⭕ Mostrando ícone padrão');
+                          return <GiKnifeFork className={styles.iconeReceitaVazia} />;
+                        }
+                      })()}
                     </label>
+                    <input
+                      id="imagemInputEdit"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: 'none' }}
+                    />
+                    {(form.imagem instanceof File || (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida)) && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger mt-2 w-100"
+                        onClick={() => {
+                          setForm(prev => ({ 
+                            ...prev, 
+                            imagem: null, 
+                            imagemRemovida: true // Marca que a imagem foi removida
+                          }));
+                          const input = document.getElementById('imagemInputEdit');
+                          if (input) input.value = '';
+                          toast.info('Imagem removida');
+                        }}
+                      >
+                        <i className="bi bi-trash"></i> Remover imagem
+                      </button>
+                    )}
                   </div>
                   <div className={`${styles.formGroup} mt-4`}>
                     <label>Tempo de Preparo (Min.)</label>
