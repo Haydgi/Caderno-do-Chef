@@ -18,6 +18,10 @@ test-*.php
 test-api.js
 **/test-output.*
 
+# Uploads de usuários
+uploads/
+**/uploads/
+
 # Arquivos de build
 build/
 dist/

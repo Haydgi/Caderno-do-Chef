@@ -152,24 +152,40 @@ ${ingredientes.map(ing => `        '${ing.replace(/'/g, "\\'").replace(/"/g, '\\
     foreach ($_POST['ingredientes'] as $nomeIngrediente) {
         $nomeEscapado = htmlspecialchars($nomeIngrediente);
         
-        // Query for ingredient historical data from historico_alteracoes and preco tables
+        // First, get the ingredient ID based on name and user ID
+        $stmtIngredient = $pdo->prepare("
+            SELECT ID_Ingredientes 
+            FROM ingredientes 
+            WHERE Nome_Ingrediente = ? AND ID_Usuario = ?
+        ");
+        
+        $stmtIngredient->execute([$nomeIngrediente, $_POST['userId']]);
+        $ingredientResult = $stmtIngredient->fetch();
+        
+        if (!$ingredientResult) {
+            // No ingredient found for this user, skip
+            $html .= '<div class="ingredient-section">';
+            $html .= "<div class='ingredient-title'>$nomeEscapado</div>";
+            $html .= '<div class="no-data">Ingrediente não encontrado para este usuário.</div>';
+            $html .= '</div>';
+            continue;
+        }
+        
+        $idIngrediente = $ingredientResult['ID_Ingredientes'];
+        
+        // Now get historical data using the same structure as historicoingredientes.js
         $stmt = $pdo->prepare("
-            SELECT h.Data_Alteracoes as createdAt, 
-                   p.Custo_Unitario as costPerUnit, 
-                   h.Taxa_Desperdicio as wasteRate, 
-                   p.Unidade_Medida as Unidade_De_Medida,
-                   i.ID_Ingredientes, 
-                   i.Nome_Ingrediente
+            SELECT 
+                h.Preco AS costPerUnit,
+                h.Taxa_Desperdicio AS wasteRate,
+                h.Data_Alteracoes AS createdAt
             FROM historico_alteracoes h
-            JOIN ingredientes i ON h.ID_Ingrediente = i.ID_Ingredientes
-            JOIN preco p ON p.ID_Historico = h.ID_Historico
-            WHERE i.Nome_Ingrediente = ?
-            " . ($_POST['userId'] ? " AND h.ID_Usuario = " . intval($_POST['userId']) : "") . "
+            WHERE h.ID_Ingrediente = ? AND h.ID_Usuario = ?
             ORDER BY h.Data_Alteracoes ASC
         ");
         
         try {
-            $stmt->execute([$nomeIngrediente]);
+            $stmt->execute([$idIngrediente, $_POST['userId']]);
             $dados = $stmt->fetchAll();
             $processedCount++;
         } catch (PDOException $e) {
@@ -188,7 +204,7 @@ ${ingredientes.map(ing => `        '${ing.replace(/'/g, "\\'").replace(/"/g, '\\
         
         $html .= '<table>';
         $html .= '<thead>';
-        $html .= '<tr><th>Data</th><th>Custo Unitário</th><th>Taxa de Desperdício (%)</th><th>Unidade</th></tr>';
+        $html .= '<tr><th>Data</th><th>Custo pela Unidade de Medida</th></tr>';
         $html .= '</thead>';
         $html .= '<tbody>';
         
@@ -204,11 +220,6 @@ ${ingredientes.map(ing => `        '${ing.replace(/'/g, "\\'").replace(/"/g, '\\
             $custos[] = $custo;
             $custoFormatado = number_format($custo, 2, ',', '.');
             
-            $desperdicio = floatval($linha['wasteRate'] ?? 0);
-            $desperdicioFormatado = number_format($desperdicio, 1, ',', '.');
-            
-            $unidade = htmlspecialchars($linha['Unidade_De_Medida'] ?? 'N/A');
-            
             // Color coding based on cost
             $costClass = '';
             if ($custo > 10) $costClass = 'cost-high';
@@ -218,8 +229,6 @@ ${ingredientes.map(ing => `        '${ing.replace(/'/g, "\\'").replace(/"/g, '\\
             $html .= "<tr>";
             $html .= "<td>$data</td>";
             $html .= "<td class='$costClass'>R$ $custoFormatado</td>";
-            $html .= "<td>$desperdicioFormatado%</td>";
-            $html .= "<td>$unidade</td>";
             $html .= "</tr>";
         }
         

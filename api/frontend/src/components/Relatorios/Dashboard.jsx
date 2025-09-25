@@ -30,7 +30,7 @@ const Dashboard = () => {
     if (!userId) return;
     // Busca ingredientes do backend
     const token = localStorage.getItem('token');
-    axios.get(`http://localhost:3001/api/ingredientes?usuario=${userId}`, {
+    axios.get(`http://localhost:3001/api/ingredientes?usuario=${userId}&limit=10000`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

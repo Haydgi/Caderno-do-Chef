@@ -6,7 +6,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import styles from './Dashboard.module.css';
@@ -15,7 +14,8 @@ const IngredientHistory = ({ usuarioId }) => {
   const [ingredientes, setIngredientes] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState('');
   const [historicalData, setHistoricalData] = useState([]);
-  const [loading, setLoading] = useState(false); // NOVO
+  const [loading, setLoading] = useState(false);
+  const [yAxisDomain, setYAxisDomain] = useState([0, 'auto']); // NOVO
 
   // Buscar lista de ingredientes (únicos) do usuário
   useEffect(() => {
@@ -24,7 +24,7 @@ const IngredientHistory = ({ usuarioId }) => {
     const token = localStorage.getItem('token');
     setLoading(true);
     axios
-      .get(`http://localhost:3001/api/ingredientes?usuario=${usuarioId}`, {
+      .get(`http://localhost:3001/api/ingredientes?usuario=${usuarioId}&limit=10000`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,6 +48,7 @@ const IngredientHistory = ({ usuarioId }) => {
   useEffect(() => {
     if (!selectedIngredient || !usuarioId) {
       setHistoricalData([]);
+      setYAxisDomain([0, 'auto']);
       return;
     }
     setLoading(true);
@@ -75,15 +76,52 @@ const IngredientHistory = ({ usuarioId }) => {
             }
             return {
               date: dataFormatada,
-              cost: ing.costPerUnit,
+              cost: Math.max(0, parseFloat(ing.costPerUnit) || 0), // Garantir que cost não seja negativo
               waste: ing.wasteRate,
             };
           });
+        
+        // Calcular domínio do eixo Y baseado nos valores dos dados
+        if (dadosOrdenados.length > 0) {
+          const custos = dadosOrdenados.map(item => item.cost).filter(cost => !isNaN(cost) && cost >= 0);
+          if (custos.length > 0) {
+            const minCost = Math.min(...custos);
+            const maxCost = Math.max(...custos);
+            
+            // Calcular margem adequada baseada na diferença dos valores
+            const range = maxCost - minCost;
+            let margin;
+            
+            if (range === 0) {
+              // Se todos os valores são iguais, usar 10% do valor como margem
+              margin = Math.max(maxCost * 0.1, 0.1);
+            } else {
+              // Usar 10% da diferença como margem, com mínimo de 5% do valor máximo
+              margin = Math.max(range * 0.1, maxCost * 0.05);
+            }
+            
+            const yMin = Math.max(0, minCost - margin);
+            const yMax = maxCost + margin;
+            
+            // Garantir que o domínio seja válido
+            if (yMax > yMin) {
+              setYAxisDomain([yMin, yMax]);
+            } else {
+              setYAxisDomain([0, Math.max(maxCost * 1.2, 1)]);
+            }
+          } else {
+            setYAxisDomain([0, 'auto']);
+          }
+        } else {
+          setYAxisDomain([0, 'auto']);
+        }
+        
         setHistoricalData(dadosOrdenados);
         setLoading(false);
       })
       .catch((err) => {
         setHistoricalData([]);
+        setYAxisDomain([0, 'auto']);
         setLoading(false);
       });
   }, [selectedIngredient, usuarioId]);
@@ -126,23 +164,19 @@ const IngredientHistory = ({ usuarioId }) => {
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
             <YAxis
               yAxisId="left"
+              domain={yAxisDomain}
               label={{ value: 'Custo (R$)', angle: -90, position: 'insideLeft', fontSize: 12 }}
               tick={{ fontSize: 12 }}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              label={{ value: 'Desperdício (%)', angle: 90, position: 'insideRight', fontSize: 12 }}
-              tick={{ fontSize: 12 }}
+              tickFormatter={(value) => `R$ ${Number(value).toFixed(2)}`}
+              allowDataOverflow={false}
+              scale="linear"
             />
             <Tooltip
-              formatter={(value, name) =>
-                name === 'Custo pela Unidade de Medida'
-                  ? [`R$ ${Number(value).toFixed(2)}`, name]
-                  : [`${value}%`, name]
-              }
+              formatter={(value, name) => [
+                `R$ ${Number(value).toFixed(2)}`,
+                'Custo pela Unidade de Medida'
+              ]}
             />
-            <Legend wrapperStyle={{ fontSize: 12 }} verticalAlign="bottom" align="center" />
             <Line
               yAxisId="left"
               type="monotone"
@@ -152,15 +186,6 @@ const IngredientHistory = ({ usuarioId }) => {
               strokeWidth={3}
               dot={{ r: 5 }}
               activeDot={{ r: 6 }}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="waste"
-              name="Taxa de Desperdício"
-              stroke="var(--secondary-dark)"
-              strokeWidth={3}
-              dot={{ r: 5 }}
             />
           </LineChart>
         </ResponsiveContainer>
