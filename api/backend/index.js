@@ -67,7 +67,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   }
 }));
 
-// Import test route (pública)
+// Import test route
 import testRoute from './routes/testRoute.js';
 
 // Import PDF export route
@@ -81,12 +81,21 @@ import auth from './middleware/auth.js';
 // ==========================
 app.use("/api", cadastroRoutes); // cadastro de usuário
 app.use("/api", loginRoutes);    // login
-app.use('/api', testRoute);       // rota de teste/healthcheck
+
+// Healthcheck público explícito
+app.get('/api/test-connection', (req, res) => {
+  res.json({
+    message: 'API is working!',
+    timestamp: new Date().toISOString(),
+    status: 'OK'
+  });
+});
 
 // ==========================
 // Rotas protegidas (JWT)
 // ==========================
 // Cadastros e operações de negócio
+app.use('/api', auth, testRoute); // demais endpoints de teste protegidos
 app.use('/api/ingredientes', auth, ingredientesRoutes);
 app.use('/api/receitas', auth, cadastroReceitas);
 app.use('/api/despesas', auth, cadastroDespesas);
