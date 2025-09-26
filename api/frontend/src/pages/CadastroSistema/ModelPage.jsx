@@ -21,6 +21,7 @@ function ModelPage({
   itensPorPagina,
   termoBusca,
   setTermoBusca,
+  painelLateral, // Novo prop para componente lateral
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -156,42 +157,91 @@ function ModelPage({
             </div>
           )}
 
-          {/* Cards */}
+          {/* Layout principal com grid */}
           <div className="container mt-4">
-            {dados.length === 0 ? (
-              <div id="sem-dados" className={`${styles.emptyState}`}>
-                <p>
-                  {termoBusca && termoBusca.trim() !== ""
-                    ? "Nenhum item encontrado para sua busca."
-                    : "Não há itens cadastrados"}
-                </p>
-                <button
-                  className={`${styles.btnDetails} btnUltraViolet btn`}
-                  onClick={abrirModal}
-                >
-                  
-                  <p className={styles.btnText}>
-                    <i className="bi bi-plus-circle me-2"></i> 
-                    {termoBusca && termoBusca.trim() !== ""
-                      ? "Criar Item"
-                      : (
-                        <>
-                            Criar o Primeiro Item
-                        </>
-                      )
-                    }
-                  </p>
-                </button>
+            <div className="row">
+              {/* Coluna esquerda - Cards */}
+              <div className={painelLateral ? "col-md-6" : "col-12"}>
+                {dados.length === 0 ? (
+                  <div id="sem-dados" className={`${styles.emptyState}`}>
+                    <p>
+                      {termoBusca && termoBusca.trim() !== ""
+                        ? "Nenhum item encontrado para sua busca."
+                        : "Não há itens cadastrados"}
+                    </p>
+                    <button
+                      className={`${styles.btnDetails} btnUltraViolet btn`}
+                      onClick={abrirModal}
+                    >
+                      
+                      <p className={styles.btnText}>
+                        <i className="bi bi-plus-circle me-2"></i> 
+                        {termoBusca && termoBusca.trim() !== ""
+                          ? "Criar Item"
+                          : (
+                            <>
+                                Criar o Primeiro Item
+                            </>
+                          )
+                        }
+                      </p>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="row">
+                    {dadosExibidos.map(renderCard)}
+                  </div>
+                )}
+                
+                {/* Paginação - apenas na coluna esquerda quando há painel lateral */}
+                {painelLateral && totalPaginas > 1 && (
+                  <div className="d-flex justify-content-start mt-4">
+                    <ReactPaginate
+                      pageCount={totalPaginas}
+                      onPageChange={mudarPagina}
+                      forcePage={paginaAtual}
+                      containerClassName={styles.pagination}
+                      activeClassName={styles.active}
+                      pageClassName={styles.pageItem}
+                      pageLinkClassName={styles.pageLink}
+                      pageRangeDisplayed={isMobile ? 1 : 3}
+                      marginPagesDisplayed={1}
+                      previousClassName={undefined}
+                      previousLabel={null}
+                      nextLabel={null}
+                      nextClassName={undefined}
+                    />
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="row">
-                {dadosExibidos.map(renderCard)}
-              </div>
-            )}
+              
+              {/* Linha divisória vertical quando há painel lateral */}
+              {painelLateral && (
+                <div className="col-auto d-flex align-items-stretch" style={{ padding: '0', margin: '0 1rem' }}>
+                  <div 
+                    style={{
+                      width: '2px',
+                      backgroundColor: '#67477A',
+                      opacity: 0.4,
+                      borderRadius: '2px'
+                    }}
+                  ></div>
+                </div>
+              )}
+              
+              {/* Coluna direita - Painel lateral */}
+              {painelLateral && (
+                <div className="col-md-5">
+                  <div className="ps-2">
+                    {painelLateral}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Paginação */}
-          {totalPaginas > 1 && (
+          {/* Paginação - apenas quando não há painel lateral */}
+          {!painelLateral && totalPaginas > 1 && (
             <div className="d-flex justify-content-center mt-4">
               <ReactPaginate
                 pageCount={totalPaginas}

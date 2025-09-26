@@ -8,6 +8,7 @@ import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/M
 import styles from './Despesas.module.css';
 import { FaMoneyBillWave, FaTrash, FaRegClock } from 'react-icons/fa';
 import { MdOutlineCalendarMonth } from 'react-icons/md';
+import { BiMoneyWithdraw } from "react-icons/bi";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -17,7 +18,29 @@ function Despesas() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
-  const [itensPorPagina, setItensPorPagina] = useState(12);
+  const [itensPorPagina, setItensPorPagina] = useState(6);
+
+  // Ajustar itens por página baseado no tamanho da tela
+  useEffect(() => {
+    const ajustarItensPorTamanho = () => {
+      const largura = window.innerWidth;
+      
+      // Para despesas, mantemos sempre 6 por página como solicitado
+      // mas ajustamos para mobile
+      if (largura < 577) {
+        setItensPorPagina(3);
+      } else if (largura < 992) {
+        setItensPorPagina(4);
+      } else {
+        setItensPorPagina(6);
+      }
+    };
+
+    ajustarItensPorTamanho();
+    window.addEventListener('resize', ajustarItensPorTamanho);
+
+    return () => window.removeEventListener('resize', ajustarItensPorTamanho);
+  }, []);
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -29,7 +52,7 @@ function Despesas() {
       } else if (largura < 992) {
         setItensPorPagina(9);
       } else {
-        setItensPorPagina(12);
+        setItensPorPagina(3);
       }
     };
 
@@ -172,27 +195,54 @@ function Despesas() {
     }
   };
 
-  const renderCard = (despesa) => (
-    <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={despesa.id}>
-      <div
-        className={styles.cardDespesa}
-        onClick={() => {
-          setDespesaSelecionada(despesa);
-          setMostrarModalEditar(true);
-        }}
-        style={{ cursor: 'pointer' }}
-      >
-        <h3 className="fw-bold mb-4 mt-3">{despesa.nome}</h3>
+  // Função para calcular custo operacional por minuto
+  const calcularCustoOperacional = (custoMensal, tempoOperacional) => {
+    const diasNoMes = 30;
+    const custoMensalNum = Number(custoMensal);
+    const tempoDiaNum = Number(tempoOperacional);
+    
+    if (!custoMensalNum || !tempoDiaNum) return 0;
+    
+    const custoDiario = custoMensalNum / diasNoMes;
+    const custoPorHora = custoDiario / tempoDiaNum;
+    const custoPorMinuto = custoPorHora / 60;
+    return custoPorMinuto;
+  };
 
-        <div className="d-flex justify-content-between align-items-center text-white fs-5">
-          <span className="d-flex align-items-center">
-            <MdOutlineCalendarMonth className="me-2" />
-            R$ {Number(despesa.custoMensal).toFixed(2)}
-          </span>
-          <span className="d-flex align-items-center">
-            <FaRegClock className="me-2" />
-            {despesa.tempoOperacional}h
-          </span>
+  const renderCard = (despesa) => {
+    const custoOperacionalPorMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+
+    return (
+      <div
+        key={despesa.id}
+        style={{
+          width: '100%',
+          marginBottom: '2rem', // Espaçamento maior entre os cards
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          className={styles.cardDespesa}
+          onClick={() => {
+            setDespesaSelecionada(despesa);
+            setMostrarModalEditar(true);
+          }}
+          style={{
+            cursor: 'pointer',
+            width: '100%',
+            maxWidth: '540px', // Largura aumentada
+            minWidth: '320px', // Largura mínima aumentada
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            height: '205px',
+            padding: '0.25rem 0.25rem 0.2rem 0.25rem',
+            boxSizing: 'border-box',
+            fontSize: '0.75rem',
+          }}
+        >
           <i
             className={styles.Trash}
             onClick={(e) => {
@@ -222,9 +272,304 @@ function Despesas() {
           >
             <FaTrash />
           </i>
+          
+          <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem' }}>{despesa.nome}</h3>
+
+          {/* Seção de informações principais */}
+          <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
+            <div className="row g-2">
+              <div className="col-6">
+                <div className="text-center">
+                  <div className="d-flex align-items-center justify-content-center mb-1">
+                    <MdOutlineCalendarMonth className="me-1" style={{ fontSize: '1.3rem', color: 'var(--sunset)' }} />
+                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>Mensal</small>
+                  </div>
+                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
+                    R$ {Number(despesa.custoMensal).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+              <div className="col-6">
+                <div className="text-center">
+                  <div className="d-flex align-items-center justify-content-center mb-1">
+                    <FaRegClock className="me-1" style={{ fontSize: '1.3rem', color: 'var(--tangerine)' }} />
+                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>Tempo/Dia</small>
+                  </div>
+                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
+                    {despesa.tempoOperacional}h
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Breakdown de custos + Custo operacional juntos */}
+          <div className="d-flex align-items-center justify-content-between" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px', padding: '0.5rem', marginTop: '0.2rem' }}>
+            <div style={{ flex: 1 }}>
+              <div className="text-center mb-1">
+                <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
+              </div>
+              <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
+                <div className="text-center" style={{ flex: 1 }}>
+                  <small className="text-white-50">Por dia:</small>
+                  <div className="text-white fw-semibold">
+                    R$ {(Number(despesa.custoMensal) / 30).toFixed(2)}
+                  </div>
+                </div>
+                <div className="text-center" style={{ flex: 1 }}>
+                  <small className="text-white-50">Por hora:</small>
+                  <div className="text-white fw-semibold">
+                    R$ {((Number(despesa.custoMensal) / 30) / Number(despesa.tempoOperacional)).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{
+              background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2))',
+              borderRadius: '8px',
+              padding: '0.5rem 0.7rem',
+              border: '1px solid rgba(255, 215, 0, 0.3)',
+              marginLeft: '0.7rem',
+              minWidth: '120px',
+              textAlign: 'center'
+            }}>
+              <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
+                Custo Operacional
+              </div>
+              <div className="fw-bold" style={{ fontSize: '1.1rem', color: '#FFD700' }}>
+                R$ {custoOperacionalPorMinuto.toFixed(3)}/min
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    );
+  };
+
+  // Calcular custo operacional total
+  const custoOperacionalTotal = despesas.reduce((total, despesa) => {
+    return total + calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+  }, 0);
+
+  // Componente do painel lateral
+  const PainelCustoOperacional = () => (
+    <>
+      {/* Estilo customizado para scrollbar */}
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--ultra-violet);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--tangerine);
+          }
+        `}
+      </style>
+      
+      <div 
+        className="card shadow-lg border-0"
+        style={{
+          background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
+          minHeight: '500px',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          transition: 'all 0.3s ease-in-out',
+          marginLeft: '4rem',
+          width: '480px', // largura aumentada em 50p
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-5px)';
+          e.currentTarget.style.boxShadow = `0 20px 40px rgba(103, 71, 122, 0.3)`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0px)';
+          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
+        }}
+      >
+        <div 
+          className="card-header border-0 text-white text-center"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+        >
+          <h5 className="card-title mb-0 fw-bold"
+              style={{ 
+                fontSize: '1.4rem',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)' 
+              }}>
+            <i className="bi bi-calculator me-2"></i>
+            Custo Operacional
+          </h5>
+        </div>
+        
+        <div className="card-body text-white" style={{ padding: '2rem' }}>
+          {/* Seção de detalhamento */}
+          <div className="mb-4">
+            <h6 
+              className="mb-3 fw-semibold"
+              style={{ 
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '1.1rem',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
+                paddingBottom: '0.5rem'
+              }}
+            >
+              <i className="bi bi-list-ul me-2"></i>
+              Detalhamento por Despesa
+            </h6>
+            
+            <div 
+              className="custom-scrollbar"
+              style={{ 
+                maxHeight: '200px', 
+                overflowY: 'auto', 
+                paddingRight: '10px'
+              }}
+            >
+              {despesas.map((despesa) => {
+                const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+                return (
+                  <div 
+                    key={despesa.id} 
+                    className="d-flex justify-content-between align-items-center mb-3 p-2 rounded"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(5px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                      e.currentTarget.style.transform = 'translateX(5px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.transform = 'translateX(0px)';
+                    }}
+                  >
+                    <span 
+                      className="text-truncate fw-medium" 
+                      style={{ 
+                        maxWidth: '180px',
+                        color: 'rgba(255, 255, 255, 0.95)'
+                      }}
+                    >
+                      <i className="bi bi-dot me-1"></i>
+                      {despesa.nome}
+                    </span>
+                    <span 
+                      className="fw-bold px-2 py-1 rounded"
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        fontSize: '0.9rem',
+                        minWidth: '80px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      R$ {custoMinuto.toFixed(3)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Seção de soma */}
+          {despesas.length > 1 && (
+            <div 
+              className="mb-4 p-3 rounded"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
+              }}
+            >
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="fw-semibold" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Soma Total:
+                </span>
+                <span 
+                  className="fw-bold"
+                  style={{ 
+                    fontSize: '0.85rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontFamily: 'monospace'
+                  }}
+                >
+                  {despesas.map((despesa) => {
+                    const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+                    return custoMinuto.toFixed(3);
+                  }).join(' + ')} =
+                </span>
+              </div>
+            </div>
+          )}
+          
+          {/* Resultado final */}
+          <div 
+            className="text-center p-4 rounded-3"
+            style={{
+              background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+              backdropFilter: 'blur(15px)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <h6 
+              className="mb-2 fw-bold"
+              style={{ 
+                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '1.1rem',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}
+            >
+              <i style={{ color: 'var(--sunset)', marginRight: '8px', fontSize: '1.5rem' }}>
+                <BiMoneyWithdraw />
+              </i>
+              Custo Operacional Total
+            </h6>
+            <h3 
+              className="mb-0 fw-bold"
+              style={{
+                background: 'linear-gradient(45deg, var(--sunset), var(--tangerine))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontSize: '2.2rem',
+                textShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+              }}
+            >
+              R$ {custoOperacionalTotal.toFixed(3)}/min
+            </h3>
+            
+            {/* Informação adicional */}
+            <div 
+              className="mt-3 pt-3"
+              style={{
+                borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                fontSize: '0.9rem',
+                color: 'rgba(255, 255, 255, 0.8)'
+              }}
+            >
+              <i className="bi bi-info-circle me-1"></i>
+              Atualizado em tempo real
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 
   return (
@@ -256,6 +601,8 @@ function Despesas() {
       itensPorPagina={itensPorPagina}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
+      painelLateral={<PainelCustoOperacional />}
+      pagelinksPosition="below" // <--- Adicione esta prop se ModelPage aceitar, ou mova manualmente no ModelPage
     />
   );
 }

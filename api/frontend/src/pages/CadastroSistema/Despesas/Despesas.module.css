@@ -8,14 +8,11 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
-  max-width: 300px ;
-  min-width: 300px ;        /* Igual ao cardProduto */
   margin: 0 auto;
-  max-height: 190px;
-  min-height: 190px;       /* Para manter altura mínima semelhante */
+  min-height: 180px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .cardDespesa:hover {
@@ -46,11 +43,21 @@
 }
 
 .Trash {
-  font-size: 25px;
+  font-size: 18px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--white-smoke);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .Trash:hover {
-  color: var(--imperial-red); /* Cor laranja ao passar o mouse */
+  color: var(--imperial-red);
+  transform: scale(1.1);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 /* Container dos cards de despesas */
@@ -82,44 +89,14 @@
 }
 
 @media (max-width: 576px) {
-  .despesasContainer {
-    grid-template-columns: 1fr;
-  }
-
   .cardDespesa {
-    padding: 2px;
-    width: 100%;
-    max-width: 280px;
-    min-height: 140px !important;
-    margin: 0 auto;
-    position: relative;
-    min-height: 120px;
-  }
-
-  .cardTitle {
-    font-size: 1.1rem;
-    margin-bottom: 4px;
-  }
-
-  .cardValue {
-    font-size: 0.92rem;
-    margin-bottom: 4px;
-    margin-top: 2px; /* Sobe o valor para perto do título */
-  }
-
-  /* Se houver outros textos, ajuste também */
-  .cardDespesa p,
-  .cardDespesa span,
-  .cardDespesa div:not(.cardTitle):not(.cardAction) {
-    font-size: 1.2rem;
-    margin-top: -8px;
-    margin-bottom: 2px;
+    padding: 15px;
+    min-height: 160px;
   }
 
   .Trash {
-    font-size: 22px;
-    margin-top: -15px;
-    margin-right: 5px;
-    display: inline;
+    font-size: 16px;
+    top: 6px;
+    right: 6px;
   }
 }
