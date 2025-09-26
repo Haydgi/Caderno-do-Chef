@@ -67,30 +67,45 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   }
 }));
 
-// Registro das rotas ;)
-app.use("/api", cadastroRoutes);
-app.use("/api", loginRoutes);
-app.use("/api/ingredientes", ingredientesRoutes);
-app.use("/api/receitas", cadastroReceitas);
-app.use("/api/despesas", cadastroDespesas);
-app.use("/api/receitas", LucroPorReceita);
-app.use('/api/ingredientes/indice', IndiceDesperdicio);
-app.use('/api/ingredientes',DesperdicioMedio);
-app.use('/api/receitas',Tempomedio);
-app.use('/api/receitas',ContaReceita);
-app.use('/api/ingredientes',ContaIngredientes);
-app.use('/api/receitas',CategoriaReceitas);
-app.use('/api/receita-detalhada', receitaDetalhadaRouter);
-app.use('/api/ingredientes', UnderusedController);
-app.use('/api/historico-ingredientes', historicoIngredientesRoutes);
-
-// Import and use test route
+// Import test route (pública)
 import testRoute from './routes/testRoute.js';
-app.use('/api', testRoute);
 
-// Import and use PDF export route
+// Import PDF export route
 import pdfExportRoute from './routes/pdfExport.js';
-app.use('/api', pdfExportRoute);
+
+// Middleware de autenticação (JWT) para rotas protegidas
+import auth from './middleware/auth.js';
+
+// ==========================
+// Rotas públicas
+// ==========================
+app.use("/api", cadastroRoutes); // cadastro de usuário
+app.use("/api", loginRoutes);    // login
+app.use('/api', testRoute);       // rota de teste/healthcheck
+
+// ==========================
+// Rotas protegidas (JWT)
+// ==========================
+// Cadastros e operações de negócio
+app.use('/api/ingredientes', auth, ingredientesRoutes);
+app.use('/api/receitas', auth, cadastroReceitas);
+app.use('/api/despesas', auth, cadastroDespesas);
+
+// Relatórios e métricas
+app.use('/api/receitas', auth, LucroPorReceita);
+app.use('/api/receitas', auth, Tempomedio);
+app.use('/api/receitas', auth, ContaReceita);
+app.use('/api/receitas', auth, CategoriaReceitas);
+app.use('/api/receita-detalhada', auth, receitaDetalhadaRouter);
+app.use('/api/ingredientes/indice', auth, IndiceDesperdicio);
+app.use('/api/ingredientes', auth, DesperdicioMedio);
+app.use('/api/ingredientes', auth, ContaIngredientes);
+app.use('/api/ingredientes', auth, UnderusedController);
+app.use('/api/historico-ingredientes', auth, historicoIngredientesRoutes);
+app.use('/api', auth, pdfExportRoute); // exportação de PDF
+
+// Observação: se alguma dessas rotas de relatórios deva ser pública,
+// remova o `auth` apenas nessa linha específica.
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

@@ -4,7 +4,8 @@ import db from '../database/connection.js';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  const userId = req.query.usuario;
+  // Preferir o ID do usuário vindo do middleware JWT
+  const userId = req.user?.ID_Usuario || req.query.usuario;
 
   if (!userId) {
     return res.status(400).json({ error: 'Usuário não informado' });
