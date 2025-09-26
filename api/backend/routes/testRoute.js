@@ -7,13 +7,7 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-router.get('/test-connection', (req, res) => {
-  res.json({ 
-    message: 'API is working!', 
-    timestamp: new Date().toISOString(),
-    status: 'OK'
-  });
-});
+// healthcheck público foi movido para index.js
 
 router.post('/test-pdf-simple', (req, res) => {
   const { ingredientes } = req.body;
