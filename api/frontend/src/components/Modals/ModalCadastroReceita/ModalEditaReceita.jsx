@@ -743,6 +743,82 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     </div>
                   ))}
                 </div>
+                
+                {/* Seção de custos */}
+                <div className="mt-3">
+                  <div className="row">
+                    <div className="col-6">
+                      <div className="mb-2">
+                        <strong>Custo dos Ingredientes:</strong>
+                        <br />R$ {(() => {
+                          const custoIngredientes = ingredientesSelecionados.reduce((soma, ing) => {
+                            return soma + calcularCustoIngrediente(
+                              ing.quantidade,
+                              ing.quantidade_total,
+                              ing.custo_ingrediente,
+                              ing.Indice_de_Desperdicio
+                            );
+                          }, 0);
+                          return custoIngredientes.toFixed(2);
+                        })()}
+                      </div>
+                      <div className="mb-2">
+                        <strong>Custo Total de Produção:</strong>
+                        <br />R$ {(() => {
+                          const custoIngredientes = ingredientesSelecionados.reduce((soma, ing) => {
+                            return soma + calcularCustoIngrediente(
+                              ing.quantidade,
+                              ing.quantidade_total,
+                              ing.custo_ingrediente,
+                              ing.Indice_de_Desperdicio
+                            );
+                          }, 0);
+                          const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          const custoTotal = custoIngredientes + custoOperacional;
+                          return custoTotal.toFixed(2);
+                        })()}
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <div className="mb-2">
+                        <strong>Custo Operacional:</strong>
+                        <br />R$ {(() => {
+                          const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          return custoOperacional.toFixed(2);
+                        })()}
+                      </div>
+                      <div className="mb-2 text-success">
+                        <strong>Preço Final ({form.porcentagemDeLucro || 0}% lucro):</strong>
+                        <br />R$ {(() => {
+                          const custoIngredientes = ingredientesSelecionados.reduce((soma, ing) => {
+                            return soma + calcularCustoIngrediente(
+                              ing.quantidade,
+                              ing.quantidade_total,
+                              ing.custo_ingrediente,
+                              ing.Indice_de_Desperdicio
+                            );
+                          }, 0);
+                          const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          const custoTotal = custoIngredientes + custoOperacional;
+                          const precoFinal = custoTotal * (1 + (Number(form.porcentagemDeLucro) || 0) / 100);
+                          return precoFinal.toFixed(2);
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

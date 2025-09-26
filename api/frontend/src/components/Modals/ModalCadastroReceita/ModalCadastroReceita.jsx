@@ -608,7 +608,52 @@ const handleSubmit = async (e) => {
                 </div>
 
                 <div className="mt-3">
-                  <strong>Custo total dos ingredientes: R$ {custoTotalIngredientes.toFixed(2)}</strong>
+                  <div className="row">
+                    <div className="col-6">
+                      <div className="mb-2">
+                        <strong>Custo dos Ingredientes:</strong>
+                        <br />R$ {custoTotalIngredientes.toFixed(2)}
+                      </div>
+                      <div className="mb-2">
+                        <strong>Custo Total de Produção:</strong>
+                        <br />R$ {(() => {
+                          const tempo_preparo_min = Number(form.Tempo_Preparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          const custoTotal = custoTotalIngredientes + custoOperacional;
+                          return custoTotal.toFixed(2);
+                        })()}
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <div className="mb-2">
+                        <strong>Custo Operacional:</strong>
+                        <br />R$ {(() => {
+                          const tempo_preparo_min = Number(form.Tempo_Preparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          return custoOperacional.toFixed(2);
+                        })()}
+                      </div>
+                      <div className="mb-2 text-success">
+                        <strong>Preço Final ({form.Porcentagem_De_Lucro || 0}% lucro):</strong>
+                        <br />R$ {(() => {
+                          const tempo_preparo_min = Number(form.Tempo_Preparo) || 0;
+                          const custoOperacional = despesas.reduce((total, despesa) => {
+                            const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                            return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                          }, 0) * tempo_preparo_min;
+                          const custoTotal = custoTotalIngredientes + custoOperacional;
+                          const precoFinal = custoTotal * (1 + (Number(form.Porcentagem_De_Lucro) || 0) / 100);
+                          return precoFinal.toFixed(2);
+                        })()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
               </div>

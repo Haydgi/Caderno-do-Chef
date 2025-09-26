@@ -165,7 +165,6 @@ const IngredientHistory = ({ usuarioId }) => {
             <YAxis
               yAxisId="left"
               domain={yAxisDomain}
-              label={{ value: 'Custo (R$)', angle: -90, position: 'insideLeft', fontSize: 12 }}
               tick={{ fontSize: 12 }}
               tickFormatter={(value) => `R$ ${Number(value).toFixed(2)}`}
               allowDataOverflow={false}

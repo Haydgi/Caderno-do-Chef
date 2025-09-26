@@ -15,6 +15,7 @@ function Receitas() {
   const [itensPorPagina, setItensPorPagina] = useState(8);
   const [termoBusca, setTermoBusca] = useState('');
   const [isUpdating, setIsUpdating] = useState(false); // Flag para evitar múltiplas atualizações
+  const [despesas, setDespesas] = useState([]); // Para cálculo do custo operacional
 
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const apiUrl = `${baseUrl}/api/receitas`;
@@ -39,9 +40,10 @@ function Receitas() {
     return () => window.removeEventListener('resize', ajustarItensPorPagina);
   }, []);
 
-  // Busca receitas no carregamento
+  // Busca receitas e despesas no carregamento
   useEffect(() => {
     fetchReceitas();
+    fetchDespesas();
   }, []);
 
   useEffect(() => {
@@ -88,6 +90,44 @@ function Receitas() {
     } finally {
       setTimeout(() => setIsUpdating(false), 500); // Reset após 500ms
     }
+  };
+  
+  // Buscar despesas para cálculo do custo operacional
+  const fetchDespesas = async () => {
+    try {
+      const res = await fetch(`${baseUrl}/api/despesas`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDespesas(data);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar despesas:', err);
+    }
+  };
+  
+  // Funções para cálculo do custo operacional
+  const calcularCustoPorMinutoDespesa = (despesa) => {
+    const diasNoMes = 30;
+    const custoMensal = Number(despesa.Custo_Mensal);
+    const tempoDia = Number(despesa.Tempo_Operacional);
+    
+    if (!custoMensal || !tempoDia) return 0;
+    
+    const custoDiario = custoMensal / diasNoMes;
+    const custoPorHora = custoDiario / tempoDia;
+    return custoPorHora / 60;
+  };
+  
+  const calcularCustoOperacionalTotal = (tempoPreparo) => {
+    const custoOperacionalPorMinuto = despesas.reduce((total, despesa) => {
+      const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+      return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+    }, 0);
+    return custoOperacionalPorMinuto * Number(tempoPreparo);
   };
   
   // Função wrapper para onSave que evita múltiplas execuções
@@ -206,6 +246,23 @@ function Receitas() {
     const temImagem = imagemCampo && typeof imagemCampo === 'string' && imagemCampo.trim() !== "";
     const urlImagem = temImagem ? imagemCampo.trim() : null;
     
+    // Cálculos de preço (o valor salvo no banco já é o preço final com margem)
+    const precoFinalSalvo = Number(receita.Custo_Total_Ingredientes ?? 0);
+    const porcentagemLucro = Number(receita.Porcentagem_De_Lucro ?? 0);
+    const tempoPreparo = Number(receita.Tempo_Preparo ?? 0);
+    
+    // Calcular custo operacional
+    const custoOperacional = calcularCustoOperacionalTotal(tempoPreparo);
+    
+    // Reverter o cálculo: preço final = custo total * (1 + margem/100)
+    // Logo: custo total = preço final / (1 + margem/100)
+    const fatorMargem = 1 + (porcentagemLucro / 100);
+    const custoTotalProducao = fatorMargem > 0 ? precoFinalSalvo / fatorMargem : precoFinalSalvo;
+    
+    // O custo de produção inclui ingredientes + operacional
+    const custoProducao = custoTotalProducao;
+    const custoComMargem = precoFinalSalvo;
+    
     console.log('Card debug:', { 
       imagemCampo, 
       temImagem, 
@@ -229,6 +286,30 @@ function Receitas() {
           }}
           style={{ cursor: "pointer" }}
         >
+          {/* Ícone de excluir no canto superior direito */}
+          <i
+            className={styles.Trash}
+            onClick={(e) => {
+              e.stopPropagation();
+              Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Você deseja excluir esta receita?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  removerReceita(receita.id || receita.ID_Receita);
+                }
+              });
+            }}
+            title="Excluir"
+          >
+            <FaTrash />
+          </i>
           {/* Imagem ou Placeholder - NUNCA ambos */}
           {(() => {
             console.log('🔍 Debug Card (renderizando):', {
@@ -293,41 +374,28 @@ function Receitas() {
           <div className={styles.cardContent}>
             <div>
               <h5 className={`fw-bold ${styles.tituloReceita}`}>{receita.Nome_Receita || "Sem Nome"}</h5>
-              <p className="mb-1 fs-6" style={{margin: '4px 0'}}>{receita.Categoria || "Sem Categoria"}</p>
+              <p className="mb-1 fs-6" style={{margin: '2px 0'}}>{receita.Categoria || "Sem Categoria"}</p>
               
-              <div className="d-flex justify-content-between fs-6 mb-1" style={{fontSize: '0.85rem'}}>
-                <span>{receita.Tempo_Preparo ?? 0} min</span>
-                <span>Lucro: {receita.Porcentagem_De_Lucro ?? 0}%</span>
+              <div className="d-flex justify-content-between fs-6 mb-2" style={{fontSize: '0.85rem'}}>
+                <span>
+                  <i className="bi bi-clock" style={{marginRight: '4px'}}></i>
+                  {receita.Tempo_Preparo ?? 0} min
+                </span>
+                <span>
+                  <i className="bi bi-currency-dollar" style={{marginRight: '4px'}}></i>
+                  {receita.Porcentagem_De_Lucro ?? 0}%
+                </span>
               </div>
             </div>
 
+            {/* Preços na parte inferior - formato simples */}
             <div className="d-flex justify-content-between align-items-center mt-auto">
-              <p className="fw-bold mb-0" style={{fontSize: '0.9rem'}}>
-                Custo: R$ {Number(receita.Custo_Total_Ingredientes ?? 0).toFixed(2)}
-              </p>
-              <i
-                className={styles.Trash}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  Swal.fire({
-                    title: 'Tem certeza?',
-                    text: 'Você deseja excluir esta receita?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#EF4444',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sim, excluir',
-                    cancelButtonText: 'Cancelar',
-                  }).then((result) => {
-                    if (result.isConfirmed) {
-                      removerReceita(receita.id || receita.ID_Receita);
-                    }
-                  });
-                }}
-                title="Excluir"
-              >
-                <FaTrash />
-              </i>
+              <div style={{fontSize: '0.85rem'}}>
+                <div>Custo: R$ {custoProducao.toFixed(2)}</div>
+              </div>
+              <div style={{fontSize: '0.9rem', fontWeight: 'bold'}}>
+                <div>Preço: R$ {custoComMargem.toFixed(2)}</div>
+              </div>
             </div>
           </div>
         </div>
