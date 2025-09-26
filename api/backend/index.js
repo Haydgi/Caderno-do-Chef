@@ -94,6 +94,5 @@ app.use('/api', pdfExportRoute);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
-  console.log("SECRET_JWT =", process.env.SECRET_JWT);
   console.log("Uploads servidos de:", path.join(__dirname, "uploads"));
 });

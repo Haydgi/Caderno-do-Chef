@@ -19,7 +19,7 @@ router.post("/cadastrar", async (req, res) => {
   if (!nome || !email || !telefone || !senha) {
     return res.status(400).json({ mensagem: "Preencha todos os campos." });
   }
-
+  
   try {
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 

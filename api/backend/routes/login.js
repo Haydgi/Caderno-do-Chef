@@ -2,10 +2,36 @@ import express from "express";
 import db from "../database/connection.js"; // seu pool mysql2/promise
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 
-router.post("/login", async (req, res) => {
+// Rate limit para proteger tentativas de brute force no login
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutos
+  max: 5, // máximo de 5 tentativas por IP nesse período
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    // Calcula minutos restantes até o reset
+    const reset = req.rateLimit?.resetTime;
+    let minutos = 10; // padrão para a janela configurada
+    if (reset instanceof Date) {
+      const diffMs = reset.getTime() - Date.now();
+      minutos = Math.max(0, Math.ceil(diffMs / 60000));
+    }
+    const plural = minutos === 1 ? '' : 's';
+    return res.status(429).json({
+      mensagem: `Limite de tentativas de login excedido. Tente novamente em ${minutos} minuto${plural}.`,
+      detalhes: {
+        tentativasPermitidas: 5,
+        janelaMinutos: 10,
+      },
+    });
+  },
+});
+
+router.post("/login", loginLimiter, async (req, res) => {
   const { email, senha } = req.body;
 
   if (!email || !senha) {
@@ -22,7 +48,7 @@ router.post("/login", async (req, res) => {
 
     const usuario = results[0];
 
-    // Comparação da senha com bcrypt
+    // Comparação da senha com bcrypt (senha fornecida x hash salvo no banco)
     const senhaCorreta = await bcrypt.compare(senha, usuario.Senha);
     if (!senhaCorreta) {
       return res.status(401).json({ mensagem: "Email ou senha incorretos." });
@@ -35,8 +61,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    console.log('Token criado:', token);
-    console.log('Payload do token:', jwt.decode(token));
+    // Evitar logar token/payload em produção
 
     // Retornar sucesso com token e dados do usuário
     return res.status(200).json({
