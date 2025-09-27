@@ -30,12 +30,13 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
 
   useEffect(() => {
     if (ingrediente) {
+      console.log('Ingrediente recebido para edição:', ingrediente);
       setForm({
-        nome: ingrediente.nome || "",
-        custo: ingrediente.custo?.toString().replace(".", ",") || "",
-        categoria: ingrediente.categoria || "",
-        unidade: ingrediente.unidade || "",
-        taxaDesperdicio: ingrediente.taxaDesperdicio?.toString().replace(".", ",") || "",
+        nome: ingrediente.nome || ingrediente.Nome_Ingrediente || "",
+        custo: (ingrediente.preco || ingrediente.Custo_Ingrediente || ingrediente.custo || 0).toString().replace(".", ","),
+        categoria: ingrediente.categoria || ingrediente.Categoria || "",
+        unidade: ingrediente.unidadeCompra || ingrediente.Unidade_De_Medida || ingrediente.unidade || "",
+        taxaDesperdicio: (ingrediente.Indice_de_Desperdicio || ingrediente.taxaDesperdicio || 0).toString().replace(".", ","),
       });
     }
   }, [ingrediente]);
