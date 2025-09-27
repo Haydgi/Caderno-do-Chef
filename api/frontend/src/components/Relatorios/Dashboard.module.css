@@ -398,6 +398,287 @@
   animation: slideOut 0.3s ease-out forwards;
 }
 
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.modalContainer {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.btnClose {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: var(--primary-light);
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnClose:hover {
+  color: var(--primary-dark);
+}
+
+.modalContainer h2 {
+  color: var(--primary-dark);
+  margin-bottom: 16px;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.modalContainer p {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.noIngredients {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--primary-light);
+}
+
+.noIngredients p {
+  margin-bottom: 12px;
+}
+
+.selectAllContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--white-smoke);
+  border-radius: 8px;
+  border: 1px solid var(--secondary-light);
+}
+
+.btnSelectAll {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btnSelectAll:hover {
+  background: var(--primary-dark);
+}
+
+.selectedCount {
+  font-size: 14px;
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+.ingredientList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--secondary-light);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 24px;
+  background: var(--white-smoke);
+}
+
+.ingredientItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.ingredientItem:last-child {
+  border-bottom: none;
+}
+
+.ingredientItem:hover {
+  background: rgba(103, 71, 122, 0.05);
+}
+
+.ingredientItem input[type="checkbox"] {
+  margin-right: 12px;
+  transform: scale(1.2);
+  accent-color: var(--primary);
+}
+
+.ingredientItem label {
+  flex: 1;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--rich-black);
+  font-weight: 500;
+}
+
+.modalActions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--secondary-light);
+}
+
+.btnCancel {
+  background: transparent;
+  color: var(--primary-light);
+  border: 2px solid var(--primary-light);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background: var(--primary-light);
+  color: white;
+}
+
+.btnCancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnExport {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnExport:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(103, 71, 122, 0.3);
+}
+
+.btnExport:disabled {
+  background: var(--primary-light);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* FAB Export Button */
+.fabExport {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 56px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(103, 71, 122, 0.3);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+}
+
+.fabExport:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(103, 71, 122, 0.4);
+}
+
+.fabExport:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(103, 71, 122, 0.3);
+}
+
+/* Responsive modal */
+@media (max-width: 600px) {
+  .modalContainer {
+    width: 95%;
+    padding: 24px;
+    margin: 20px;
+  }
+  
+  .modalContainer h2 {
+    font-size: 1.5rem;
+  }
+  
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+  
+  .btnCancel,
+  .btnExport {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .selectAllContainer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .fabExport {
+    bottom: 20px;
+    right: 20px;
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+}
+
 .fabExport {
   position: fixed;
   right: 32px;

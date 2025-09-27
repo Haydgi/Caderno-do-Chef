@@ -63,6 +63,13 @@ app.use('/api/receita-detalhada', receitaDetalhadaRouter);
 app.use('/api/ingredientes', UnderusedController);
 app.use('/api/historico-ingredientes', historicoIngredientesRoutes);
 
+// Import and use test route
+import testRoute from './routes/testRoute.js';
+app.use('/api', testRoute);
+
+// Import and use PDF export route
+import pdfExportRoute from './routes/pdfExport.js';
+app.use('/api', pdfExportRoute);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);

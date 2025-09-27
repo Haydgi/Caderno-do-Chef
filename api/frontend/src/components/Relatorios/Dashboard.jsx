@@ -18,9 +18,6 @@ const Dashboard = () => {
   const [userId, setUserId] = useState(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [ingredientList, setIngredientList] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]);
-
-  // Recupera userId do localStorage
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
     if (storedUserId) {
@@ -31,43 +28,65 @@ const Dashboard = () => {
   // Busca ingredientes do backend
   useEffect(() => {
     if (!userId) return;
-
-    axios.get(`/api/ingredientes?usuario=${userId}`)
+    // Busca ingredientes do backend
+    const token = localStorage.getItem('token');
+    axios.get(`http://localhost:3001/api/ingredientes?usuario=${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then(res => {
         const nomes = [...new Set(res.data.map(ing => ing.Nome_Ingrediente))].sort();
         setIngredientList(nomes);
       })
-      .catch(() => setIngredientList([]));
+      .catch((err) => {
+        console.error('Erro ao buscar ingredientes:', err);
+        setIngredientList([]);
+      });
   }, [userId]);
 
-  const handleIngredientChange = (e) => {
-    const { value, checked } = e.target;
-    setSelectedIngredients(prev =>
-      checked ? [...prev, value] : prev.filter(name => name !== value)
-    );
-  };
-
-  const handleExport = async () => {
-    if (selectedIngredients.length === 0) return;
-
-    const formData = new FormData();
-    selectedIngredients.forEach(ing => formData.append('ingredientes[]', ing));
+  const handleExportPDF = async (selectedIngredients) => {
+    if (selectedIngredients.length === 0) {
+      alert('Por favor, selecione pelo menos um ingrediente.');
+      return;
+    }
 
     try {
-      const response = await fetch('/api/export-dashboard.php', {
+      const response = await fetch('http://localhost:3001/api/export-dashboard', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ingredientes: selectedIngredients, userId: userId }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      
+      // Create download link
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `relatorio_ingredientes_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
     } catch (err) {
       console.error('Erro ao gerar PDF:', err);
+      alert('Erro ao gerar o relatório PDF. Tente novamente.');
     }
 
     setShowExportModal(false);
   };
+
 
   return (
     <div className={styles.dashboard}>
@@ -121,24 +140,7 @@ const Dashboard = () => {
         <ModalExportDashboard
           onClose={() => setShowExportModal(false)}
           ingredientList={ingredientList}
-          onExport={(selectedIngredients) => {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/api/export-dashboard.php';
-            form.target = '_blank';
-
-            selectedIngredients.forEach(ing => {
-              const input = document.createElement('input');
-              input.type = 'hidden';
-              input.name = 'ingredientes[]';
-              input.value = ing;
-              form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-          }}
+          onExport={handleExportPDF}
         />
       )}
     </div>
