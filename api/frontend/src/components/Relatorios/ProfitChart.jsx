@@ -10,7 +10,7 @@ const ProfitChart = ({ userId }) => {
   useEffect(() => {
     if (!userId) return;
 
-    axios.get(`http://localhost:3001/api/receitas/lucros?usuario=${userId}`)
+    axios.get(`/api/receitas/lucros?usuario=${userId}`)
       .then(res => setRecipes(res.data))
       .catch(err => console.error('Erro ao buscar receitas:', err));
   }, [userId]);

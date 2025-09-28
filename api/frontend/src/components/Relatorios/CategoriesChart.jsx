@@ -19,7 +19,7 @@ const CategoriesChart = ({ userId }) => {
 
     const fetchCategoryData = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/receitas/categorias?usuario=${userId}`);
+        const response = await axios.get(`/api/receitas/categorias?usuario=${userId}`);
         setData(response.data);
         console.log('Distribuição por categoria:', response.data);
       } catch (error) {

@@ -39,3 +39,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Documentação WARP (não versionar)
+WARP.md

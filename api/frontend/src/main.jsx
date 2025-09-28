@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async"; // Adicionado HelmetProvider
+import "./config/axios.js"; // Configuração do axios com interceptors
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";

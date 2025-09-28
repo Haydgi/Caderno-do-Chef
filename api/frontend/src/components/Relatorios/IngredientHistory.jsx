@@ -24,11 +24,7 @@ const IngredientHistory = ({ usuarioId }) => {
     const token = localStorage.getItem('token');
     setLoading(true);
     axios
-      .get(`http://localhost:3001/api/ingredientes?usuario=${usuarioId}&limit=10000`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      .get(`/api/ingredientes?usuario=${usuarioId}&limit=10000`)
       .then((res) => {
         const nomesUnicos = [
           ...new Set(res.data.map((ing) => ing.Nome_Ingrediente)),
@@ -54,7 +50,7 @@ const IngredientHistory = ({ usuarioId }) => {
     setLoading(true);
     axios
       .get(
-        `http://localhost:3001/api/historico-ingredientes/${encodeURIComponent(
+        `/api/historico-ingredientes/${encodeURIComponent(
           selectedIngredient
         )}/${usuarioId}`
       )

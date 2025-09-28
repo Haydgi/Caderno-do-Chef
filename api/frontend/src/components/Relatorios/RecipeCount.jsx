@@ -10,7 +10,7 @@ const RecipeCount = ({ userId }) => {
 
     const fetchRecipeCount = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/receitas/ContaReceita?usuario=${userId}`);
+        const response = await axios.get(`/api/receitas/ContaReceita?usuario=${userId}`);
         setCount(response.data.total);
         console.log('Total de receitas únicas:', response.data.total);
       } catch (error) {

@@ -15,7 +15,7 @@ const WasteChart = ({ userId }) => {
 
   useEffect(() => {
     if (!userId) return;
-    axios.get(`http://localhost:3001/api/ingredientes/indice?usuario=${userId}`)
+    axios.get(`/api/ingredientes/indice?usuario=${userId}`)
       .then(res => {
         console.log("Dados recebidos para o gráfico:", res.data);
         setIngredients(res.data);

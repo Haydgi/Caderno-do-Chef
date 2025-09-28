@@ -30,11 +30,7 @@ const Dashboard = () => {
     if (!userId) return;
     // Busca ingredientes do backend
     const token = localStorage.getItem('token');
-    axios.get(`http://localhost:3001/api/ingredientes?usuario=${userId}&limit=10000`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    axios.get(`/api/ingredientes?usuario=${userId}&limit=10000`)
       .then(res => {
         const nomes = [...new Set(res.data.map(ing => ing.Nome_Ingrediente))].sort();
         setIngredientList(nomes);
@@ -52,10 +48,12 @@ const Dashboard = () => {
     }
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/export-dashboard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ ingredientes: selectedIngredients, userId: userId }),
       });

@@ -10,7 +10,7 @@ const IngredientCount = ({ userId }) => {
 
     const fetchUniqueIngredients = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/ingredientes/ContaIngredientes?usuario=${userId}`);
+        const response = await axios.get(`/api/ingredientes/ContaIngredientes?usuario=${userId}`);
         setUniqueIngredients(response.data.count);
         console.log('Quantidade de ingredientes únicos:', response.data.count);
       } catch (error) {

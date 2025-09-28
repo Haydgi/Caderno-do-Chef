@@ -21,7 +21,7 @@ const AvgWaste = () => {
     const fetchAverageWaste = async () => {
       try {
         console.log(`Buscando desperdício médio para o usuário ${idUsuario}...`);
-        const response = await axios.get(`http://localhost:3001/api/ingredientes/media?usuario=${idUsuario}`);
+        const response = await axios.get(`/api/ingredientes/media?usuario=${idUsuario}`);
         console.log('Resposta recebida do backend:', response.data);
 
         const mediaRecebida = response.data.media;

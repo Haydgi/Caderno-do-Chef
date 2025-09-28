@@ -11,7 +11,7 @@ const UnderusedIngredients = ({ userId }) => {
 
     console.log('🔄 Buscando ingredientes subutilizados para o usuário:', userId);
 
-    axios.get(`http://localhost:3001/api/ingredientes/underused?usuario=${userId}`)
+    axios.get(`/api/ingredientes/underused?usuario=${userId}`)
       .then(res => {
         console.log('✅ Ingredientes recebidos do backend:', res.data.ingredients);
         console.log('✅ Receitas recebidas do backend:', res.data.recipes);
