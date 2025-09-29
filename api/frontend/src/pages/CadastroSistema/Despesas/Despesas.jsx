@@ -24,7 +24,7 @@ function Despesas() {
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
       const largura = window.innerWidth;
-      
+
       // Para despesas, mantemos sempre 6 por página como solicitado
       // mas ajustamos para mobile
       if (largura < 577) {
@@ -72,11 +72,11 @@ function Despesas() {
 
     try {
       console.log('Buscando despesas com termo:', termo);
-      
+
       // Adiciona timestamp para evitar cache no Firefox
       const timestamp = new Date().getTime();
       const url = `${API_URL}/api/despesas?limit=10000&search=${encodeURIComponent(termo)}&_t=${timestamp}`;
-      
+
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -87,15 +87,15 @@ function Despesas() {
         },
         cache: 'no-store'
       });
-      
+
       if (!res.ok) {
         console.error('Erro na resposta:', res.status);
         throw new Error('Erro ao buscar despesas');
       }
-      
+
       const data = await res.json();
       console.log('Dados recebidos da API:', data);
-      
+
       // Normaliza os dados
       const despesasNormalizadas = data.map(item => ({
         ...item,
@@ -105,7 +105,7 @@ function Despesas() {
         tempoOperacional: item.Tempo_Operacional,
         data: item.Data_Despesa,
       }));
-      
+
       console.log('Despesas normalizadas:', despesasNormalizadas);
       setDespesas(despesasNormalizadas);
     } catch (error) {
@@ -119,7 +119,7 @@ function Despesas() {
   useEffect(() => {
     // Detecta se é Firefox
     const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-    
+
     if (isFirefox) {
       console.log('🦊 Firefox detectado - aplicando correções');
       // Força recarregamento sem cache
@@ -131,7 +131,7 @@ function Despesas() {
       fetchDespesas(termoBusca);
     }
   }, [API_URL, termoBusca]);
-  
+
   // Força busca inicial ao montar componente (especialmente para Firefox)
   useEffect(() => {
     console.log('Componente montado - busca inicial');
@@ -200,9 +200,9 @@ function Despesas() {
     const diasNoMes = 30;
     const custoMensalNum = Number(custoMensal);
     const tempoDiaNum = Number(tempoOperacional);
-    
+
     if (!custoMensalNum || !tempoDiaNum) return 0;
-    
+
     const custoDiario = custoMensalNum / diasNoMes;
     const custoPorHora = custoDiario / tempoDiaNum;
     const custoPorMinuto = custoPorHora / 60;
@@ -217,9 +217,10 @@ function Despesas() {
         key={despesa.id}
         style={{
           width: '100%',
-          marginBottom: '2rem', // Espaçamento maior entre os cards
+          marginBottom: '1.3rem', // Espaçamento maior entre os cards
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
+          marginLeft: '-75px', // Em vez de paddingLeft
         }}
       >
         <div
@@ -247,7 +248,7 @@ function Despesas() {
             className={styles.Trash}
             onClick={(e) => {
               e.stopPropagation();
-              
+
               // SweetAlert para confirmação
               Swal.fire({
                 title: 'Tem certeza?',
@@ -272,7 +273,7 @@ function Despesas() {
           >
             <FaTrash />
           </i>
-          
+
           <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem' }}>{despesa.nome}</h3>
 
           {/* Seção de informações principais */}
@@ -374,17 +375,18 @@ function Despesas() {
           }
         `}
       </style>
-      
-      <div 
+
+      <div
         className="card shadow-lg border-0"
         style={{
+          position: 'relative',
           background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
           minHeight: '500px',
           borderRadius: '20px',
+          right: '50px',
           overflow: 'hidden',
           transition: 'all 0.3s ease-in-out',
-          marginLeft: '4rem',
-          width: '480px', // largura aumentada em 50p
+          width: '700px',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-5px)';
@@ -395,7 +397,7 @@ function Despesas() {
           e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
         }}
       >
-        <div 
+        <div
           className="card-header border-0 text-white text-center"
           style={{
             background: 'rgba(255, 255, 255, 0.1)',
@@ -404,21 +406,21 @@ function Despesas() {
           }}
         >
           <h5 className="card-title mb-0 fw-bold"
-              style={{ 
-                fontSize: '1.4rem',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)' 
-              }}>
+            style={{
+              fontSize: '1.4rem',
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+            }}>
             <i className="bi bi-calculator me-2"></i>
             Custo Operacional
           </h5>
         </div>
-        
+
         <div className="card-body text-white" style={{ padding: '2rem' }}>
           {/* Seção de detalhamento */}
           <div className="mb-4">
-            <h6 
+            <h6
               className="mb-3 fw-semibold"
-              style={{ 
+              style={{
                 color: 'rgba(255, 255, 255, 0.9)',
                 fontSize: '1.1rem',
                 borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
@@ -428,20 +430,20 @@ function Despesas() {
               <i className="bi bi-list-ul me-2"></i>
               Detalhamento por Despesa
             </h6>
-            
-            <div 
+
+            <div
               className="custom-scrollbar"
-              style={{ 
-                maxHeight: '200px', 
-                overflowY: 'auto', 
+              style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
                 paddingRight: '10px'
               }}
             >
               {despesas.map((despesa) => {
                 const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
                 return (
-                  <div 
-                    key={despesa.id} 
+                  <div
+                    key={despesa.id}
                     className="d-flex justify-content-between align-items-center mb-3 p-2 rounded"
                     style={{
                       background: 'rgba(255, 255, 255, 0.1)',
@@ -458,9 +460,9 @@ function Despesas() {
                       e.currentTarget.style.transform = 'translateX(0px)';
                     }}
                   >
-                    <span 
-                      className="text-truncate fw-medium" 
-                      style={{ 
+                    <span
+                      className="text-truncate fw-medium"
+                      style={{
                         maxWidth: '180px',
                         color: 'rgba(255, 255, 255, 0.95)'
                       }}
@@ -468,7 +470,7 @@ function Despesas() {
                       <i className="bi bi-dot me-1"></i>
                       {despesa.nome}
                     </span>
-                    <span 
+                    <span
                       className="fw-bold px-2 py-1 rounded"
                       style={{
                         background: 'rgba(255, 255, 255, 0.2)',
@@ -484,10 +486,10 @@ function Despesas() {
               })}
             </div>
           </div>
-          
+
           {/* Seção de soma */}
           {despesas.length > 1 && (
-            <div 
+            <div
               className="mb-4 p-3 rounded"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
@@ -500,9 +502,9 @@ function Despesas() {
                   <i className="bi bi-plus-circle me-2"></i>
                   Soma Total:
                 </span>
-                <span 
+                <span
                   className="fw-bold"
-                  style={{ 
+                  style={{
                     fontSize: '0.85rem',
                     color: 'rgba(255, 255, 255, 0.8)',
                     fontFamily: 'monospace'
@@ -516,9 +518,9 @@ function Despesas() {
               </div>
             </div>
           )}
-          
+
           {/* Resultado final */}
-          <div 
+          <div
             className="text-center p-4 rounded-3"
             style={{
               background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
@@ -527,9 +529,9 @@ function Despesas() {
               boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
             }}
           >
-            <h6 
+            <h6
               className="mb-2 fw-bold"
-              style={{ 
+              style={{
                 color: 'rgba(255, 255, 255, 0.9)',
                 fontSize: '1.1rem',
                 textShadow: '0 2px 4px rgba(0,0,0,0.3)'
@@ -540,7 +542,7 @@ function Despesas() {
               </i>
               Custo Operacional Total
             </h6>
-            <h3 
+            <h3
               className="mb-0 fw-bold"
               style={{
                 background: 'linear-gradient(45deg, var(--sunset), var(--tangerine))',
@@ -553,9 +555,9 @@ function Despesas() {
             >
               R$ {custoOperacionalTotal.toFixed(3)}/min
             </h3>
-            
+
             {/* Informação adicional */}
-            <div 
+            <div
               className="mt-3 pt-3"
               style={{
                 borderTop: '1px solid rgba(255, 255, 255, 0.2)',

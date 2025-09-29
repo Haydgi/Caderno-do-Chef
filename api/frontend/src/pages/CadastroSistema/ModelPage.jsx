@@ -28,7 +28,7 @@ function ModelPage({
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const floatingSearchRef = useRef(null);
   const prevTotalPaginas = useRef(0);
-  
+
 
   const totalPaginas = Math.ceil(dados.length / itensPorPagina);
 
@@ -52,7 +52,7 @@ function ModelPage({
       setPaginaAtual(totalPaginas - 1);
     }
   }, [paginaAtual, totalPaginas]);
-  
+
   // Reset página para 0 quando dados mudarem drasticamente
   useEffect(() => {
     if (dados.length > 0 && paginaAtual >= Math.ceil(dados.length / itensPorPagina)) {
@@ -163,7 +163,11 @@ function ModelPage({
               {/* Coluna esquerda - Cards */}
               <div className={painelLateral ? "col-md-6" : "col-12"}>
                 {dados.length === 0 ? (
-                  <div id="sem-dados" className={`${styles.emptyState}`}>
+                  <div
+                    id="sem-dados"
+                    className={`${styles.emptyState}`}
+                    style={painelLateral ? { marginRight: '150px' } : {}}
+                  >
                     <p>
                       {termoBusca && termoBusca.trim() !== ""
                         ? "Nenhum item encontrado para sua busca."
@@ -173,14 +177,14 @@ function ModelPage({
                       className={`${styles.btnDetails} btnUltraViolet btn`}
                       onClick={abrirModal}
                     >
-                      
+
                       <p className={styles.btnText}>
-                        <i className="bi bi-plus-circle me-2"></i> 
+                        <i className="bi bi-plus-circle me-2"></i>
                         {termoBusca && termoBusca.trim() !== ""
                           ? "Criar Item"
                           : (
                             <>
-                                Criar o Primeiro Item
+                              Criar o Primeiro Item
                             </>
                           )
                         }
@@ -192,34 +196,16 @@ function ModelPage({
                     {dadosExibidos.map(renderCard)}
                   </div>
                 )}
-                
-                {/* Paginação - apenas na coluna esquerda quando há painel lateral */}
-                {painelLateral && totalPaginas > 1 && (
-                  <div className="d-flex justify-content-start mt-4">
-                    <ReactPaginate
-                      pageCount={totalPaginas}
-                      onPageChange={mudarPagina}
-                      forcePage={paginaAtual}
-                      containerClassName={styles.pagination}
-                      activeClassName={styles.active}
-                      pageClassName={styles.pageItem}
-                      pageLinkClassName={styles.pageLink}
-                      pageRangeDisplayed={isMobile ? 1 : 3}
-                      marginPagesDisplayed={1}
-                      previousClassName={undefined}
-                      previousLabel={null}
-                      nextLabel={null}
-                      nextClassName={undefined}
-                    />
-                  </div>
-                )}
               </div>
-              
+
               {/* Linha divisória vertical quando há painel lateral */}
               {painelLateral && (
-                <div className="col-auto d-flex align-items-stretch" style={{ padding: '0', margin: '0 1rem' }}>
-                  <div 
+                <div className="col-auto d-flex align-items-stretch position-relative" style={{ padding: '0' }}>
+                  <div
                     style={{
+                      position: 'absolute',
+                      right: '0px', // Posicionamento específico da linha
+                      height: '75vh', // Altura fixa do design
                       width: '2px',
                       backgroundColor: '#67477A',
                       opacity: 0.4,
@@ -228,11 +214,18 @@ function ModelPage({
                   ></div>
                 </div>
               )}
-              
-              {/* Coluna direita - Painel lateral */}
+
+              {/* Coluna direita - Painel do Cálculo de Despesas */}
               {painelLateral && (
-                <div className="col-md-5">
-                  <div className="ps-2">
+                <div className="col-md-5 position-relative">
+                  <div
+                    className="position-absolute"
+                    style={{
+                      left: '180px', // Posicionamento específico do painel
+                      top: '0',
+                      width: 'calc(100% - 80px)' // Ajusta a largura considerando o left
+                    }}
+                  >
                     {painelLateral}
                   </div>
                 </div>
@@ -240,25 +233,23 @@ function ModelPage({
             </div>
           </div>
 
-          {/* Paginação - apenas quando não há painel lateral */}
-          {!painelLateral && totalPaginas > 1 && (
-            <div className="d-flex justify-content-center mt-4">
-              <ReactPaginate
-                pageCount={totalPaginas}
-                onPageChange={mudarPagina}
-                forcePage={paginaAtual}
-                containerClassName={styles.pagination}
-                activeClassName={styles.active}
-                pageClassName={styles.pageItem}
-                pageLinkClassName={styles.pageLink}
-                pageRangeDisplayed={isMobile ? 1 : 3}
-                marginPagesDisplayed={1}
-                previousClassName={undefined}
-                previousLabel={null}
-                nextLabel={null}
-                nextClassName={undefined}
-              />
-            </div>
+          {/* Paginação fixa na parte inferior */}
+          {totalPaginas > 1 && (
+            <ReactPaginate
+              pageCount={totalPaginas}
+              onPageChange={mudarPagina}
+              forcePage={paginaAtual}
+              containerClassName={styles.pagination}
+              activeClassName={styles.active}
+              pageClassName={styles.pageItem}
+              pageLinkClassName={styles.pageLink}
+              pageRangeDisplayed={isMobile ? 1 : 3}
+              marginPagesDisplayed={1}
+              previousClassName={undefined}
+              previousLabel={null}
+              nextLabel={null}
+              nextClassName={undefined}
+            />
           )}
 
           {/* Botão flutuante para mobile */}

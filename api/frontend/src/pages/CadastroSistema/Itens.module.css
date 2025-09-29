@@ -61,18 +61,32 @@
 
 .pagination {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   list-style: none;
   font-weight: bold;
   align-items: center;
   gap: 8px;
   padding: 0;
-  margin-bottom: 20px;
-  position: fixed; /* Fixa a paginação na parte inferior */
-  bottom: 20px; /* Alinha na parte inferior da tela */
-  left: 0;
-  width: 100%; /* Garante que ocupe toda a largura da tela */
+  position: fixed; /* Fixa na parte inferior da tela */
+  bottom: 20px; /* Distância da parte inferior */
+  left: 515px; /* Posição horizontal - você pode alterar este valor */
+  width: auto; /* Largura automática para left/right funcionar */
+  z-index: 1000; /* Fica acima de outros elementos */
   
+}
+
+/* Versão com posicionamento absoluto para usar left/right */
+.paginationPositioned {
+  display: flex;
+  justify-content: flex-start;
+  list-style: none;
+  font-weight: bold;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  position: absolute;
+  width: auto;
+  /* Use left ou right conforme necessário */
 }
 
 /* Botão de adicionar - versão mobile */
@@ -324,23 +338,7 @@
     font-size: 25px;
 }
 
-/* Estilo para a paginação */
-.pagination {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  font-weight: bold;
-  align-items: center;
-  list-style: none;
-  gap: 8px;
-  padding: 0;
-  margin-bottom: 20px;
-  position: absolute; /* Fixa a paginação dentro do container */
-  bottom: 40; /* Alinha na parte inferior do container */
-  left: 0;
-  width: 100%; /* Garante que ocupe toda a largura do container */
-  
-}
+/* Segunda definição removida para evitar conflitos */
 
 
 .pageItem {
