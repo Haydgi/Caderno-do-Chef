@@ -72,7 +72,16 @@
   left: 515px; /* Posição horizontal - você pode alterar este valor */
   width: auto; /* Largura automática para left/right funcionar */
   z-index: 1000; /* Fica acima de outros elementos */
-  
+}
+
+/* Paginação responsiva para mobile */
+@media (max-width: 767px) {
+  .pagination {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 15px !important;
+    justify-content: center !important;
+  }
 }
 
 /* Versão com posicionamento absoluto para usar left/right */
@@ -660,8 +669,88 @@
   .mobileSearchIcon {
     display: none !important;
   }
+}
 
- 
+/* Estilos para tabs mobile */
+.mobileTabsContainer {
+  margin: 1rem 0;
+  display: none; /* Escondido por padrão */
+}
+
+.mobileTabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 4px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.mobileTab {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--ultra-violet);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.mobileTab i {
+  font-size: 1.1rem;
+}
+
+.mobileTab:hover {
+  background: rgba(103, 71, 122, 0.1);
+  transform: translateY(-1px);
+}
+
+.mobileTabActive {
+  background: var(--ultra-violet) !important;
+  color: var(--white) !important;
+  box-shadow: 0 2px 4px rgba(103, 71, 122, 0.3);
+  transform: translateY(-1px);
+}
+
+.mobileTabActive:hover {
+  background: var(--ultra-violet) !important;
+  transform: translateY(-1px);
+}
+
+/* Painel mobile */
+.mobilePanel {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* Mostra as tabs apenas em mobile (<768px) */
+@media (max-width: 767px) {
+  .mobileTabsContainer {
+    display: block;
+  }
+  
+  /* Ajusta o painel móvel */
+  .mobilePanel {
+    padding: 0;
+    margin: -0.8rem 0;
+  }
+  
+  /* Garante que os cards de despesas se ajustem ao mobile */
+  .mobilePanel .card {
+    margin: 0;
+    width: 100%;
+  }
 }
 
 

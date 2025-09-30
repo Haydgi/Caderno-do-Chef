@@ -22,10 +22,16 @@ function ModelPage({
   termoBusca,
   setTermoBusca,
   painelLateral, // Novo prop para componente lateral
+  // Props para tabs mobile
+  enableMobileTabs = false,
+  mobileTabs = [],
+  activeMobileTab = 0,
+  setActiveMobileTab = () => {},
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
+  const [isMobileTab, setIsMobileTab] = useState(window.innerWidth < 768);
   const floatingSearchRef = useRef(null);
   const prevTotalPaginas = useRef(0);
 
@@ -63,6 +69,7 @@ function ModelPage({
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 576);
+      setIsMobileTab(window.innerWidth < 768);
     };
 
     window.addEventListener("resize", handleResize);
@@ -157,99 +164,160 @@ function ModelPage({
             </div>
           )}
 
+          {/* Tabs mobile - aparecem apenas se habilitadas e em mobile com tela < 768px */}
+          {enableMobileTabs && isMobileTab && mobileTabs.length > 0 && (
+            <div className={styles.mobileTabsContainer}>
+              <div className={styles.mobileTabs}>
+                {mobileTabs.map((tab, index) => (
+                  <button
+                    key={index}
+                    className={`${styles.mobileTab} ${activeMobileTab === index ? styles.mobileTabActive : ''}`}
+                    onClick={() => setActiveMobileTab(index)}
+                  >
+                    {tab.icon && <i className={tab.icon}></i>}
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Layout principal com grid */}
           <div className="container mt-4">
             <div className="row">
-              {/* Coluna esquerda - Cards */}
-              <div className={painelLateral ? "col-md-6" : "col-12"}>
-                {dados.length === 0 ? (
-                  <div
-                    id="sem-dados"
-                    className={`${styles.emptyState}`}
-                    style={painelLateral ? { marginRight: '150px' } : {}}
-                  >
-                    <p>
-                      {termoBusca && termoBusca.trim() !== ""
-                        ? "Nenhum item encontrado para sua busca."
-                        : "Não há itens cadastrados"}
-                    </p>
-                    <button
-                      className={`${styles.btnDetails} btnUltraViolet btn`}
-                      onClick={abrirModal}
-                    >
-
-                      <p className={styles.btnText}>
-                        <i className="bi bi-plus-circle me-2"></i>
-                        {termoBusca && termoBusca.trim() !== ""
-                          ? "Criar Item"
-                          : (
-                            <>
-                              Criar o Primeiro Item
-                            </>
-                          )
-                        }
-                      </p>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="row">
-                    {dadosExibidos.map(renderCard)}
-                  </div>
-                )}
-              </div>
-
-              {/* Linha divisória vertical quando há painel lateral */}
-              {painelLateral && (
-                <div className="col-auto d-flex align-items-stretch position-relative" style={{ padding: '0' }}>
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: '0px', // Posicionamento específico da linha
-                      height: '75vh', // Altura fixa do design
-                      width: '2px',
-                      backgroundColor: '#67477A',
-                      opacity: 0.4,
-                      borderRadius: '2px'
-                    }}
-                  ></div>
+              {/* Renderização condicional baseada em tabs mobile */}
+              {enableMobileTabs && isMobileTab ? (
+                // Layout mobile com tabs
+                <div className="col-12">
+                  {activeMobileTab === 0 ? (
+                    // Tab 1: Lista de dados (ex: Despesas)
+                    <>
+                      {dados.length === 0 ? (
+                        <div id="sem-dados" className={`${styles.emptyState}`}>
+                          <p>
+                            {termoBusca && termoBusca.trim() !== ""
+                              ? "Nenhum item encontrado para sua busca."
+                              : "Não há itens cadastrados"}
+                          </p>
+                          <button
+                            className={`${styles.btnDetails} btnUltraViolet btn`}
+                            onClick={abrirModal}
+                          >
+                            <p className={styles.btnText}>
+                              <i className="bi bi-plus-circle me-2"></i>
+                              {termoBusca && termoBusca.trim() !== ""
+                                ? "Criar Item"
+                                : "Criar o Primeiro Item"}
+                            </p>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="row">
+                          {dadosExibidos.map(renderCard)}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // Tab 2: Painel lateral (ex: Custo Operacional)
+                    <div className="col-12">
+                      <div className={styles.mobilePanel}>
+                        {painelLateral}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Coluna direita - Painel do Cálculo de Despesas */}
-              {painelLateral && (
-                <div className="col-md-5 position-relative">
-                  <div
-                    className="position-absolute"
-                    style={{
-                      left: '180px', // Posicionamento específico do painel
-                      top: '0',
-                      width: 'calc(100% - 80px)' // Ajusta a largura considerando o left
-                    }}
-                  >
-                    {painelLateral}
+              ) : (
+                // Layout desktop padrão
+                <>
+                  {/* Coluna esquerda - Cards */}
+                  <div className={painelLateral ? "col-md-6" : "col-12"}>
+                    {dados.length === 0 ? (
+                      <div
+                        id="sem-dados"
+                        className={`${styles.emptyState}`}
+                        style={painelLateral ? { marginRight: '150px' } : {}}
+                      >
+                        <p>
+                          {termoBusca && termoBusca.trim() !== ""
+                            ? "Nenhum item encontrado para sua busca."
+                            : "Não há itens cadastrados"}
+                        </p>
+                        <button
+                          className={`${styles.btnDetails} btnUltraViolet btn`}
+                          onClick={abrirModal}
+                        >
+                          <p className={styles.btnText}>
+                            <i className="bi bi-plus-circle me-2"></i>
+                            {termoBusca && termoBusca.trim() !== ""
+                              ? "Criar Item"
+                              : "Criar o Primeiro Item"}
+                          </p>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="row">
+                        {dadosExibidos.map(renderCard)}
+                      </div>
+                    )}
                   </div>
-                </div>
+
+                  {/* Linha divisória vertical quando há painel lateral */}
+                  {painelLateral && (
+                    <div className="col-auto d-flex align-items-stretch position-relative" style={{ padding: '0' }}>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          right: '0px',
+                          height: '75vh',
+                          width: '2px',
+                          backgroundColor: '#67477A',
+                          opacity: 0.4,
+                          borderRadius: '2px'
+                        }}
+                      ></div>
+                    </div>
+                  )}
+
+                  {/* Coluna direita - Painel do Cálculo de Despesas */}
+                  {painelLateral && (
+                    <div className="col-md-5 position-relative">
+                      <div
+                        className="position-absolute"
+                        style={{
+                          left: '180px',
+                          top: '0',
+                          width: 'calc(100% - 80px)'
+                        }}
+                      >
+                        {painelLateral}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
           {/* Paginação fixa na parte inferior */}
           {totalPaginas > 1 && (
-            <ReactPaginate
-              pageCount={totalPaginas}
-              onPageChange={mudarPagina}
-              forcePage={paginaAtual}
-              containerClassName={styles.pagination}
-              activeClassName={styles.active}
-              pageClassName={styles.pageItem}
-              pageLinkClassName={styles.pageLink}
-              pageRangeDisplayed={isMobile ? 1 : 3}
-              marginPagesDisplayed={1}
-              previousClassName={undefined}
-              previousLabel={null}
-              nextLabel={null}
-              nextClassName={undefined}
-            />
+            // Só mostra paginação se não tem tabs mobile OU se está na primeira tab (lista de dados)
+            (!enableMobileTabs || !isMobileTab || activeMobileTab === 0) && (
+              <ReactPaginate
+                pageCount={totalPaginas}
+                onPageChange={mudarPagina}
+                forcePage={paginaAtual}
+                containerClassName={styles.pagination}
+                activeClassName={styles.active}
+                pageClassName={styles.pageItem}
+                pageLinkClassName={styles.pageLink}
+                pageRangeDisplayed={isMobile ? 1 : 3}
+                marginPagesDisplayed={1}
+                previousClassName={undefined}
+                previousLabel={null}
+                nextLabel={null}
+                nextClassName={undefined}
+              />
+            )
           )}
 
           {/* Botão flutuante para mobile */}

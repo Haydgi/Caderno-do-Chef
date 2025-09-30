@@ -19,16 +19,21 @@ function Despesas() {
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(6);
+  // Estados para tabs mobile
+  const [activeMobileTab, setActiveMobileTab] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Ajustar itens por página baseado no tamanho da tela
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
       const largura = window.innerWidth;
+      
+      // Atualiza estado mobile
+      setIsMobile(largura < 768);
 
-      // Para despesas, mantemos sempre 6 por página como solicitado
-      // mas ajustamos para mobile
-      if (largura < 577) {
-        setItensPorPagina(3);
+      // Para despesas, ajustamos para mobile com 2 itens por página
+      if (largura < 768) {
+        setItensPorPagina(2); // 2 itens por página em mobile
       } else if (largura < 992) {
         setItensPorPagina(4);
       } else {
@@ -46,11 +51,11 @@ function Despesas() {
     const ajustarItensPorTamanho = () => {
       const largura = window.innerWidth;
       if (largura < 577) {
-        setItensPorPagina(4);
+        setItensPorPagina(2);
       } else if (largura < 761) {
-        setItensPorPagina(6);
+        setItensPorPagina(2);
       } else if (largura < 992) {
-        setItensPorPagina(9);
+        setItensPorPagina(3);
       } else {
         setItensPorPagina(3);
       }
@@ -212,16 +217,27 @@ function Despesas() {
   const renderCard = (despesa) => {
     const custoOperacionalPorMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
 
+
     return (
       <div
         key={despesa.id}
-        style={{
-          width: '100%',
-          marginBottom: '1.3rem', // Espaçamento maior entre os cards
-          display: 'flex',
-          justifyContent: 'flex-start',
-          marginLeft: '-75px', // Em vez de paddingLeft
-        }}
+        className={isMobile ? "col-12 mb-3" : "col-12"}
+        style={
+          isMobile
+            ? {
+                width: 'calc(100% - 20px)', // 20px menos largo no mobile
+                marginBottom: '1rem',
+                marginLeft: '10px', // centraliza a redução
+                marginRight: '10px',
+              }
+            : {
+                width: '100%',
+                marginBottom: '1.3rem',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                marginLeft: '-75px',
+              }
+        }
       >
         <div
           className={styles.cardDespesa}
@@ -229,26 +245,42 @@ function Despesas() {
             setDespesaSelecionada(despesa);
             setMostrarModalEditar(true);
           }}
-          style={{
-            cursor: 'pointer',
-            width: '100%',
-            maxWidth: '540px', // Largura aumentada
-            minWidth: '320px', // Largura mínima aumentada
-            margin: '0 auto',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            height: '205px',
-            padding: '0.25rem 0.25rem 0.2rem 0.25rem',
-            boxSizing: 'border-box',
-            fontSize: '0.75rem',
-          }}
+          style={
+            isMobile
+              ? {
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '100%',
+                  margin: '0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: 'auto',
+                  minHeight: '180px',
+                  padding: '1.6rem',
+                  boxSizing: 'border-box',
+                  fontSize: '0.85rem',
+                }
+              : {
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '540px',
+                  minWidth: '320px',
+                  margin: '0 auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '205px',
+                  padding: '0.25rem 0.25rem 0.2rem 0.25rem',
+                  boxSizing: 'border-box',
+                  fontSize: '0.75rem',
+                }
+          }
         >
           <i
             className={styles.Trash}
             onClick={(e) => {
               e.stopPropagation();
-
               // SweetAlert para confirmação
               Swal.fire({
                 title: 'Tem certeza?',
@@ -274,7 +306,20 @@ function Despesas() {
             <FaTrash />
           </i>
 
-          <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem' }}>{despesa.nome}</h3>
+          <h3
+            className="fw-bold mb-2 mt-2"
+            style={
+              isMobile
+                ? {
+                    fontSize: '1.15rem',
+                    position: 'relative',
+                    top: '-15px', // Sobe 15px no mobile
+                  }
+                : { fontSize: '1.15rem' }
+            }
+          >
+            {despesa.nome}
+          </h3>
 
           {/* Seção de informações principais */}
           <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
@@ -352,8 +397,8 @@ function Despesas() {
     return total + calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
   }, 0);
 
-  // Componente do painel lateral
-  const PainelCustoOperacional = () => (
+  // Componente do painel lateral - versão responsiva
+  const PainelCustoOperacional = ({ isMobileVersion = false }) => (
     <>
       {/* Estilo customizado para scrollbar */}
       <style>
@@ -373,12 +418,46 @@ function Despesas() {
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: var(--tangerine);
           }
+          
+          /* Estilos específicos para mobile */
+          .mobile-cost-panel {
+            position: relative;
+            width: 470px;
+            height: 590px;
+            margin: -5px auto 0 auto; /* Subir 45px total (20px + 25px) e centralizar */
+            max-width: calc(100vw - 2rem); /* Responsivo */
+            display: flex;
+            flex-direction: column;
+          }
+          
+          .mobile-cost-content {
+            height: 450px; /* Ajustado para acomodar footer maior */
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 0;
+          }
+          
+          .mobile-cost-footer {
+            height: auto; /* Altura automática para acomodar a seção de soma */
+            min-height: 120px;
+            background: linear-gradient(45deg, var(--ultra-violet), var(--ultra-violet));
+            padding: 16px;
+            border-radius: 0 0 15px 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+          }
         `}
       </style>
 
       <div
-        className="card shadow-lg border-0"
-        style={{
+        className={isMobileVersion ? "mobile-cost-panel" : "card shadow-lg border-0"}
+        style={isMobileVersion ? {
+          background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          margin: '0 1rem',
+        } : {
           position: 'relative',
           background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
           minHeight: '500px',
@@ -388,52 +467,58 @@ function Despesas() {
           transition: 'all 0.3s ease-in-out',
           width: '700px',
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={!isMobileVersion ? (e) => {
           e.currentTarget.style.transform = 'translateY(-5px)';
           e.currentTarget.style.boxShadow = `0 20px 40px rgba(103, 71, 122, 0.3)`;
-        }}
-        onMouseLeave={(e) => {
+        } : undefined}
+        onMouseLeave={!isMobileVersion ? (e) => {
           e.currentTarget.style.transform = 'translateY(0px)';
           e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
-        }}
+        } : undefined}
       >
-        <div
-          className="card-header border-0 text-white text-center"
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          <h5 className="card-title mb-0 fw-bold"
+        {!isMobileVersion && (
+          <div
+            className="card-header border-0 text-white text-center"
             style={{
-              fontSize: '1.4rem',
-              textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-            }}>
-            <i className="bi bi-calculator me-2"></i>
-            Custo Operacional
-          </h5>
-        </div>
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
+            }}
+          >
+            <h5 className="card-title mb-0 fw-bold"
+              style={{
+                fontSize: '1.4rem',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              }}>
+              <i className="bi bi-calculator me-2"></i>
+              Custo Operacional
+            </h5>
+          </div>
+        )}
 
-        <div className="card-body text-white" style={{ padding: '2rem' }}>
+        <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white"} style={isMobileVersion ? { padding: '1rem' } : { padding: '2rem' }}>
           {/* Seção de detalhamento */}
-          <div className="mb-4">
+          <div className={isMobileVersion ? "mb-2" : "mb-4"}>
             <h6
-              className="mb-3 fw-semibold"
+              className={isMobileVersion ? "mb-2 fw-semibold" : "mb-3 fw-semibold"}
               style={{
                 color: 'rgba(255, 255, 255, 0.9)',
-                fontSize: '1.1rem',
+                fontSize: isMobileVersion ? '1rem' : '1.1rem',
                 borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
                 paddingBottom: '0.5rem'
               }}
             >
               <i className="bi bi-list-ul me-2"></i>
-              Detalhamento por Despesa
+              {isMobileVersion ? 'Detalhamento' : 'Detalhamento por Despesa'}
             </h6>
 
             <div
               className="custom-scrollbar"
-              style={{
+              style={isMobileVersion ? {
+                height: '370px', /* Ajustado para acomodar footer com seção de soma */
+                overflowY: 'auto',
+                paddingRight: '10px'
+              } : {
                 maxHeight: '200px',
                 overflowY: 'auto',
                 paddingRight: '10px'
@@ -487,8 +572,8 @@ function Despesas() {
             </div>
           </div>
 
-          {/* Seção de soma */}
-          {despesas.length > 1 && (
+          {/* Seção de soma - apenas no desktop */}
+          {despesas.length > 1 && !isMobileVersion && (
             <div
               className="mb-4 p-3 rounded"
               style={{
@@ -519,60 +604,140 @@ function Despesas() {
             </div>
           )}
 
-          {/* Resultado final */}
-          <div
-            className="text-center p-4 rounded-3"
-            style={{
-              background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
-              backdropFilter: 'blur(15px)',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            <h6
-              className="mb-2 fw-bold"
-              style={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                fontSize: '1.1rem',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-              }}
-            >
-              <i style={{ color: 'var(--sunset)', marginRight: '8px', fontSize: '1.5rem' }}>
-                <BiMoneyWithdraw />
-              </i>
-              Custo Operacional Total
-            </h6>
-            <h3
-              className="mb-0 fw-bold"
-              style={{
-                background: 'linear-gradient(45deg, var(--sunset), var(--tangerine))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: '2.2rem',
-                textShadow: '0 4px 8px rgba(0,0,0,0.3)',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-              }}
-            >
-              R$ {custoOperacionalTotal.toFixed(3)}/min
-            </h3>
-
-            {/* Informação adicional */}
+          {/* Resultado final - condicional baseado na versão */}
+          {!isMobileVersion && (
             <div
-              className="mt-3 pt-3"
+              className="text-center p-4 rounded-3"
               style={{
-                borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                fontSize: '0.9rem',
-                color: 'rgba(255, 255, 255, 0.8)'
+                background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+                backdropFilter: 'blur(15px)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
               }}
             >
-              <i className="bi bi-info-circle me-1"></i>
-              Atualizado em tempo real
+              <h6
+                className="mb-2 fw-bold"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.9)',
+                  fontSize: '1.1rem',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                }}
+              >
+                <i style={{ color: 'var(--sunset)', marginRight: '8px', fontSize: '1.5rem' }}>
+                  <BiMoneyWithdraw />
+                </i>
+                Custo Operacional Total
+              </h6>
+              <h3
+                className="mb-0 fw-bold"
+                style={{
+                  background: 'linear-gradient(45deg, var(--sunset), var(--tangerine))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontSize: '2.2rem',
+                  textShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                }}
+              >
+                R$ {custoOperacionalTotal.toFixed(3)}/min
+              </h3>
+
+              {/* Informação adicional */}
+              <div
+                className="mt-3 pt-3"
+                style={{
+                  borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                  fontSize: '0.9rem',
+                  color: 'rgba(255, 255, 255, 0.8)'
+                }}
+              >
+                <i className="bi bi-info-circle me-1"></i>
+                Atualizado em tempo real
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Footer sticky para mobile */}
+        {isMobileVersion && (
+          <div className="mobile-cost-footer">
+            {/* Seção de soma no mobile - visual original */}
+            {despesas.length > 1 && (
+              <div
+                className="p-3 rounded"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="fw-semibold" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Soma Total:
+                  </span>
+                  <span
+                    className="fw-bold"
+                    style={{
+                      fontSize: '0.85rem',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontFamily: 'monospace'
+                    }}
+                  >
+                    {despesas.map((despesa) => {
+                      const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+                      return custoMinuto.toFixed(3);
+                    }).join(' + ')} =
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {/* Resultado final */}
+            <div className="text-center">
+              <h6
+                className="mb-2 fw-bold text-white"
+                style={{
+                  fontSize: '1rem',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                }}
+              >
+                <i style={{ color: 'var(--sunset)', marginRight: '8px', fontSize: '1.3rem' }}>
+                  <BiMoneyWithdraw />
+                </i>
+                Custo Operacional Total
+              </h6>
+              <h3
+                className="mb-0 fw-bold"
+                style={{
+                  background: 'linear-gradient(45deg, var(--sunset), var(--tangerine))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontSize: '1.8rem',
+                  textShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                }}
+              >
+                R$ {custoOperacionalTotal.toFixed(3)}/min
+              </h3>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
+
+  // Configuração das tabs mobile
+  const mobileTabs = [
+    {
+      label: 'Despesas',
+      icon: 'bi bi-receipt'
+    },
+    {
+      label: 'Custo Operacional',
+      icon: 'bi bi-calculator'
+    }
+  ];
 
   return (
     <ModelPage
@@ -603,8 +768,12 @@ function Despesas() {
       itensPorPagina={itensPorPagina}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
-      painelLateral={<PainelCustoOperacional />}
-      pagelinksPosition="below" // <--- Adicione esta prop se ModelPage aceitar, ou mova manualmente no ModelPage
+      painelLateral={<PainelCustoOperacional isMobileVersion={isMobile && activeMobileTab === 1} />}
+      // Props para tabs mobile
+      enableMobileTabs={true}
+      mobileTabs={mobileTabs}
+      activeMobileTab={activeMobileTab}
+      setActiveMobileTab={setActiveMobileTab}
     />
   );
 }
