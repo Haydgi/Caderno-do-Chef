@@ -107,15 +107,15 @@ export default function Navbar({ onLogout }) {
       <nav className="navbar navbar-expand-md d-flex d-md-none px-3">
         <img src={`${import.meta.env.BASE_URL}midia/logo_caderno_do_che2.png`} alt="Logo" className="navbar-logo" style={{ height: "40px" }} />
 
-        <button className="btn" type="button" onClick={() => setMenuAberto(!menuAberto)}>
-          <MdMenu />
+        <button className="btn" type="button" onClick={() => setMenuAberto(!menuAberto)} style={{ color: 'var(--sunset)' }}>
+          <MdMenu style={{ fontSize: '1.8rem', color: 'var(--sunset)' }} />
         </button>
 
         <div ref={menuRef} className={`mobile-sidebar ${menuAberto ? "open" : ""}`} tabIndex={-1}>
           <div className="mobile-sidebar-header d-flex align-items-center justify-content-between px-3 py-2">
             <img src={`${import.meta.env.BASE_URL}midia/logo_caderno_do_che2.png`} alt="Logo" style={{ height: "36px" }} />
             <button className="btn" onClick={() => setMenuAberto(false)}>
-              <MdMenu size={28} />
+              <MdMenu size={28} style={{ color: 'var(--sunset)' }} />
             </button>
           </div>
           <ul className="navbar-nav flex-column px-3">

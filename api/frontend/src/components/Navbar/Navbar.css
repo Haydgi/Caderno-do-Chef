@@ -290,7 +290,7 @@ img {
   height: 100vh;
   background: var(--ultra-violet, #6c47ff);
   color: var(--floral-white, #fff);
-  z-index: 2000;
+  z-index: 9999; /* Aumentado para ter prioridade sobre as tabs */
   transform: translateX(100%); /* <-- animação da direita */
   transition: transform 0.3s ease;
   box-shadow: -2px 0 16px rgba(0,0,0,0.15); /* sombra para esquerda */
@@ -354,5 +354,5 @@ img {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.3);
-  z-index: 1999;
+  z-index: 9998; /* Aumentado para ficar logo abaixo do sidebar */
 }
