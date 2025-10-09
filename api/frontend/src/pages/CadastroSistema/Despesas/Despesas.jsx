@@ -18,6 +18,8 @@ function Despesas() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
+  // Estado para sincronizar hover entre cards e painel
+  const [hoveredDespesaId, setHoveredDespesaId] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(6);
   // Estados para tabs mobile
   const [activeMobileTab, setActiveMobileTab] = useState(0);
@@ -240,11 +242,13 @@ function Despesas() {
         }
       >
         <div
-          className={styles.cardDespesa}
+          className={`${styles.cardDespesa} ${hoveredDespesaId === despesa.id ? styles.cardDespesaHovered : ''}`}
           onClick={() => {
             setDespesaSelecionada(despesa);
             setMostrarModalEditar(true);
           }}
+          onMouseEnter={() => setHoveredDespesaId(despesa.id)}
+          onMouseLeave={() => setHoveredDespesaId((prev) => (prev === despesa.id ? null : prev))}
           style={
             isMobile
               ? {
@@ -464,17 +468,8 @@ function Despesas() {
           borderRadius: '20px',
           right: '50px',
           overflow: 'hidden',
-          transition: 'all 0.3s ease-in-out',
           width: '700px',
         }}
-        onMouseEnter={!isMobileVersion ? (e) => {
-          e.currentTarget.style.transform = 'translateY(-5px)';
-          e.currentTarget.style.boxShadow = `0 20px 40px rgba(103, 71, 122, 0.3)`;
-        } : undefined}
-        onMouseLeave={!isMobileVersion ? (e) => {
-          e.currentTarget.style.transform = 'translateY(0px)';
-          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.15)';
-        } : undefined}
       >
         {!isMobileVersion && (
           <div
@@ -531,19 +526,14 @@ function Despesas() {
                     key={despesa.id}
                     className="d-flex justify-content-between align-items-center mb-3 p-2 rounded"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
+                      background: hoveredDespesaId === despesa.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                      transform: hoveredDespesaId === despesa.id ? 'translateX(5px)' : 'translateX(0px)',
                       backdropFilter: 'blur(5px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       transition: 'all 0.2s ease'
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                      e.currentTarget.style.transform = 'translateX(5px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                      e.currentTarget.style.transform = 'translateX(0px)';
-                    }}
+                    onMouseEnter={() => setHoveredDespesaId(despesa.id)}
+                    onMouseLeave={() => setHoveredDespesaId((prev) => (prev === despesa.id ? null : prev))}
                   >
                     <span
                       className="text-truncate fw-medium"

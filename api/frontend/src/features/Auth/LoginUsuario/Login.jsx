@@ -98,9 +98,8 @@ export default function Login() {
                     value={email}
                     onChange={handleInputChange}
                     placeholder="Insira seu e-mail"
-                    className={`${styles.inputField} ${
-                      invalidFields.includes("email") ? styles.inputInvalido : ""
-                    }`}
+                    className={`${styles.inputField} ${invalidFields.includes("email") ? styles.inputInvalido : ""
+                      }`}
                   />
                 </div>
               </div>
@@ -122,9 +121,8 @@ export default function Login() {
                     value={senha}
                     onChange={handleInputChange}
                     placeholder="Insira sua senha"
-                    className={`${styles.inputField} ${
-                      invalidFields.includes("senha") ? styles.inputInvalido : ""
-                    }`}
+                    className={`${styles.inputField} ${invalidFields.includes("senha") ? styles.inputInvalido : ""
+                      }`}
                   />
                   <button
                     type="button"
