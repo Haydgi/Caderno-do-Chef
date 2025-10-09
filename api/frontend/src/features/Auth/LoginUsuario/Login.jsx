@@ -60,6 +60,12 @@ export default function Login() {
         toast.error("Falha no login. Tente novamente.");
       }
     } catch (error) {
+      // Rate limiting (429) não deve causar refresh ou redirecionamento
+      if (error.response?.status === 429) {
+        const msg = error.response?.data?.mensagem || 'Muitas tentativas. Tente novamente mais tarde.';
+        toast.error(msg);
+        return;
+      }
       if (error.response?.data?.mensagem) {
         toast.error(error.response.data.mensagem);
       } else {
@@ -72,7 +78,7 @@ export default function Login() {
     <div className={`${"backgroundContainer"} ${styles.backgroundSignIn}`}>
       <div>
         <div className={styles.container}>
-          <form className={styles.formulario} onSubmit={handleCadastro}>
+          <form className={styles.formulario} onSubmit={handleCadastro} noValidate>
             <div className={styles.teste}>
               <h2>Acesse seu Caderno!</h2>
 

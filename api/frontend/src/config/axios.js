@@ -22,10 +22,21 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado ou inválido, limpar localStorage e redirecionar para login
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      window.location.href = '/sign-in';
+      const originalRequest = error.config || {};
+      const url = originalRequest.url || '';
+
+      // Não redireciona quando é a própria rota de login
+      if (url.includes('/api/login')) {
+        return Promise.reject(error);
+      }
+
+      // Só redireciona se havia uma sessão (token presente)
+      const hasToken = !!localStorage.getItem('token');
+      if (hasToken) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        window.location.href = '/sign-in';
+      }
     }
     return Promise.reject(error);
   }
