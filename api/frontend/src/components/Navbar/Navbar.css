@@ -1,0 +1,358 @@
+/* Container da Navbar */
+.navbar {
+  width: 100%;
+  padding: 15px 0;
+  z-index: 10;
+  position: relative;
+  text-align: center; /* Centraliza o conteúdo */
+}
+
+/* Lista de navegação */
+.nav-list {
+  list-style: none;
+  display: flex;              /* Deixa os itens em linha */
+  justify-content: center;    /* Centraliza horizontalmente */
+  gap: 40px;                  /* Espaçamento entre os itens */
+  padding-top: 10px;
+  padding-left: 130px; /*meu heroi*/
+  margin: 0 auto;             /* (opcional) Garante que o ul também esteja centralizado no container */
+}
+
+/* Estilo dos links */
+.nav-list a {
+  color: var(--sunset);
+  font-weight: bold;
+  font-size: 1.4rem;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+/* Estilo para o link ativo */
+.nav-list a.active {
+  color: var(--sunset) !important; /* Cor do link ativo */
+  border-bottom: 2px solid var(--sunset); /* Underline no link ativo */
+}
+
+/* Hover custom */
+.hoverable {
+  display: inline-block;
+  backface-visibility: hidden;
+  vertical-align: middle;
+  position: relative;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  transform: translateZ(0);
+  transition-duration: 0.3s;
+  transition-property: transform;
+}
+
+.hoverable:before {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  content: '';
+  top: 100%;
+  left: 5%;
+  height: 10px;
+  width: 90%;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, var(--sunset) 0%, rgba(251, 255, 0, 0) 80%);
+  transition: 0.3s transform, 0.3s opacity;
+}
+
+.hoverable:hover,
+.hoverable:focus,
+.hoverable:active {
+  transform: translateY(-5px);
+}
+
+.hoverable:hover:before,
+.hoverable:focus:before,
+.hoverable:active:before {
+  opacity: 1;
+  transform: translateY(-5px);
+}
+
+/* Estilo para a logo */
+.navbar-logo {
+  position: absolute;
+  left: 20px; /* Distância da borda esquerda */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+img {
+  height: 40px; /* Ajuste o tamanho da logo */
+  width: auto;
+}
+
+.btnLogout {
+  background: var(--white);
+  color: var(--rich-black);
+  border: none;
+  border-radius: 12px;
+  font-size: 1.0rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  padding: 10px 20px;
+}
+
+.btnLogout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(30, 30, 30, 0.35) 0%,
+    rgba(0, 0, 0, 0) 60%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.5s ease-in-out;
+  z-index: 0;
+}
+
+.btnLogout:hover::before {
+  left: 105%;
+}
+
+.btnLogout:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+.btnLogout:focus-visible {
+  outline: 2px solid var(--tangerine);
+  outline-offset: 2px;
+}
+
+/* Botão hamburguer visível apenas no mobile */
+.menu-toggle {
+  display: none;
+  position: absolute;
+  right: -10px;
+  top: 60%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--sunset);
+  cursor: pointer;
+  z-index: 20;
+  outline: none; /* Remove a borda preta ao clicar */
+  box-shadow: none; /* Remove qualquer sombra residual */
+}
+
+/* Menu mobile */
+.mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 16px;
+  z-index: 15;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-menu a {
+  font-size: 1.3rem;
+  color: var(--rich-black);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+@media (max-width: 900px) {
+  .navbar {
+    padding-top: 20px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .navbar-logo {
+  position: relative;
+  left: 0;
+  top: 5px !important;
+  transform: none;
+  height: 40px;
+}
+
+  .btnLogout {
+    display: none;
+  }
+
+  /* Esconde a navbar desktop a partir de 900px */
+  .navbar.d-md-flex {
+    display: none !important;
+  }
+
+  .navbar.d-md-none {
+    display: flex !important;
+  }
+
+  /* Ajusta o ícone do menu para a esquerda */
+.MdMenu {
+  color: var(--sunset);
+  font-size: 26px;
+  position: absolute;
+  right: 10px; /* Move o ícone para a esquerda */
+  top: 50%;
+  transform: translateY(-50%);
+}
+}
+
+.mobile-bootstrap-menu {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  right: 10px;
+  background: var(--ultra-violet) !important; /* Fundo roxo do sistema */
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeSlideDown 0.3s ease-in-out;
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.mobile-bootstrap-menu .nav-link {
+  color: var(--floral-white); /* Texto branco */
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Linha sutil */
+  transition: all 0.2s ease;
+}
+
+/* Estilo para a página ativa */
+.mobile-bootstrap-menu .nav-link.active {
+  color: var(--sunset); /* Cor de destaque para a página ativa */
+  font-weight: bold;
+  display: inline-block; /* necessário para aplicar largura */
+  border-bottom: 2px solid var(--ultra-violet) !important;
+  width: 30%;
+  margin: 0 auto; /* centraliza a borda abaixo do texto */
+}
+
+/* Estilo do botão de logout no mobile */
+.btnLogoutCelular {
+  color: var(--floral-white); /* Texto branco */
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  transition: all 0.2s ease;
+}
+
+.btnLogoutCelular:hover {
+  color: var(--sunset); /* Cor de destaque ao passar o mouse */
+}
+
+.MdMenu{
+  color: var(--sunset);
+  font-size: 26px;
+}
+
+/* Novos estilos para a sidebar mobile */
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0; /* <-- muda para direita */
+  left: auto;
+  width: 240px;
+  height: 100vh;
+  background: var(--ultra-violet, #6c47ff);
+  color: var(--floral-white, #fff);
+  z-index: 9999; /* Aumentado para ter prioridade sobre as tabs */
+  transform: translateX(100%); /* <-- animação da direita */
+  transition: transform 0.3s ease;
+  box-shadow: -2px 0 16px rgba(0,0,0,0.15); /* sombra para esquerda */
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+}
+
+.mobile-sidebar.open {
+  transform: translateX(0);
+}
+
+.mobile-sidebar-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  min-height: 60px;
+}
+
+.mobile-sidebar .navbar-nav {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Botão de sair sempre no final */
+.btnLogoutCelular {
+  color: var(--floral-white, #fff);
+  font-weight: bold;
+  font-size: 1.1rem;
+  border: none;
+  background: none;
+  
+  width: 100%;
+  text-align: left;
+  padding: 10px 0 10px 12px;
+  transition: color 0.2s, background 0.2s;
+  border-radius: 12px; /* bordas arredondadas */
+  margin-top: 520px;
+}
+
+.mobile-sidebar .nav-link {
+  color: var(--floral-white, #fff);
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin: 10px 0;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mobile-sidebar .nav-link.active,
+.mobile-sidebar .nav-link:hover {
+  background: var(--sunset, #ffb347);
+  color: #111 !important; /* texto preto ao hover/ativo */
+}
+
+.btnLogoutCelular:hover {
+  background: var(--sunset, #ffb347);
+  color: #111 !important; /* texto preto ao hover */
+}
+
+.mobile-sidebar-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 9998; /* Aumentado para ficar logo abaixo do sidebar */
+}

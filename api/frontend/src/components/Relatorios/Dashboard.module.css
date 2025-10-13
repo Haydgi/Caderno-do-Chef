@@ -1,0 +1,762 @@
+:root {
+  --primary: #67477A;
+  --primary-light: #8E6A9B;
+  --primary-dark: #4A3257;
+  --secondary: #FCD18A;
+  --secondary-light: #FDE4B5;
+  --secondary-dark: #F9C060;
+  --accent: #D4A5A5;
+  --gray: #F5F5F5;
+  --white-smoke: #F9FAFB;
+  --rich-black: #101820;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.row > * {
+  flex: 1 1 calc(33.333% - 20px); /* 3 itens por linha */
+  min-width: 250px; /* Largura mínima para evitar esmagamento */
+}
+
+.row.compact {
+  min-height: 240px;
+}
+
+.chart-card {
+  background: var(--white-smoke);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.chart-card:hover {
+  transform: scale(1.005);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.chart-title {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  color: var(--rich-black);
+  font-weight: bold;
+}
+
+
+
+.chart-card h3 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #555;
+  display: flex;
+  justify-content: center;
+}
+
+/* Gráficos responsivos */
+.recharts-wrapper {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Tooltip personalizado */
+.recharts-tooltip {
+  background: white !important;
+  border: none !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+/* Adicione ao arquivo existente */
+.list-card ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.list-card li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ing-name {
+  font-weight: 500;
+}
+
+.ing-category {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.metric-value.large {
+  font-size: 3.5rem;
+}
+
+.metric-subtext {
+  color: #666;
+  text-align: center;
+  font-size: 2rem;
+}
+
+.metric-label {
+  display: block;
+  font-size: 1rem;
+  color: var(--gray);
+  margin-top: 8px;
+  font-weight: normal;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.chart-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+  margin-bottom: 16px;
+  min-height: 3.5rem; /* garante espaço para o título */
+}
+
+.chart-header h3 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+  color: var(--primary-dark);
+  font-size: 2rem;
+  pointer-events: none; /* permite clicar no select */
+  z-index: 1;
+}
+
+.list-card ul {
+  max-height: 395px; /* ajuste conforme necessário */
+  overflow-y: auto;
+  padding-right: 8px;
+  margin: 0;
+}
+
+.ingredient-select {
+  padding: 0.5rem 1rem; /* Ajusta o espaçamento interno */
+  font-size: 1rem; /* Define o tamanho da fonte */
+  border: 1px solid var(--gray); /* Define a borda */
+  border-radius: 4px; /* Arredonda os cantos */
+  border-color: var(--primary-light); /* Cor da borda */
+  background-color: white; /* Cor de fundo */
+  min-width: 200px; /* Define a largura mínima */
+  width: auto; /* Permite que a largura seja ajustável */
+}
+
+.chart-title-mini {
+  font-size: 1.7rem !important;
+}
+
+.metric-card {
+  background: var(--primary);
+  color: white;
+}
+
+.chart-card {
+  border: 1px solid var(--secondary-light);
+}
+
+.chart-card h3 {
+  color: var(--primary-dark);
+}
+
+.ingredient-select {
+  border-color: var(--primary-light);
+}
+
+.list-card ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.list-card li {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--secondary-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ing-name {
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 2rem;
+}
+
+
+
+.ing-category {
+  background-color: var(--secondary-light);
+  color: var(--primary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 2rem;
+}
+
+.no-data-message {
+  color: var(--primary-light);
+  text-align: center;
+  padding: 1rem;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Container para o botão e menu */
+.select-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Botão de ícone */
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--primary-dark);
+  cursor: pointer;
+}
+
+/* Menu suspenso */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--primary);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  width: 100%;
+  font-size: 1rem;
+  color: var(--white-smoke);
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: var(--primary-light);
+  color: white;
+}
+
+.filter-marker {
+  font-weight: bold;
+  color: var(--primary-dark);
+  margin-left: 5px;
+}
+
+/* Responsividade para resoluções menores */
+
+@media (max-width: 1500px) {
+
+
+.chart-title-mini {
+  font-size: 1.5rem !important;
+  justify-content: flex-start !important; 
+}
+}
+
+@media (max-width: 1200px) {
+  .chart-title {
+    font-size: 1.5rem !important; /* Reduz o tamanho do título */
+    justify-content: flex-start !important; /* Alinha o título à esquerda */
+  }
+
+  .ingredient-select {
+    font-size: 1rem !important; /* Reduz o tamanho da fonte do select */
+    padding: 0.4rem 0.8rem !important; /* Ajusta o padding */
+  }
+
+
+
+.chart-title-mini {
+    font-size: 1.3rem !important;
+    justify-content: flex-start !important; /* Alinha o título à esquerda */
+}
+
+}
+
+@media (max-width: 900px) {
+  .chart-title-mini {
+    font-size: 1.0rem !important; /* Reduz o tamanho do título */
+    justify-content: flex-start !important; /* Alinha o título à esquerda */
+  }
+
+ 
+}
+
+
+@media (max-width: 700px) {
+  .chart-title {
+    font-size: 1.2rem !important; /* Reduz o tamanho do título */
+    justify-content: flex-start !important; /* Alinha o título à esquerda */
+  }
+
+  .row > * {
+    flex: 1 1 100%; /* Faz com que cada gráfico ocupe 100% da largura */
+  }
+
+  .chart-card {
+    width: 100%; /* Garante que o gráfico ocupe toda a largura */
+  }
+
+ 
+}
+
+@media (max-width: 576px) {
+  .chart-title {
+    font-size: 1rem !important; /* Reduz ainda mais o tamanho do título */
+    justify-content: flex-start !important; /* Alinha o título à esquerda */
+  }
+
+  .ingredient-select {
+    font-size: 0.8rem !important; /* Reduz ainda mais o tamanho da fonte do select */
+    padding: 0.3rem 0.2rem !important; /* Ajusta o padding */
+    width: 150px !important; 
+  }
+
+  .chart-header {
+    justify-content: flex-end !important; /* Alinha o conteúdo à esquerda */
+  }
+}
+
+/* Responsividade: transforma o select em ícone a partir de 1050px */
+
+
+/* Animação para o menu entrar */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animação para o menu sair */
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Aplica a animação ao abrir */
+.dropdown-menu.enter {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Aplica a animação ao fechar */
+.dropdown-menu.exit {
+  animation: slideOut 0.3s ease-out forwards;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.modalContainer {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.btnClose {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: var(--primary-light);
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnClose:hover {
+  color: var(--primary-dark);
+}
+
+.modalContainer h2 {
+  color: var(--primary-dark);
+  margin-bottom: 16px;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.modalContainer p {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.noIngredients {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--primary-light);
+}
+
+.noIngredients p {
+  margin-bottom: 12px;
+}
+
+.selectAllContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--white-smoke);
+  border-radius: 8px;
+  border: 1px solid var(--secondary-light);
+}
+
+.btnSelectAll {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btnSelectAll:hover {
+  background: var(--primary-dark);
+}
+
+.selectedCount {
+  font-size: 14px;
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+.ingredientList {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--secondary-light);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 24px;
+  background: var(--white-smoke);
+}
+
+.ingredientItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.ingredientItem:last-child {
+  border-bottom: none;
+}
+
+.ingredientItem:hover {
+  background: rgba(103, 71, 122, 0.05);
+}
+
+.ingredientItem input[type="checkbox"] {
+  margin-right: 12px;
+  transform: scale(1.2);
+  accent-color: var(--primary);
+}
+
+.ingredientItem label {
+  flex: 1;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--rich-black);
+  font-weight: 500;
+}
+
+.modalActions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--secondary-light);
+}
+
+.btnCancel {
+  background: transparent;
+  color: var(--primary-light);
+  border: 2px solid var(--primary-light);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background: var(--primary-light);
+  color: white;
+}
+
+.btnCancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnExport {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnExport:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(103, 71, 122, 0.3);
+}
+
+.btnExport:disabled {
+  background: var(--primary-light);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* FAB Export Button */
+.fabExport {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 56px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(103, 71, 122, 0.3);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+}
+
+.fabExport:hover {
+  background: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(103, 71, 122, 0.4);
+}
+
+.fabExport:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(103, 71, 122, 0.3);
+}
+
+/* Responsive modal */
+@media (max-width: 600px) {
+  .modalContainer {
+    width: 95%;
+    padding: 24px;
+    margin: 20px;
+  }
+  
+  .modalContainer h2 {
+    font-size: 1.5rem;
+  }
+  
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+  
+  .btnCancel,
+  .btnExport {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .selectAllContainer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .fabExport {
+    bottom: 20px;
+    right: 20px;
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+}
+
+.fabExport {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  background: #fff;
+  color: #d32f2f;
+  border: 2px solid #d32f2f;
+  border-radius: 32px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  display: flex;
+  align-items: center;
+  z-index: 999;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.fabExport:hover {
+  background: var(--primary);
+  color: #fff;
+  border: 2px solid var(--primary-dark);
+}
+
+.exportModalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exportModal {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  min-width: 320px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modalContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  min-width: 320px;
+  max-width: 500px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.btnClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ingredientList {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+
+

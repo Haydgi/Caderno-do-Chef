@@ -1,0 +1,359 @@
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.iconeReceitaVazia {
+  font-size: 15rem;
+  color: var(--ultra-violet);
+}
+
+.modalContainer {
+  background-color: var(--white-smoke);
+  color: var(--rich-black);
+  width: 900px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.modalHeader h5 {
+  font-size: 2.2rem;
+  margin: 0;
+  font-family: "Lobster Two", cursive;
+}
+
+.btnClose {
+  background-color: var(--white-smoke);
+  border: none;
+  font-size: 1.5rem;
+  color: var(--ultra-violet);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  padding-bottom: 5px;
+}
+
+.btnClose:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btnClose:focus-visible {
+  outline: 2px solid var(--tangerine);
+  outline-offset: 2px;
+}
+
+.modalBody {
+  padding: 10px 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 2px solid;
+}
+
+.btnCancel,
+.btnSave {
+  background-size: 200% 100%;
+  background-position: right;
+  color: var(--white-smoke);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btnCancel {
+  background: linear-gradient(to right, #f44336, var(--imperial-red));
+}
+
+.btnSave {
+  background: linear-gradient(to right, #4caf50, var(--dark-pastel-green));
+}
+
+.btnCancel::before,
+.btnSave::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease-in-out;
+  z-index: 0;
+}
+
+.btnCancel:hover::before,
+.btnSave:hover::before {
+  left: 105%;
+}
+
+.btnCancel:hover,
+.btnSave:hover {
+  background-position: left;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.modalExit {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  
+}
+
+textarea {
+  resize: none !important; /* Impede o redimensionamento do campo */
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.imagePreviewBox {
+  width: 139px;
+  height: 139px;
+  border: 2px dashed var(--rich-black);
+  border-radius: 10px;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.imagePreviewBox:hover {
+  background-color: var(--white-smoke);
+}
+
+.suggestionsContainer {
+  position: relative;
+}
+
+.suggestionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--white-smoke);
+  color: var(--rich-black);
+  border: 1px solid var(--ultra-violet);
+  border-radius: 4px;
+  z-index: 20;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.suggestionsList li {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.suggestionsList li:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.ingredientesBox {
+  height: 347px;
+  max-height: 347px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background-color: var(--white);
+  border: 1px solid var(--rich-black);
+}
+
+.tabelaCabecalho {
+  display: grid;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: white;
+  grid-template-columns: 1.5fr 1fr 1fr 0.5fr;
+  font-weight: bold;
+  padding: 15px 0px 12px 0px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid var(--rich-black);
+}
+
+.ingredienteItem {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 0.5fr;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--rich-black);
+  padding: 10px 0px 10px 0px;
+}
+
+.nomeIngrediente {
+  padding-left: 43px;
+}
+
+.ingredienteItem input {
+  padding: 6px;
+  width: 100%;
+}
+.ingredienteItem span {
+  margin-left: 10px;
+}
+
+/* Estilo para o cabeçalho da tabela */
+.tabelaCabecalho {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 0.5fr; /* Adiciona uma quarta coluna para os ícones */
+  text-align: center; /* Centraliza o texto dentro de cada coluna */
+  font-weight: bold;
+  padding: 10px 0; /* Adiciona espaçamento interno */
+  border-bottom: 1px solid var(--gray); /* Linha separadora */
+}
+
+/* Estilo para os itens da tabela */
+.ingredienteItem {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 0.5fr; /* Adiciona uma quarta coluna para os ícones */
+  align-items: center; /* Centraliza verticalmente os itens */
+  text-align: center; /* Centraliza horizontalmente os itens */
+  padding: 8px 0; /* Adiciona espaçamento interno */
+  border-bottom: 1px solid var(--light-gray); /* Linha separadora */
+}
+
+/* Ajuste para o nome do ingrediente */
+.nomeIngrediente {
+  text-align: left; /* Alinha o nome do ingrediente à esquerda */
+  padding-left: 10px; /* Adiciona espaçamento à esquerda */
+}
+
+/* Ajuste para o input de quantidade */
+.inputQuantidade {
+  width: 80%; /* Ajusta a largura do input */
+  margin: 0 auto; /* Centraliza o input dentro da coluna */
+  text-align: center; /* Centraliza o texto dentro do input */
+}
+
+/* Ajuste para o botão de remover ingrediente */
+.btnRemoveIngrediente {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto; /* Centraliza o botão dentro da coluna */
+  font-size: 1.2rem; /* Ajusta o tamanho do ícone */
+  color: var(--imperial-red);
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.btnRemoveIngrediente:hover {
+  color: var(--dark-red); /* Cor ao passar o mouse */
+}
+
+.inputQuantidade {
+  border-radius: 6px;
+  border: 1px solid var(--ultra-violet);
+  background-color: var(--white-smoke);
+  color: var(--rich-black);
+}
+
+.btnRemoveIngrediente {
+  background: none;
+  border: none;
+  color: var(--imperial-red);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  margin-right: 10px;
+}
+
+.erroInput {
+  border: 2px solid var(--imperial-red) !important;
+}
+
+.linhaBege {
+  background-color: rgba(235, 235, 235, 0.87); /* tom de bege claro */
+}
+
+/* Responsividade para telas menores que 600px */
+@media (max-width: 600px) {
+  
+
+.tabelaCabecalho{
+  font-size: calc(100% - 2px) !important; /* Reduz o tamanho da fonte em 2px */
+  text-align: center !important;
+}
+  
+}
+

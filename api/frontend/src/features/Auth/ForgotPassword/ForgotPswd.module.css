@@ -1,0 +1,106 @@
+input[type="password"]::-ms-reveal {
+  display: none !important;
+}
+
+.background {
+  background: radial-gradient(
+      rgba(123, 61, 147, 0.702) 20%,
+      rgba(81, 46, 97, 0.7) 25%,
+      rgba(75, 41, 96, 0.7) 30%
+    ),
+    url("/midia/ingredientes-bg.png") no-repeat center center /cover;
+}
+
+.container {
+  background-color: var(--white-smoke);
+  border-radius: 20px;
+  box-shadow: 0 20px 120px rgba(0, 0, 0, 0.5);
+  width: 600px;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+}
+
+.formulario {
+  padding: 1rem 4rem;
+  display: flex; /* Ativa o Flexbox */
+  flex-direction: column; /* Mantém os itens em coluna */
+  justify-content: center; /* Centraliza os itens verticalmente */
+  height: 100%; /* Garante que o formulário ocupe toda a altura do modal */
+}
+
+.formulario h2 {
+  font-family: "Birthstone", cursive; /* Define a fonte Birthstone */
+  text-align: center; /* Centraliza o texto */
+  padding-bottom: 30px; /* Espaçamento abaixo do título */
+  font-size: 3.5rem; /* Ajuste o tamanho da fonte conforme necessário */
+  color: var(--rich-black); /* Ajuste a cor conforme necessário */
+}
+.btnDetails {
+    margin-top: 15px;
+    width: 50%;
+    padding: 0.75rem;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 25px;
+}
+
+.popUpError {
+  position: absolute;
+  bottom: 110px;
+  left: 1106px;
+  transform: translateX(-50%);
+  background-color: var(--imperial-red);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  font-weight: bold;
+  z-index: 10;
+  animation: slideIn 0.3s ease-in, slideOut 0.5s ease-out 8s forwards;
+  white-space: nowrap;
+}
+
+.popUpSucess {
+  position: absolute;
+  bottom: 110px;
+  left: 1135px;
+  transform: translateX(-50%);
+  background-color: var(--dark-pastel-green);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  font-weight: bold;
+  z-index: 10;
+  animation: slideIn 0.3s ease-in, slideOut 0.5s ease-out 8s forwards;
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animação para saída do popup de erro e sucesso*/
+@keyframes slideOut {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+}

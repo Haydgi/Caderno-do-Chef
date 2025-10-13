@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContainer {
+  background: var(--white-smoke);
+  color: var(--rich-black);
+  width: 600px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.modalHeader h5 {
+  font-size: 2.2rem;
+  margin: 0;
+  font-family: "Lobster Two", cursive;
+}
+
+.btnClose {
+  background-color: var(--white-smoke);
+  border: none;
+  font-size: 1.5rem;
+  color: var(--ultra-violet);
+  cursor: pointer;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  outline: none;
+  padding-bottom: 5px;
+}
+
+.btnClose:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btnClose:focus-visible {
+  outline: 2px solid var(--tangerine);
+  outline-offset: 2px;
+}
+
+.modalBody {
+  padding: 10px 0;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 2px solid ;
+}
+
+.btnCancel {
+  background: linear-gradient(to right, #f44336, var(--imperial-red));
+  background-size: 200% 100%;
+  background-position: right;
+  color: var(--white-smoke);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btnCancel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease-in-out;
+  z-index: 0;
+}
+
+.btnCancel:hover::before {
+  left: 105%;
+}
+
+.btnCancel:hover {
+  background-position: left;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btnSave {
+  background: linear-gradient(to right, #4caf50, var(--dark-pastel-green));
+  background-size: 200% 100%;
+  background-position: right;
+  color: var(--white-smoke);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btnSave::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease-in-out;
+  z-index: 0;
+}
+
+.btnSave:hover::before {
+  left: 105%;
+}
+
+.btnSave:hover {
+  background-position: left;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.modalExit {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+.erroInput {
+  border: 2px solid var(--imperial-red) !important;
+}
+
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 90%; /* Ajusta a largura para ocupar 90% da tela */
+    padding: 15px; /* Reduz o padding para telas menores */
+    border-radius: 8px; /* Ajusta o arredondamento */
+  }
+
+  .modalHeader h5 {
+    font-size: 1.8rem; /* Reduz o tamanho da fonte */
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr; /* Alinha os itens em uma única coluna */
+    gap: 15px; /* Reduz o espaçamento entre os itens */
+  }
+
+  .colSpan2 {
+    grid-column: span 1; /* Remove o span para telas menores */
+  }
+
+  .btnCancel,
+  .btnSave {
+    padding: 12px 18px; /* Ajusta o padding dos botões */
+    font-size: 1rem; /* Ajusta o tamanho da fonte */
+  }
+}
+
+@media (max-width: 576px) {
+  .modalContainer {
+    width: 95%; /* Ajusta a largura para telas muito pequenas */
+    padding: 10px; /* Reduz ainda mais o padding */
+  }
+
+  .modalHeader h5 {
+    font-size: 1.5rem; /* Reduz o tamanho da fonte para telas menores */
+  }
+
+  .btnClose {
+    width: 36px; /* Ajusta o tamanho do botão de fechar */
+    height: 36px;
+    font-size: 1.2rem; /* Reduz o tamanho da fonte */
+  }
+
+  .formGrid {
+    gap: 10px; /* Reduz o espaçamento entre os itens */
+  }
+
+  .btnCancel,
+  .btnSave {
+    padding: 12px 18px; /* Ajusta o padding dos botões */
+    font-size: 1rem; /* Ajusta o tamanho da fonte */
+  }
+}

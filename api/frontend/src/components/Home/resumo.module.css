@@ -1,0 +1,253 @@
+.resumo-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 60% 40%; /* <-- Aqui define as proporções */
+  align-items: end;
+  position: relative;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 80px;
+  box-sizing: border-box;
+  margin-top: 50px;
+  min-height: 90vh;
+  justify-content: space-between;
+}
+
+.resumo-card-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+  margin-bottom: 100px;
+}
+
+.resumo-image-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.resumo-mulher-img {
+  width: 400px;      /* Tamanho fixo */
+  max-width: 100%;   /* Não diminui abaixo de 400px */
+  height: auto;
+  object-fit: contain;
+  display: block;
+  align-self: end;
+  margin-right: 100px;
+}
+
+.resumo-content1 {
+  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  text-align: center;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 1000px;
+  width: 100%;
+  margin-left: 100px;
+}
+
+.resumo-content1 h1 {
+  font-family: "Domine", serif;
+  font-weight: bold;
+  font-size: 40px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.resumo-content1 p {
+  font-size: 18px;
+  max-width: 100%;
+  margin: 0;
+}
+
+.btnUltraViolet {
+  padding: 18px 32px;
+  margin-top: 10px;
+  scroll-behavior: smooth;
+}
+
+.container {
+  position: relative;
+  background: linear-gradient(360deg, #67477A 0%, #FCD18A 100%);
+  min-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container::before {
+  content: '';
+  position: absolute;
+  top: -75px;
+  left: -25px;
+  width: 100%;
+  height: 100%;
+  background-image: url("/midia/background_resumo.png");
+  background-size: 75%;
+  background-position: center;
+  opacity: 0.05;
+  z-index: 0;
+  transform: rotate(-7.5deg);
+}
+
+.container > * {
+  position: relative;
+  z-index: 1;
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+}
+
+.wave svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Media Queries */
+
+@media (max-width: 1450px) {
+  .resumo-mulher-img {
+    width: 380px;
+    max-width: 90vw;
+    margin-right: 0px;
+
+  }
+  .resumo-content1 {
+    max-width: 740px;
+    margin-left: 0px;
+    
+  }
+}
+
+@media (max-width: 1200px) {
+  .resumo-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .resumo-mulher-img {
+    max-width: 360px;
+  }
+  
+  .resumo-content1 {
+    max-width: 650px;
+    padding: 25px;
+  }
+  
+  .resumo-content1 h1 {
+    font-size: 36px;
+  }
+
+  .btnUltraViolet {
+    padding: 18px 32px;
+    margin-top: 10px;
+    scroll-behavior: smooth;
+  }
+}
+
+@media (max-width: 992px) {
+  .resumo-container {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 40px;
+    padding-top: 40px;
+    min-height: 80vh;
+  }
+  
+  .resumo-image-container {
+    display: none; /* Faz a imagem desaparecer completamente */
+  }
+  
+  .resumo-card-container {
+    justify-content: center;
+    margin: 0px 0px 0px 0px;
+  }
+  
+  .resumo-content1 {
+    max-width: 600px;
+    
+  }
+
+  .container {
+    min-height: auto;
+    padding-bottom: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resumo-container {
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-top: 30px;
+  }
+  
+  .resumo-content1 {
+    padding: 20px;
+  }
+  
+  .resumo-content1 h1 {
+    font-size: 32px;
+  }
+  
+  .resumo-content1 p {
+    font-size: 16px;
+  }
+  
+  .btnUltraViolet {
+    padding: 14px 28px;
+  }
+}
+
+@media (max-width: 576px) {
+  .resumo-container {
+    padding: 20px 10px 0;
+  }
+  
+  .resumo-content1 {
+    padding: 15px;
+  }
+  
+  .resumo-content1 h1 {
+    font-size: 28px;
+  }
+  
+  .resumo-content1 p {
+    font-size: 15px;
+  }
+  
+  .btnUltraViolet {
+    padding: 18px 26px;
+    font-size: 18px;
+  }
+  
+  .container::before {
+    background-size: 100%;
+  }
+}
+
+@media (max-width: 479px) {
+   .resumo-container {
+    min-height: 70vh;
+  }
+}

@@ -1,0 +1,83 @@
+import express from "express";
+import db from "../database/connection.js"; // seu pool mysql2/promise
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
+
+const router = express.Router();
+
+// Rate limit para proteger tentativas de brute force no login
+const loginLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutos
+  max: 5, // máximo de 5 tentativas por IP nesse período
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    // Calcula minutos restantes até o reset
+    const reset = req.rateLimit?.resetTime;
+    let minutos = 10; // padrão para a janela configurada
+    if (reset instanceof Date) {
+      const diffMs = reset.getTime() - Date.now();
+      minutos = Math.max(0, Math.ceil(diffMs / 60000));
+    }
+    const plural = minutos === 1 ? '' : 's';
+    return res.status(429).json({
+      mensagem: `Limite de tentativas de login excedido. Tente novamente em ${minutos} minuto${plural}.`,
+      detalhes: {
+        tentativasPermitidas: 5,
+        janelaMinutos: 10,
+      },
+    });
+  },
+});
+
+router.post("/login", loginLimiter, async (req, res) => {
+  const { email, senha } = req.body;
+
+  if (!email || !senha) {
+    return res.status(400).json({ mensagem: "Email e senha são obrigatórios." });
+  }
+
+  try {
+    // Query usando await e destructuring do resultado
+    const [results] = await db.query("SELECT * FROM usuario WHERE Email = ?", [email]);
+
+    if (results.length === 0) {
+      return res.status(401).json({ mensagem: "Email ou senha incorretos." });
+    }
+
+    const usuario = results[0];
+
+    // Comparação da senha com bcrypt (senha fornecida x hash salvo no banco)
+    const senhaCorreta = await bcrypt.compare(senha, usuario.Senha);
+    if (!senhaCorreta) {
+      return res.status(401).json({ mensagem: "Email ou senha incorretos." });
+    }
+
+    // Gerar token JWT
+    const token = jwt.sign(
+      { ID_Usuario: usuario.ID_Usuario, email: usuario.Email },
+      process.env.SECRET_JWT,
+      { expiresIn: '1h' }
+    );
+
+    // Evitar logar token/payload em produção
+
+    // Retornar sucesso com token e dados do usuário
+    return res.status(200).json({
+      mensagem: "Login realizado com sucesso!",
+      token,
+      usuario: {
+        id: usuario.ID_Usuario,
+        nome: usuario.Nome_Usuario,
+        email: usuario.Email
+      }
+    });
+
+  } catch (err) {
+    console.error("Erro ao consultar o banco de dados:", err);
+    return res.status(500).json({ mensagem: "Erro no servidor." });
+  }
+});
+
+export default router;

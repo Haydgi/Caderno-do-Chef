@@ -1,0 +1,461 @@
+/* Esconder o ícone padrão de senha do navegador Microsoft Edge */
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+input[type="password"]::-ms-reveal {
+  display: none !important;
+}
+
+/* Background personalizado do cadastro de usuários */
+.backgroundSignUp {
+  background: radial-gradient(
+      circle at 19% center,
+      rgba(123, 61, 147, 0.702) 15%,
+      rgba(81, 46, 97, 0.7) 20%,
+      rgba(75, 41, 96, 0.7) 25%
+    ),
+    url("/midia/ingredientes-bg.png") no-repeat center center /cover;
+  flex-wrap: wrap;
+}
+
+/* Container do lado esquerdo */
+.ladoEsquerdo {
+  width: 40%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Logotipo "Caderno do Chefe" dentro da imagem do prato (à esquerda) */
+.logoContainer {
+  position: absolute;
+  top: 62%;
+  left: 19%;
+  transform: translate(-50%, -50%);
+}
+
+.logoManuscrito {
+  width: 550px;
+  height: auto;
+  opacity: 0; /* Torna a logo invisível inicialmente */
+  z-index: 2;
+  position: absolute;
+  top: -100px; /* Esconde a logo acima da página */
+  transform: translate(-50%, -50%); /* Ajusta o ponto de referência */
+  animation: slideDownLogo 1.2s ease-out forwards;
+  animation-delay: 1s; /* Adiciona o atraso de 2 segundos */
+}
+
+/* Container do lado direito + modal */
+.ladoDireito {
+  flex: 1;
+  height: 100vh;
+  background-color: var(--white-smoke);
+  box-shadow: 0 20px 120px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 5rem;
+}
+
+ /* Imagem "Crie sua conta" no topo do modal */
+.topoForms {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5px;
+  padding-bottom: 15px;
+  font-family: "Birthstone", cursive;
+  font-size: 5.5rem !important;
+}
+
+/* Formulário */
+.formulario {
+  padding: 1rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.inputsRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.inputsRow > .formGroup {
+  flex: 1;
+}
+
+.formGroup {
+  position: relative;
+}
+
+.formGroup label {
+  margin-bottom: 0.75rem; 
+  color: var(--rich-black);
+}
+
+/* Campos de entrada */
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* Contêiner para os campos com ícone */
+.inputIconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIconContainer i {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* Mensagens de erro */
+/* Campo de email e confirmar email */
+
+.textErroFormatoEmail {
+  color: var(--imperial-red);
+  font-size: 0.85rem;
+  font-weight: 600;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  white-space: nowrap;
+  margin-top: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.textErroConfirmarEmail {
+  color: var(--imperial-red);
+  font-size: 0.85rem;
+  font-weight: 600;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  white-space: nowrap;
+  margin-top: 0.25rem;
+}
+
+/* Campo de telefone */
+.textErroTelefone {
+  color: var(--imperial-red);
+  font-size: 0.85rem;
+  font-weight: 600;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  position: absolute; 
+  top: 0px;
+  right: 5px;
+  white-space: nowrap;
+  margin-top: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* Estilização de campos inconsistentes ou vazios */
+.asterisco {
+  color: var(--imperial-red);
+  margin-left: 0.25rem;
+}
+
+.inputInvalido {
+  border: 2px solid var(--imperial-red);
+  background-color: var(--white);
+}
+
+/* Botão de cadastro */
+.btnCadastrar {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 5px;
+  margin-top: 25px;
+  width: 42%;
+  padding: 0.75rem;
+  background: var(--ultra-violet);
+  background-size: 200% 100%;
+  background-position: right;
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.btnCadastrar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease-in-out;
+  z-index: 0;
+}
+
+.btnCadastrar:hover::before {
+  left: 105%;
+}
+
+.btnCadastrar:hover {
+  background-position: left;
+  transform: scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* Footer do modal */
+.footerModal {
+  margin: 0px;
+}
+
+.otherLinks {
+  color: var(--ultra-violet);
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline-block;
+  font-weight: bold;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.otherLinks:hover {
+  color: #502d5a; /* Cor ao passar o mouse */
+}
+
+/* Popups */
+/* Estilização do popup de erro */
+.popUpError {
+  position: absolute;
+  bottom: 3px;
+  left: 1770px;
+  transform: translateX(-50%);
+  background-color: var(--imperial-red);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  font-weight: bold;
+  z-index: 10;
+  animation: slideIn 0.3s ease-in, slideOut 0.5s ease-out 8s forwards;
+  white-space: nowrap;
+}
+
+/* Estilização do popup de sucesso */
+.popUpSucess {
+  position: absolute;
+  bottom: 3px;
+  left: 1658px;
+  transform: translateX(-50%);
+  background-color: var(--dark-pastel-green);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  font-weight: bold;
+  z-index: 10;
+  animation: slideIn 0.3s ease-in, slideOut 0.5s ease-out 8s forwards;
+}
+
+.textSucesso {
+  color: var(--dark-pastel-green);
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Responsividade */
+
+/* Para telas menores que 768px */
+@media (max-width: 768px) {
+  .ladoEsquerdo {
+    display: none;
+  }
+
+  .ladoDireito {
+    position: static;
+    transform: none;
+    right: 0;
+    top: 0;
+    margin: 1.5rem;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .inputsRow {
+    flex-direction: column;
+  }
+
+  .toggleSenha {
+    position: absolute;
+    top: 3%;
+    right: 0.25rem;
+    left: 13.7rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+}
+
+/* Para telas menores que 480px */
+@media (max-width: 480px) {
+  .ladoEsquerdo {
+    display: none;
+  }
+
+  .ladoDireito {
+    position: static;
+    transform: none;
+    right: 0;
+    top: 0;
+    margin: 1.5rem;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .fraseEfeito {
+    font-size: 2rem;
+  }
+
+  .inputsRow {
+    flex-direction: column;
+  }
+
+  .toggleSenha {
+    position: absolute;
+    top: 3%;
+    right: 0.25rem;
+    left: 14.1rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+}
+
+/* Para telas menores que 375px */
+@media (max-width: 375px) {
+  .ladoEsquerdo {
+    display: none;
+  }
+
+  .ladoDireito {
+    position: static;
+    transform: none;
+    right: 0;
+    top: 0;
+    margin: 1.5rem;
+    padding: 2rem 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: 0 10px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .fraseEfeito {
+    font-size: 2rem;
+  }
+
+  .inputsRow {
+    flex-direction: column;
+  }
+
+  .toggleSenha {
+    position: absolute;
+    top: 3%;
+    right: 0.25rem;
+    left: 11.7rem;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+}
+
+/* Animações */
+/* Animação para a imagem do prato */
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1; 
+  }
+}
+
+/* Animação para o logo manuscrito */
+@keyframes slideDownLogo {
+  0% {
+    transform: translate(-50%, -50%) translateY(-500px); /* Começa fora da tela */
+    opacity: 0; /* Invisível */
+  }
+  100% {
+    transform: translate(-50%, -50%) translateY(0); /* Fica na posição final */
+    opacity: 1; /* Visível */
+  }
+}
+
+/* Animação para entrada do popup de erro e sucesso*/
+@keyframes slideIn {
+  0% {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animação para saída do popup de erro e sucesso*/
+@keyframes slideOut {
+  0% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+}

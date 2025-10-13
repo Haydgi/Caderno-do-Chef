@@ -1,0 +1,116 @@
+.navbar-container1 {
+  width: 100%; /* Ajuste para ocupar o topo */
+  display: flex;
+  z-index: 2;
+  justify-content: space-between; /* Espaçamento entre itens */
+  align-items: center; /* Centraliza verticalmente */
+  padding: 0 var(--dl-layout-space-threeunits); /* Espaçamento lateral */
+  background: transparent; /* Gradiente igual ao resumo */
+  height: 5rem; /* Define a altura da navbar */
+  position: absolute;
+  margin: 0;
+}
+ 
+.navbar-navbar-interactive {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+ 
+.navbar-image1 {
+  height: 5rem;
+  width: 5rem;
+  margin-left: 10px;
+}
+
+.links {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  font-family: Lato, sans-serif;
+  color: var(--ultra-violet);
+  font-size: 22px;
+  gap: 30px;
+  margin-left: 50px;
+  text-decoration: none;
+  font-weight: bold;
+  position: relative;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.links a:hover {
+  color: var(--ultra-violet); /* Cor ao passar o mouse */
+  transform: translateY(-5px); /* Elevação ao passar o mouse */
+}
+
+.links a::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+  top: 100%;
+  left: 5%;
+  height: 10px;
+  width: 90%;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, var(--ultra-violet) 0%, rgba(251, 255, 0, 0) 80%);
+  transition: 0.3s transform, 0.3s opacity;
+}
+
+.links a:hover::before {
+  opacity: 1;
+  transform: translateY(-5px);
+}
+ 
+.navbar-buttons1 {
+  gap: var(--dl-layout-space-twounits);
+  display: flex;
+  
+}
+
+.btnUltraViolet {
+  padding: 12px 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 1350px) {
+  .links {
+    font-size: 20px; /* Diminui o tamanho da fonte */
+    gap: 20px; /* Reduz o espaçamento entre os links */
+    position: relative;
+    right: 30px;
+  }
+}
+
+@media (max-width: 1250px) {
+  .links {
+    font-size: 18px; /* Diminui o tamanho da fonte */
+    gap: 2px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .links {
+    font-size: 18px; /* Diminui o tamanho da fonte */
+    gap: 2px;
+  }
+}
+
+/* Ajustes para telas menores que 1000px */
+@media (max-width: 992px) {
+  .links {
+    display: none;
+  }
+}
+
+/* Ajustes para telas menores que 576px */
+@media (max-width: 576px) {
+  .btnUltraViolet {
+    padding: 12px 20px; /* Reduz ainda mais o padding do botão */
+    font-size: 18px; /* Reduz ainda mais o tamanho da fonte */
+  }
+}

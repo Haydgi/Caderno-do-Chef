@@ -1,0 +1,86 @@
+.texto {
+  padding-top: 30px; ;
+  scroll-margin-top: 120px;
+}
+
+.texto h2 {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.texto p {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    font-size: 20px;
+    text-align: justify;
+}
+
+.imagemchef {
+    display: flex;
+    justify-content: center;
+}
+
+.imagem {
+    margin-top: 50px;
+    display: block;
+    height: 450px;
+    width: 450px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.descricao-flex-container {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.passo-a-passo-section-header {
+    flex: 0 0 auto;
+}
+
+
+/* Texto escondido/revelado */
+.descricao-text {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--rich-black);
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+
+
+/* Responsividade para telas maiores que 900px */
+
+  .descricao-text {
+    max-height: none; /* Remove a limitação de altura */
+    opacity: 1; /* Garante que o texto esteja visível */
+    overflow: visible;
+  }
+
+@media (max-width: 1100px) {
+  .descricao-flex-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .imagemchef {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    display: flex;
+  }
+  .texto h2 {
+    order: 1;
+    width: 100%;
+  }
+  .texto p {
+    order: 3;
+    width: 100%;
+  }
+}
+

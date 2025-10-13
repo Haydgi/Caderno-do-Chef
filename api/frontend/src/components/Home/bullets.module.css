@@ -1,0 +1,193 @@
+.passo-a-passo-container1 {
+  width: 100%;
+  display: flex;
+  position: relative;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 150px;
+  scroll-margin-top: 100px;
+  margin-top: 100px;
+}
+ 
+.passo-a-passo-max-width {
+  gap: var(--dl-layout-space-fourunits);
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+}
+ 
+.passo-a-passo-container2 {
+  align-items: start;
+}
+ 
+.passo-a-passo-section-header {
+  gap: var(--dl-layout-space-oneandhalfunits);
+  top: 0%;
+  display: flex;
+  position: sticky;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.passo-a-passo-actions {
+  gap: var(--dl-layout-space-unit);
+  display: flex;
+  align-items: flex-start;
+}
+
+.passo-a-passo-container3 {
+  display: grid;
+  grid-area: span 1/span 1/span 1/span 1;
+}
+
+.passo-a-passo-container3 text {
+  text-decoration: none;
+  font-size: 22px;
+}
+
+.appeal {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.list {
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.list li {
+  margin-top: 10px;;
+}
+ 
+.passo-a-passo-image {
+  margin-top: 30px;
+  image-rendering: auto;
+  width: 510px;
+  height: 480px;
+  object-fit: cover;
+}
+ 
+@media(max-width: 991px) {
+  .passo-a-passo-max-width {
+    flex-direction: column;
+  }
+  .passo-a-passo-section-header {
+    position: static;
+    margin-bottom: var(--dl-layout-space-twounits);
+  }
+}
+ 
+@media(max-width: 767px) {
+  .passo-a-passo-section-header {
+    position: static;
+    margin-bottom: var(--dl-layout-space-twounits);
+  }
+  .passo-a-passo-actions {
+    width: 100%;
+    align-self: flex-start;
+  }
+  .passo-a-passo-container4 {
+    width: 100%;
+  }
+  .passo-a-passo-container5 {
+    width: 100%;
+  }
+  .passo-a-passo-container6 {
+    width: 100%;
+  }
+  .passo-a-passo-container7 {
+    width: 100%;
+  }
+}
+
+/* Responsividade para telas menores que 1400px */
+@media (max-width: 1400px) {
+  .passo-a-passo-container1 {
+    margin-bottom: 100px; /* Reduz o espaçamento inferior */
+  }
+
+  .passo-a-passo-max-width {
+    gap: var(--dl-layout-space-threeunits); /* Reduz o espaçamento entre os elementos */
+  }
+
+  .passo-a-passo-image {
+    width: 450px; /* Reduz a largura da imagem */
+    height: 450px; /* Reduz a altura da imagem */
+  }
+}
+
+/* Responsividade para telas menores que 1100px */
+@media (max-width: 1100px) {
+  .passo-a-passo-section-header {
+    order: 1;
+    width: 100%;
+  }
+  .passo-a-passo-image {
+    order: 2;
+    margin: 24px auto 0 auto;
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+  }
+  .list {
+    order: 3;
+    width: 100%;
+  }
+  .passo-a-passo-max-width {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .appeal {
+    margin-top: 20px;
+  }
+}
+
+/* Responsividade para telas menores que 900px */
+@media (max-width: 900px) {
+  .passo-a-passo-container1 {
+    margin-bottom: 0px; /* Reduz o espaçamento inferior */
+  }
+
+  .passo-a-passo-image {
+    width: 350px; /* Ajusta a largura da imagem */
+    height: 350px; /* Ajusta a altura da imagem */
+  }
+
+  .passo-a-passo-section-header {
+    text-align: center; /* Centraliza o cabeçalho */
+  }
+
+  .list {
+    font-size: 20px; /* Reduz ainda mais o tamanho da fonte da lista */
+  }
+}
+
+/* Responsividade para telas menores que 576px */
+@media (max-width: 576px) {
+  .passo-a-passo-container1 {
+    padding: 0 10px; /* Reduz o padding lateral */
+    margin-bottom: 50px; /* Reduz o espaçamento inferior */
+  }
+
+  .passo-a-passo-image {
+    width: 100%; /* Faz a imagem ocupar toda a largura disponível */
+    height: 100%; /* Ajusta a altura proporcionalmente */
+  }
+
+  .passo-a-passo-section-header {
+    text-align: center; /* Centraliza o cabeçalho */
+    margin-bottom: var(--dl-layout-space-unit); /* Reduz o espaçamento inferior */
+  }
+
+  .list {
+    font-size: 18px; /* Reduz o tamanho da fonte da lista */
+  }
+
+  .appeal {
+    font-size: 12px; /* Reduz o tamanho da fonte do texto de apelo */
+  }
+}

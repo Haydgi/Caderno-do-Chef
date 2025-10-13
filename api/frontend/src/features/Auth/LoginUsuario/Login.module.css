@@ -1,0 +1,151 @@
+input[type="password"]::-ms-reveal {
+  display: none !important;
+}
+
+.backgroundSignIn {
+  background: radial-gradient(
+      rgba(123, 61, 147, 0.702) 20%,
+      rgba(81, 46, 97, 0.7) 25%,
+      rgba(75, 41, 96, 0.7) 30%
+    ),
+    url("/midia/ingredientes-bg.png") no-repeat center center /cover;
+}
+
+.container {
+  background-color: var(--white-smoke);
+  border-radius: 20px;
+  box-shadow: 0 20px 120px rgba(0, 0, 0, 0.5);
+  width: 600px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.formulario {
+  padding: 1rem 4rem;
+  display: flex; /* Ativa o Flexbox */
+  flex-direction: column; /* Mantém os itens em coluna */
+  justify-content: center; /* Centraliza os itens verticalmente */
+  height: 100%; /* Garante que o formulário ocupe toda a altura do modal */
+}
+
+.formulario h2 {
+  font-family: "Birthstone", cursive; /* Define a fonte Birthstone */
+  text-align: center; /* Centraliza o texto */
+  padding-bottom: 30px; /* Espaçamento abaixo do título */
+  font-size: 3.5rem !important; /* Ajuste o tamanho da fonte conforme necessário */
+  color: var(--rich-black); /* Ajuste a cor conforme necessário */
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.formGroup label {
+  margin-bottom: 0.75rem;
+  color: var(--rich-black);
+  font-weight: bold;
+}
+
+.inputIconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIconContainer i {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+.toggleSenha {
+  position: absolute;
+  top: 3%;
+  right: 32px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.btnDetails {
+    margin-top: 15px;
+    width: 50%;
+    padding: 0.75rem;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 25px;
+}
+
+/* Estilo para o link "Esqueci minha senha" */
+.esqueciSenha {
+  font-size: 0.9rem;
+  color: var(--ultra-violet);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: bold;
+  transition: transform 0.3s ease, color 0.3s ease;
+  text-align: right; /* Alinha o texto à direita */
+  margin-top: -0.5rem; /* Espaçamento entre o campo de senha e o link */
+  display: block; /* Garante que o link ocupe uma linha inteira */
+}
+
+.esqueciSenha:hover {
+  color: #502d5a; /* Cor ao passar o mouse */
+}
+
+/* Estilo para o footer do modal */
+.modalFooter {
+  font-size: 0.9rem;
+  display: flex; /* Alinha os elementos em linha */
+  justify-content: center; /* Centraliza o conteúdo */
+  text-align: center;
+  margin-top: 1rem; /* Espaçamento acima do footer */
+  gap: 0.3rem; /* Espaçamento entre os elementos */
+  flex-wrap: wrap; /* Permite quebra de linha em telas menores */
+}
+
+/* Estilo para o link "Criar conta" */
+.linkCriarConta {
+  color: var(--ultra-violet);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: bold;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.linkCriarConta:hover {
+  color: #502d5a; /* Cor ao passar o mouse */
+}
+
+/* Borda vermelha quando inválido */
+.inputInvalido {
+  border: 2px solid #e53935 !important; /* vermelho intenso */
+  box-shadow: 0 0 5px rgba(229, 57, 53, 0.5);
+}
+
+/* Asterisco vermelho ao lado do label */
+.asterisco {
+  color: #e53935;
+  margin-left: 4px;
+  font-weight: bold;
+}
+

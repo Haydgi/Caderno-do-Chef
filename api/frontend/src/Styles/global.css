@@ -1,0 +1,75 @@
+/* Variáveis de tema */
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+:root {
+    --white-smoke: #f3f0f0; /* Branco suave */
+    --rich-black: #111827; /* Preto rico */
+    --ultra-violet: #67477A; /* Roxo */
+    --ultra-violet-transparent: rgba(73, 1, 82, 0.5);
+    --tangerine: #f58802; /* Laranja */
+    --sunset: #FCD18A; /* Pôr do sol */
+    --dark-pastel-green: #22C55E; /* Verde pastel escuro */
+    --imperial-red: #EF4444; /* Vermelho imperial */
+    --white: #FFFFFF; /* Branco */
+}
+
+/* Estilos globais */
+body {
+    background-color: var(--fundo);
+    color: var(--rich-black);
+    font-size: 18px;
+    font-family: 'Lato', sans-serif;
+}
+
+/* Estilo para a página de produtos */
+body.produtos-page {
+    background: url("/midia/ingredientes-bg.png") no-repeat center center; /* Fundo com imagem */
+    background-size: cover; /* Faz a imagem cobrir todo o fundo */
+    min-height: 100vh; /* Garante que o fundo cubra toda a altura da página */
+    margin: 0;
+    padding: 0;
+}
+
+/* Botão estilizado em roxo com efeito  */
+.btnUltraViolet {
+    background: linear-gradient(to right, #a36acb, var(--ultra-violet));
+    background-size: 200% 100%;
+    background-position: right;
+    color: var(--white-smoke);
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease-in-out;
+    display: block;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  .btnUltraViolet::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+    transform: skewX(-20deg);
+    transition: left 0.5s ease-in-out;
+    z-index: 0;
+  }
+  
+  .btnUltraViolet:hover::before {
+    left: 105%;
+  }
+  
+  .btnUltraViolet:hover {
+    background-position: left;
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  }
+
+

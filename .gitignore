@@ -1,0 +1,44 @@
+# Dependências
+node_modules/
+vendor/
+
+# Arquivos de ambiente
+.env.local
+.env.production.local
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários de teste
+temp/
+**/temp/
+test-*.pdf
+test-*.php
+test-api.js
+**/test-output.*
+
+# Uploads de usuários
+uploads/
+**/uploads/
+
+# Arquivos de build
+build/
+dist/
+
+# Cache
+.cache/
+*.tmp
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentação WARP (não versionar)
+WARP.md

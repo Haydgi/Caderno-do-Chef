@@ -1,0 +1,113 @@
+.sugestao-cadastro-accent2-bg {
+  gap: var(--dl-layout-space-oneandhalfunits);
+  display: flex;
+  transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(1deg) skew(0deg, 0deg);
+  align-self: stretch;
+  transition: 0.3s;
+  align-items: center;
+  border-radius: var(--dl-layout-radius-cardradius);
+  justify-content: space-between;
+  transform-style: preserve-3d;
+  background-color: var(--dl-color-theme-accent2);
+  border: 1px solid black;
+}
+
+.sugestao-cadastro-accent2-bg:hover {
+  transform: scale3d(1.1, 1.1, 1.1);
+}
+
+.sugestao-cadastro-accent1-bg {
+  width: 100%;
+  display: flex;
+  transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(-2deg) skew(0deg, 0deg);
+  align-items: center;
+  border-radius: var(--dl-layout-radius-cardradius);
+  justify-content: space-between;
+  transform-style: preserve-3d;
+  background-color: var(--dl-color-theme-accent1);
+}
+
+.sugestao-cadastro-container2 {
+  gap: var(--dl-layout-space-threeunits);
+  width: 100%;
+  display: flex;
+  transition: 0.3s;
+  align-items: center;
+  padding-top: var(--dl-layout-space-sixunits);
+  padding-left: var(--dl-layout-space-fourunits);
+  border-radius: var(--dl-layout-radius-cardradius);
+  padding-right: var(--dl-layout-space-fourunits);
+  padding-bottom: var(--dl-layout-space-sixunits);
+  border: 1px solid black;
+}
+
+.sugestao-cadastro-container2:hover {
+    transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(1deg) skew(0deg, 0deg);
+  color: var(--dl-color-theme-neutral-light);
+  background-color: var(--ultra-violet);
+}
+
+.sugestao-cadastro-container2:hover .sugestao-cadastro-button {
+  color: var(--ultra-violet);
+  background: linear-gradient(to right, #ffffff, var(--white-smoke));
+}
+
+.sugestao-cadastro-content {
+  gap: var(--dl-layout-space-oneandhalfunits);
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.sugestao-cadastro-actions {
+  gap: var(--dl-layout-space-oneandhalfunits);
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.sugestao-cadastro-text4 {
+  display: inline-block;
+}
+
+.sugestao-cadastro-text5 {
+  display: inline-block;
+}
+
+.sugestao-cadastro-text6 {
+  display: inline-block;
+}
+
+.sugestao-cadastro-button {
+  background: linear-gradient(to right, #a36acb, var(--ultra-violet));
+  background-size: 200% 100%;
+  background-position: right;
+  color: var(--white-smoke);
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease-in-out;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  padding: 12px 24px;
+}
+
+@media(max-width: 1100px) {
+  .sugestao-cadastro-container2 {
+    display: none;
+  }
+
+  .thq-section-padding {
+    display: none;
+  }
+
+  .sugestao-cadastro-accent2-bg {
+    display:none;
+  }
+}
