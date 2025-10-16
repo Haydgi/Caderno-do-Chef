@@ -46,19 +46,19 @@ const UnderusedIngredients = ({ userId }) => {
     console.log('✅ Todos os ingredientes estão sendo utilizados.');
     return (
       <div className={`${styles['chart-card']} ${styles['compact']} ${styles['list-card']}`}>
-        <h3 className={styles['chart-title']}>Ingredientes Subutilizados</h3>
+        <h3 className={styles['chart-title']}>Ingredientes não utilizados até o momento</h3>
         <p className={styles['no-data-message']}>
-          Todos os ingredientes estão sendo utilizados em receitas
+          Todos os ingredientes estão sendo utilizados em receitas.
         </p>
       </div>
     );
   }
 
-  console.log('🧾 Renderizando lista de ingredientes subutilizados...');
+  console.log('🧾 Renderizando lista de ingredientes não utilizados...');
 
   return (
     <div className={`${styles['chart-card']} ${styles['compact']} ${styles['list-card']}`}>
-      <h3 className={styles['chart-title']}>Ingredientes Subutilizados</h3>
+      <h3 className={styles['chart-title']}>Ingredientes não utilizados</h3>
       <ul className={styles['ingredient-list']}>
         {underused.map(ing => (
           <li key={ing.ID} className={styles['ingredient-item']}>
