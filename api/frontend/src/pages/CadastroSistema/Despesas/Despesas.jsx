@@ -5,8 +5,10 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import ModelPage from '../ModelPage';
 import ModalCadastroDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalCadastroDespesa';
 import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalEditaDespesa';
+import ModalCadastroImposto from '../../../components/Modals/ModalCadastroImposto/ModalCadastroImposto';
+import ModalSelecaoTipoDespesa from '../../../components/Modals/ModalSelecaoTipoDespesa';
 import styles from './Despesas.module.css';
-import { FaMoneyBillWave, FaTrash, FaRegClock } from 'react-icons/fa';
+import { FaMoneyBillWave, FaTrash, FaRegClock, FaHandHoldingUsd } from 'react-icons/fa';
 import { MdOutlineCalendarMonth } from 'react-icons/md';
 import { BiMoneyWithdraw } from "react-icons/bi";
 
@@ -15,8 +17,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 function Despesas() {
   const [termoBusca, setTermoBusca] = useState('');
   const [despesas, setDespesas] = useState([]);
+  const [impostos, setImpostos] = useState([]);
+  const [mostrarModalSelecao, setMostrarModalSelecao] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalImposto, setMostrarModalImposto] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [itemSelecionado, setItemSelecionado] = useState(null);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
   // Estado para sincronizar hover entre cards e painel
   const [hoveredDespesaId, setHoveredDespesaId] = useState(null);
@@ -79,11 +85,9 @@ function Despesas() {
 
     try {
       console.log('Buscando despesas com termo:', termo);
-
-      // Adiciona timestamp para evitar cache no Firefox
       const timestamp = new Date().getTime();
       const url = `${API_URL}/api/despesas?limit=10000&search=${encodeURIComponent(termo)}&_t=${timestamp}`;
-
+      
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -122,33 +126,70 @@ function Despesas() {
     }
   };
 
-  // Força limpeza de cache no Firefox
+  const fetchImpostos = async (termo = '') => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const timestamp = new Date().getTime();
+      const url = `${API_URL}/api/impostos?limit=10000&search=${encodeURIComponent(termo)}&_t=${timestamp}`;
+      const res = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
+
+      if (!res.ok) throw new Error('Erro ao buscar impostos');
+      
+      const data = await res.json();
+      const impostosNormalizados = data.map(item => ({
+        ...item,
+        id: item.ID_Imposto,
+        nome: item.Nome_Imposto,
+        tipo: 'imposto', // Adiciona um tipo para diferenciação
+        custoMensal: item.Frequencia === 'anual' ? item.Valor_Medio / 12 : item.Valor_Medio,
+        tempoOperacional: 24, // Impostos impactam o custo 24h por dia
+      }));
+      setImpostos(impostosNormalizados);
+    } catch (error) {
+  console.error('Erro no fetchImpostos:', error);
+  setImpostos([]);
+  toast.error('Falha ao buscar impostos.');
+    }
+  };
+
+  // Combina despesas e impostos em uma única lista
+  const todosOsCustos = [...despesas, ...impostos].sort((a, b) => new Date(b.data || b.Data_Atualizacao) - new Date(a.data || a.Data_Atualizacao));
+
+
   useEffect(() => {
-    // Detecta se é Firefox
     const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    const fetchData = () => {
+        fetchDespesas(termoBusca);
+        fetchImpostos(termoBusca);
+    };
 
     if (isFirefox) {
-      console.log('🦊 Firefox detectado - aplicando correções');
-      // Força recarregamento sem cache
-      const timer = setTimeout(() => {
-        fetchDespesas(termoBusca);
-      }, 100);
+      const timer = setTimeout(fetchData, 100);
       return () => clearTimeout(timer);
     } else {
-      fetchDespesas(termoBusca);
+      fetchData();
     }
   }, [API_URL, termoBusca]);
 
-  // Força busca inicial ao montar componente (especialmente para Firefox)
   useEffect(() => {
-    console.log('Componente montado - busca inicial');
     fetchDespesas('');
+    fetchImpostos('');
   }, []);
 
-  const salvarDespesa = async (novaDespesa) => {
-    // Não faz POST aqui, apenas recarrega a lista
-    // O modal já fez o POST
+  const salvarItem = async () => {
     await fetchDespesas();
+    await fetchImpostos();
   };
 
   const atualizarDespesa = async (despesaAtualizada) => {
@@ -202,6 +243,32 @@ function Despesas() {
     }
   };
 
+  const removerImposto = async (id) => {
+    // Adicionar lógica de exclusão de imposto se necessário no futuro
+    toast.info('A exclusão de impostos ainda não foi implementada.');
+  };
+
+  const handleAbrirModal = () => {
+    setMostrarModalSelecao(true);
+  };
+
+  const handleFecharModais = () => {
+    setMostrarModalSelecao(false);
+    setMostrarModal(false);
+    setMostrarModalImposto(false);
+    setMostrarModalEditar(false);
+    setItemSelecionado(null);
+  };
+
+  const handleSelecaoTipo = (tipo) => {
+    setMostrarModalSelecao(false);
+    if (tipo === 'operacional') {
+      setMostrarModal(true);
+    } else if (tipo === 'imposto') {
+      setMostrarModalImposto(true);
+    }
+  };
+
   // Função para calcular custo operacional por minuto
   const calcularCustoOperacional = (custoMensal, tempoOperacional) => {
     const diasNoMes = 30;
@@ -216,9 +283,145 @@ function Despesas() {
     return custoPorMinuto;
   };
 
-  const renderCard = (despesa) => {
-    const custoOperacionalPorMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+  const renderCardImposto = (imposto) => {
+    const custoOperacionalPorMinuto = calcularCustoOperacional(imposto.custoMensal, imposto.tempoOperacional);
 
+    return (
+      <div
+        key={imposto.id}
+        className={isMobile ? "col-12 mb-3" : "col-12"}
+        style={
+          isMobile
+            ? {
+                width: 'calc(100% - 20px)',
+                marginBottom: '1rem',
+                marginLeft: '10px',
+                marginRight: '10px',
+              }
+            : {
+                width: '100%',
+                marginBottom: '1.3rem',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                marginLeft: '-75px',
+              }
+        }
+      >
+        <div
+          className={`${styles.cardDespesa} ${styles.cardImposto}`}
+          style={
+            isMobile
+              ? {
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '100%',
+                  margin: '0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: 'auto',
+                  minHeight: '180px',
+                  padding: '1.6rem',
+                  boxSizing: 'border-box',
+                  fontSize: '0.85rem',
+                }
+              : {
+                  cursor: 'pointer',
+                  width: '100%',
+                  maxWidth: '540px',
+                  minWidth: '320px',
+                  margin: '0 auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '205px',
+                  padding: '0.25rem 0.25rem 0.2rem 0.25rem',
+                  boxSizing: 'border-box',
+                  fontSize: '0.75rem',
+                }
+          }
+          onClick={() => {
+            toast.info('Edição de imposto ainda não implementada.');
+          }}
+          onMouseEnter={() => setHoveredDespesaId(imposto.id)}
+          onMouseLeave={() => setHoveredDespesaId(null)}
+        >
+          <i
+            className={styles.Trash}
+            onClick={(e) => {
+              e.stopPropagation();
+              Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Você deseja excluir este imposto?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  removerImposto(imposto.id);
+                  Swal.fire(
+                    'Excluído!',
+                    'O imposto foi removido com sucesso.',
+                    'success'
+                  );
+                }
+              });
+            }}
+          >
+            <FaTrash />
+          </i>
+
+          <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem' }}>
+            {imposto.nome}
+          </h3>
+          <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
+            <div className="row g-2">
+              <div className="col-6">
+                <div className="text-center">
+                  <div className="d-flex align-items-center justify-content-center mb-1">
+                    <FaHandHoldingUsd className="me-1" style={{ fontSize: '1.3rem', color: 'var(--tangerine)' }} />
+                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>{imposto.Frequencia}</small>
+                  </div>
+                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
+                    R$ {Number(imposto.Valor_Medio).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+              <div className="col-6">
+                <div className="text-center">
+                  <div className="d-flex align-items-center justify-content-center mb-1">
+                    <MdOutlineCalendarMonth className="me-1" style={{ fontSize: '1.3rem', color: 'var(--sunset)' }} />
+                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>Custo Mensal</small>
+                  </div>
+                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
+                    R$ {Number(imposto.custoMensal).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="d-flex align-items-center justify-content-between" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px', padding: '0.5rem', marginTop: '0.2rem' }}>
+            <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
+              <FaHandHoldingUsd style={{ marginRight: '6px', color: 'var(--tangerine)' }} /> Imposto
+            </div>
+            <div className="fw-bold" style={{ fontSize: '1.1rem', color: '#FFD700', marginLeft: '10px' }}>
+              R$ {custoOperacionalPorMinuto.toFixed(3)}/min
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCard = (item) => {
+    if (item.tipo === 'imposto') {
+      return renderCardImposto(item);
+    }
+    const despesa = item;
+    const custoOperacionalPorMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
 
     return (
       <div
@@ -227,9 +430,9 @@ function Despesas() {
         style={
           isMobile
             ? {
-                width: 'calc(100% - 20px)', // 20px menos largo no mobile
+                width: 'calc(100% - 20px)',
                 marginBottom: '1rem',
-                marginLeft: '10px', // centraliza a redução
+                marginLeft: '10px',
                 marginRight: '10px',
               }
             : {
@@ -244,7 +447,7 @@ function Despesas() {
         <div
           className={`${styles.cardDespesa} ${hoveredDespesaId === despesa.id ? styles.cardDespesaHovered : ''}`}
           onClick={() => {
-            setDespesaSelecionada(despesa);
+            setItemSelecionado(despesa);
             setMostrarModalEditar(true);
           }}
           onMouseEnter={() => setHoveredDespesaId(despesa.id)}
@@ -285,7 +488,6 @@ function Despesas() {
             className={styles.Trash}
             onClick={(e) => {
               e.stopPropagation();
-              // SweetAlert para confirmação
               Swal.fire({
                 title: 'Tem certeza?',
                 text: 'Você deseja excluir esta despesa?',
@@ -311,13 +513,13 @@ function Despesas() {
           </i>
 
           <h3
-            className="fw-bold mb-2 mt-2"
+            className="fw-bold mb-2 mt-2 text-center"
             style={
               isMobile
                 ? {
                     fontSize: '1.15rem',
                     position: 'relative',
-                    top: '-15px', // Sobe 15px no mobile
+                    top: '-15px',
                   }
                 : { fontSize: '1.15rem' }
             }
@@ -384,7 +586,7 @@ function Despesas() {
               textAlign: 'center'
             }}>
               <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
-                Custo Operacional
+                <FaMoneyBillWave style={{ marginRight: '6px', color: 'var(--sunset)' }} /> Despesa Operacional
               </div>
               <div className="fw-bold" style={{ fontSize: '1.1rem', color: '#FFD700' }}>
                 R$ {custoOperacionalPorMinuto.toFixed(3)}/min
@@ -397,8 +599,8 @@ function Despesas() {
   };
 
   // Calcular custo operacional total
-  const custoOperacionalTotal = despesas.reduce((total, despesa) => {
-    return total + calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+  const custoOperacionalTotal = todosOsCustos.reduce((total, item) => {
+    return total + calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
   }, 0);
 
   // Componente do painel lateral - versão responsiva
@@ -510,7 +712,7 @@ function Despesas() {
             <div
               className="custom-scrollbar"
               style={isMobileVersion ? {
-                height: '370px', /* Ajustado para acomodar footer com seção de soma */
+                height: '370px',
                 overflowY: 'auto',
                 paddingRight: '10px'
               } : {
@@ -519,31 +721,38 @@ function Despesas() {
                 paddingRight: '10px'
               }}
             >
-              {despesas.map((despesa) => {
-                const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+              {todosOsCustos.map((item) => {
+                const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
                 return (
                   <div
-                    key={despesa.id}
+                    key={item.id}
                     className="d-flex justify-content-between align-items-center mb-3 p-2 rounded"
                     style={{
-                      background: hoveredDespesaId === despesa.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      transform: hoveredDespesaId === despesa.id ? 'translateX(5px)' : 'translateX(0px)',
+                      background: hoveredDespesaId === item.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                      transform: hoveredDespesaId === item.id ? 'translateX(5px)' : 'translateX(0px)',
                       backdropFilter: 'blur(5px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       transition: 'all 0.2s ease'
                     }}
-                    onMouseEnter={() => setHoveredDespesaId(despesa.id)}
-                    onMouseLeave={() => setHoveredDespesaId((prev) => (prev === despesa.id ? null : prev))}
+                    onMouseEnter={() => setHoveredDespesaId(item.id)}
+                    onMouseLeave={() => setHoveredDespesaId((prev) => (prev === item.id ? null : prev))}
                   >
                     <span
-                      className="text-truncate fw-medium"
+                      className="text-truncate fw-medium d-flex align-items-center"
                       style={{
                         maxWidth: '180px',
                         color: 'rgba(255, 255, 255, 0.95)'
                       }}
                     >
-                      <i className="bi bi-dot me-1"></i>
-                      {despesa.nome}
+                      {item.tipo === 'imposto' ? (
+                        <FaHandHoldingUsd style={{ color: 'var(--tangerine)', marginRight: '6px' }} />
+                      ) : (
+                        <FaMoneyBillWave style={{ color: 'var(--sunset)', marginRight: '6px' }} />
+                      )}
+                      {item.nome}
+                      <span style={{ fontSize: '0.75rem', marginLeft: '8px', color: '#FFD700' }}>
+                        {item.tipo === 'imposto' ? 'Imposto' : 'Despesa Operacional'}
+                      </span>
                     </span>
                     <span
                       className="fw-bold px-2 py-1 rounded"
@@ -562,8 +771,17 @@ function Despesas() {
             </div>
           </div>
 
+          {/* Legenda */}
+          <div className="mb-3" style={{ background: 'rgba(255,255,255,0.07)', padding: '0.5rem', borderRadius: '8px' }}>
+            <FaMoneyBillWave style={{ color: 'var(--sunset)', marginRight: '6px' }} /> Despesa Operacional &nbsp;|
+            <FaHandHoldingUsd style={{ color: 'var(--tangerine)', marginLeft: '12px', marginRight: '6px' }} /> Imposto
+            <span style={{ color: 'rgba(255,255,255,0.7)', marginLeft: '12px' }}>
+              * Legenda: cada linha mostra o tipo e o valor/minuto
+            </span>
+          </div>
+
           {/* Seção de soma - apenas no desktop */}
-          {despesas.length > 1 && !isMobileVersion && (
+          {todosOsCustos.length > 1 && !isMobileVersion && (
             <div
               className="mb-4 p-3 rounded"
               style={{
@@ -585,8 +803,8 @@ function Despesas() {
                     fontFamily: 'monospace'
                   }}
                 >
-                  {despesas.map((despesa) => {
-                    const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+                  {todosOsCustos.map((item) => {
+                    const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
                     return custoMinuto.toFixed(3);
                   }).join(' + ')} =
                 </span>
@@ -652,7 +870,7 @@ function Despesas() {
         {isMobileVersion && (
           <div className="mobile-cost-footer">
             {/* Seção de soma no mobile - visual original */}
-            {despesas.length > 1 && (
+            {todosOsCustos.length > 1 && (
               <div
                 className="p-3 rounded"
                 style={{
@@ -674,8 +892,8 @@ function Despesas() {
                       fontFamily: 'monospace'
                     }}
                   >
-                    {despesas.map((despesa) => {
-                      const custoMinuto = calcularCustoOperacional(despesa.custoMensal, despesa.tempoOperacional);
+                    {todosOsCustos.map((item) => {
+                      const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
                       return custoMinuto.toFixed(3);
                     }).join(' + ')} =
                   </span>
@@ -731,24 +949,32 @@ function Despesas() {
 
   return (
     <ModelPage
-      titulo="Despesas cadastradas"
-      dados={despesas}
-      salvarItem={salvarDespesa}
-      removerItem={removerDespesa}
-      abrirModal={() => setMostrarModal(true)}
-      fecharModal={() => setMostrarModal(false)}
-      abrirModalEditar={() => setMostrarModalEditar(true)}
-      fecharModalEditar={() => setMostrarModalEditar(false)}
-      mostrarModal={mostrarModal}
-      mostrarModalEditar={mostrarModalEditar}
-      ModalCadastro={ModalCadastroDespesa}
+      titulo="Despesas e Impostos"
+      dados={todosOsCustos}
+      salvarItem={salvarItem}
+      removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
+      abrirModal={handleAbrirModal}
+      fecharModal={handleFecharModais}
+      mostrarModal={mostrarModal || mostrarModalImposto || mostrarModalSelecao}
+      ModalCadastro={() => {
+        if (mostrarModalSelecao) {
+          return <ModalSelecaoTipoDespesa onSelect={handleSelecaoTipo} onClose={handleFecharModais} />;
+        }
+        if (mostrarModal) {
+          return <ModalCadastroDespesa onClose={handleFecharModais} onSave={salvarItem} />;
+        }
+        if (mostrarModalImposto) {
+          return <ModalCadastroImposto onClose={handleFecharModais} onSave={salvarItem} />;
+        }
+        return null;
+      }}
       ModalEditar={() =>
-        despesaSelecionada && (
+        mostrarModalEditar && (
           <ModalEditaDespesa
-            despesa={despesaSelecionada}
+            despesa={itemSelecionado}
             onClose={() => {
               setMostrarModalEditar(false);
-              setDespesaSelecionada(null);
+              setItemSelecionado(null);
             }}
             onSave={atualizarDespesa}
           />
@@ -759,7 +985,6 @@ function Despesas() {
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
       painelLateral={<PainelCustoOperacional isMobileVersion={isMobile && activeMobileTab === 1} />}
-      // Props para tabs mobile
       enableMobileTabs={true}
       mobileTabs={mobileTabs}
       activeMobileTab={activeMobileTab}

@@ -1,0 +1,86 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1040; /* Abaixo do modal de cadastro */
+}
+
+.modalContent {
+    background: #282a36;
+    padding: 2rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 700px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modalTitle {
+    color: #f8f8f2;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.optionsContainer {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.optionCard {
+    background: #44475a;
+    padding: 1.5rem;
+    border-radius: 15px;
+    width: 250px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #6272a4;
+}
+
+.optionCard:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+}
+
+.icon {
+    color: var(--tangerine);
+    margin-bottom: 1rem;
+}
+
+.optionTitle {
+    color: #f8f8f2;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.optionDescription {
+    color: #bd93f9;
+    font-size: 0.9rem;
+}
+
+.closeButtonContainer {
+    margin-top: 2rem;
+}
+
+.btnClose {
+    background: #6272a4;
+    color: #f8f8f2;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btnClose:hover {
+    background: #ff5555;
+}
