@@ -91,8 +91,8 @@ router.post('/', authenticateToken, upload.single('imagem_URL'), async (req, res
   }
 }
 
-    // Validações
-    if (!Nome_Receita || !Descricao || Tempo_Preparo === undefined ||
+    // Validações (Descrição não é obrigatória)
+    if (!Nome_Receita || Tempo_Preparo === undefined ||
       Custo_Total_Ingredientes === undefined || Porcentagem_De_Lucro === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
@@ -280,7 +280,8 @@ router.put('/:id', authenticateToken, upload.single('imagem_URL'), async (req, r
       return res.status(400).json({ error: "Nenhum ingrediente recebido para atualizar." });
     }
 
-    if (!Nome_Receita || !Descricao || Tempo_Preparo === undefined ||
+    // Validações (Descrição não é obrigatória)
+    if (!Nome_Receita || Tempo_Preparo === undefined ||
       Custo_Total_Ingredientes === undefined || Porcentagem_De_Lucro === undefined) {
       return res.status(400).json({ error: "Campos obrigatórios faltando." });
     }
