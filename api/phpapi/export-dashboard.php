@@ -1,37 +1,176 @@
 <?php
-// Headers will be set by Node.js when called via API
-if (!isset($_POST)) {
-    header('Content-Type: application/pdf');
+declare(strict_types=1);
+
+$isCli = PHP_SAPI === 'cli';
+
+if (!$isCli) {
     header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
-    
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        exit(0);
+        http_response_code(204);
+        exit;
     }
 }
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-if (empty($_POST['ingredientes'])) {
-    http_response_code(400);
-    die(json_encode(['error' => 'Nenhum ingrediente selecionado']));
+function respondError(string $message, int $statusCode = 500): void
+{
+    global $isCli;
+
+    if ($isCli) {
+        fwrite(STDERR, $message . PHP_EOL);
+        exit(1);
+    }
+
+    if (!headers_sent()) {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+
+    echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-try {
-    $pdo = new PDO('mysql:host=localhost;dbname=crud;charset=utf8', 'root', 'fatec', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
-} catch (PDOException $e) {
-    http_response_code(500);
-    die(json_encode(['error' => 'Erro na conexão com o banco: ' . $e->getMessage()]));
+function formatDateTimeLabel(?string $value): string
+{
+    if (empty($value)) {
+        return date('d/m/Y H:i:s');
+    }
+
+    try {
+        $date = new DateTime($value);
+        return $date->format('d/m/Y H:i:s');
+    } catch (Exception $exception) {
+        return date('d/m/Y H:i:s');
+    }
 }
 
-$ingredientes = array_map('trim', $_POST['ingredientes'] ?? []);
+function formatDateLabel(?string $value): string
+{
+    if (empty($value)) {
+        return 'N/A';
+    }
 
-$currentDate = date('d/m/Y H:i:s');
-$html = '
+    try {
+        $date = new DateTime($value);
+        return $date->format('d/m/Y');
+    } catch (Exception $exception) {
+        return 'N/A';
+    }
+}
+
+function formatMoney(float $value): string
+{
+    return number_format($value, 2, ',', '.');
+}
+
+function determineCostClass(float $value): string
+{
+    if ($value > 10) {
+        return 'cost-high';
+    }
+
+    if ($value > 5) {
+        return 'cost-medium';
+    }
+
+    return 'cost-low';
+}
+
+function sanitizeHtml(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function normalizeHistorico(array $items): array
+{
+    $normalized = [];
+
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+
+        $costRaw = $item['costPerUnit'] ?? null;
+        $cost = is_numeric($costRaw) ? (float) $costRaw : 0.0;
+
+        $normalized[] = [
+            'createdAt' => $item['createdAt'] ?? null,
+            'costPerUnit' => $cost,
+        ];
+    }
+
+    return $normalized;
+}
+
+function renderSection(array $section): string
+{
+    $nome = sanitizeHtml((string) ($section['nome'] ?? 'Ingrediente'));
+    $message = $section['message'] ?? null;
+    $historico = normalizeHistorico($section['historico'] ?? []);
+
+    $html = '<div class="ingredient-section">';
+    $html .= "<div class='ingredient-title'>{$nome}</div>";
+
+    if ($message !== null && trim((string) $message) !== '') {
+        $html .= '<div class="no-data">' . sanitizeHtml((string) $message) . '</div>';
+        $html .= '</div>';
+        return $html;
+    }
+
+    if (empty($historico)) {
+        $html .= '<div class="no-data">Sem histórico encontrado para este ingrediente.</div>';
+        $html .= '</div>';
+        return $html;
+    }
+
+    $html .= '<table>';
+    $html .= '<thead>';
+    $html .= '<tr><th>Data</th><th>Custo pela Unidade de Medida</th></tr>';
+    $html .= '</thead>';
+    $html .= '<tbody>';
+
+    $costs = [];
+
+    foreach ($historico as $linha) {
+        $dateLabel = formatDateLabel($linha['createdAt'] ?? null);
+        $cost = isset($linha['costPerUnit']) ? (float) $linha['costPerUnit'] : 0.0;
+        $costs[] = $cost;
+        $costClass = determineCostClass($cost);
+        $formattedCost = formatMoney($cost);
+
+        $html .= '<tr>';
+        $html .= '<td>' . $dateLabel . '</td>';
+        $html .= "<td class=\"{$costClass}\">R$ {$formattedCost}</td>";
+        $html .= '</tr>';
+    }
+
+    $html .= '</tbody>';
+    $html .= '</table>';
+
+    if (!empty($costs)) {
+        $html .= '<div class="summary">';
+        $html .= '<strong>Resumo:</strong> ';
+        $html .= 'Custo mínimo: R$ ' . formatMoney(min($costs)) . ' | ';
+        $html .= 'Custo máximo: R$ ' . formatMoney(max($costs)) . ' | ';
+        $html .= 'Custo médio: R$ ' . formatMoney(array_sum($costs) / count($costs)) . ' | ';
+        $html .= 'Total de registros: ' . count($historico);
+        $html .= '</div>';
+    }
+
+    $html .= '</div>';
+
+    return $html;
+}
+
+function buildReportHtml(array $sections, string $generatedAt): string
+{
+    $generatedLabel = sanitizeHtml($generatedAt);
+
+    $html = <<<HTML
 <!DOCTYPE html>
 <html>
 <head>
@@ -119,119 +258,168 @@ $html = '
 <body>
     <div class="header">
         <h1>Relatório de Custo Histórico dos Ingredientes</h1>
-        <div class="date">Gerado em: ' . $currentDate . '</div>
+        <div class="date">Gerado em: {$generatedLabel}</div>
     </div>
-';
+HTML;
 
-$totalIngredients = count($ingredientes);
-$processedCount = 0;
-
-foreach ($ingredientes as $nome) {
-    $nomeEscapado = htmlspecialchars($nome);
-    
-    // First, get the ingredient ID based on name and user ID  
-    $stmtIngredient = $pdo->prepare("
-        SELECT ID_Ingredientes 
-        FROM ingredientes 
-        WHERE Nome_Ingrediente = ? AND ID_Usuario = ?
-    ");
-    
-    $stmtIngredient->execute([$nome, $_POST['userId'] ?? null]);
-    $ingredientResult = $stmtIngredient->fetch();
-    
-    if (!$ingredientResult) {
-        // No ingredient found for this user, skip
-        $html .= '<div class="ingredient-section">';
-        $html .= "<div class='ingredient-title'>$nomeEscapado</div>";
-        $html .= '<div class="no-data">Ingrediente não encontrado para este usuário.</div>';
-        $html .= '</div>';
-        continue;
-    }
-    
-    $idIngrediente = $ingredientResult['ID_Ingredientes'];
-    
-    // Now get historical data using the same structure as historicoingredientes.js
-    $stmt = $pdo->prepare("
-        SELECT 
-            h.Preco AS costPerUnit,
-            h.Taxa_Desperdicio AS wasteRate,
-            h.Data_Alteracoes AS createdAt
-        FROM historico_alteracoes h
-        WHERE h.ID_Ingrediente = ? AND h.ID_Usuario = ?
-        ORDER BY h.Data_Alteracoes ASC
-    ");
-    
-    try {
-        $stmt->execute([$idIngrediente, $_POST['userId'] ?? null]);
-        $dados = $stmt->fetchAll();
-        $processedCount++;
-    } catch (PDOException $e) {
-        error_log("Error fetching data for ingredient $nome: " . $e->getMessage());
-        continue;
+    foreach ($sections as $section) {
+        $html .= renderSection($section);
     }
 
-    $html .= '<div class="ingredient-section">';
-    $html .= "<div class='ingredient-title'>$nomeEscapado</div>";
-    
-    if (!$dados) {
-        $html .= '<div class="no-data">Sem histórico encontrado para este ingrediente.</div>';
-        $html .= '</div>';
-        continue;
-    }
+    $html .= '</body></html>';
 
-    $html .= '<table>';
-    $html .= '<thead>';
-    $html .= '<tr><th>Data</th><th>Custo pela Unidade de Medida</th></tr>';
-    $html .= '</thead>';
-    $html .= '<tbody>';
-    
-    $custos = [];
-    foreach ($dados as $linha) {
-        $data = 'N/A';
-        if (!empty($linha['createdAt'])) {
-            $data = date('d/m/Y', strtotime($linha['createdAt']));
-        }
-        
-        $custo = floatval($linha['costPerUnit'] ?? 0);
-        $custos[] = $custo;
-        $custoFormatado = number_format($custo, 2, ',', '.');
-        
-        // Color coding based on cost
-        $costClass = '';
-        if ($custo > 10) $costClass = 'cost-high';
-        elseif ($custo > 5) $costClass = 'cost-medium';
-        else $costClass = 'cost-low';
-        
-        $html .= "<tr>";
-        $html .= "<td>$data</td>";
-        $html .= "<td class='$costClass'>R$ $custoFormatado</td>";
-        $html .= "</tr>";
-    }
-    
-    $html .= '</tbody>';
-    $html .= '</table>';
-    
-    // Add summary statistics
-    if (!empty($custos)) {
-        $custoMinimo = min($custos);
-        $custoMaximo = max($custos);
-        $custoMedio = array_sum($custos) / count($custos);
-        
-        $html .= '<div class="summary">';
-        $html .= '<strong>Resumo:</strong> ';
-        $html .= 'Custo mínimo: R$ ' . number_format($custoMinimo, 2, ',', '.') . ' | ';
-        $html .= 'Custo máximo: R$ ' . number_format($custoMaximo, 2, ',', '.') . ' | ';
-        $html .= 'Custo médio: R$ ' . number_format($custoMedio, 2, ',', '.') . ' | ';
-        $html .= 'Total de registros: ' . count($dados);
-        $html .= '</div>';
-    }
-    
-    $html .= '</div>';
+    return $html;
 }
 
-$html .= '</body></html>';
+function loadCliPayload(array $arguments): array
+{
+    $inputPath = $arguments[1] ?? null;
 
-// Create mPDF instance with better configuration
+    if ($inputPath === null || $inputPath === '') {
+        respondError('Caminho do payload JSON não informado.', 400);
+    }
+
+    if (!is_readable($inputPath)) {
+        respondError('Não foi possível ler o payload JSON fornecido.', 400);
+    }
+
+    $payload = json_decode(file_get_contents($inputPath), true);
+
+    if (!is_array($payload)) {
+        respondError('Payload JSON inválido.', 400);
+    }
+
+    $sections = [];
+
+    foreach ($payload['sections'] ?? [] as $section) {
+        if (!is_array($section)) {
+            continue;
+        }
+
+        $nome = trim((string) ($section['nome'] ?? ''));
+
+        if ($nome === '') {
+            continue;
+        }
+
+        $sections[] = [
+            'nome' => $nome,
+            'historico' => normalizeHistorico($section['historico'] ?? []),
+            'message' => $section['message'] ?? null,
+        ];
+    }
+
+    if (empty($sections)) {
+        respondError('Nenhum dado disponível para gerar o relatório.', 400);
+    }
+
+    $currentDate = formatDateTimeLabel($payload['generatedAt'] ?? null);
+
+    return [$sections, $currentDate];
+}
+
+function loadHttpPayload(): array
+{
+    $ingredientesInput = $_POST['ingredientes'] ?? [];
+
+    if (!is_array($ingredientesInput) || empty($ingredientesInput)) {
+        respondError('Nenhum ingrediente selecionado.', 400);
+    }
+
+    $userId = $_POST['userId'] ?? null;
+
+    if ($userId === null || $userId === '') {
+        respondError('Usuário não informado.', 400);
+    }
+
+    if (!extension_loaded('pdo_mysql')) {
+        respondError('A extensão pdo_mysql não está habilitada no PHP. Habilite-a para gerar o relatório.', 500);
+    }
+
+    try {
+        $pdo = new PDO('mysql:host=localhost;dbname=crud;charset=utf8', 'root', 'fatec', [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+    } catch (PDOException $exception) {
+        respondError('Erro na conexão com o banco: ' . $exception->getMessage(), 500);
+    }
+
+    $sections = [];
+    $ingredientes = array_map('trim', $ingredientesInput);
+
+    foreach ($ingredientes as $nome) {
+        if ($nome === '') {
+            continue;
+        }
+
+        $stmtIngredient = $pdo->prepare('
+            SELECT ID_Ingredientes 
+            FROM ingredientes 
+            WHERE Nome_Ingrediente = ? AND ID_Usuario = ?
+        ');
+
+        $stmtIngredient->execute([$nome, $userId]);
+        $ingredientResult = $stmtIngredient->fetch();
+
+        if (!$ingredientResult) {
+            $sections[] = [
+                'nome' => $nome,
+                'historico' => [],
+                'message' => 'Ingrediente não encontrado para este usuário.',
+            ];
+            continue;
+        }
+
+        $idIngrediente = $ingredientResult['ID_Ingredientes'];
+
+        $stmt = $pdo->prepare('
+            SELECT 
+                h.Preco AS costPerUnit,
+                h.Taxa_Desperdicio AS wasteRate,
+                h.Data_Alteracoes AS createdAt
+            FROM historico_alteracoes h
+            WHERE h.ID_Ingrediente = ? AND h.ID_Usuario = ?
+            ORDER BY h.Data_Alteracoes ASC
+        ');
+
+        try {
+            $stmt->execute([$idIngrediente, $userId]);
+            $dados = $stmt->fetchAll();
+
+            $sections[] = [
+                'nome' => $nome,
+                'historico' => normalizeHistorico($dados),
+                'message' => null,
+            ];
+        } catch (PDOException $exception) {
+            $logPath = __DIR__ . '/../../temp/pdf_error.log';
+            $errorMessage = '[' . date('c') . "] Erro ao buscar dados para {$nome}: " . $exception->getMessage() . PHP_EOL;
+            @file_put_contents($logPath, $errorMessage, FILE_APPEND);
+
+            $sections[] = [
+                'nome' => $nome,
+                'historico' => [],
+                'message' => 'Erro ao buscar dados deste ingrediente.',
+            ];
+        }
+    }
+
+    if (empty($sections)) {
+        respondError('Nenhum ingrediente válido informado.', 400);
+    }
+
+    return [$sections, date('d/m/Y H:i:s')];
+}
+
+[$sections, $currentDate] = $isCli ? loadCliPayload($argv) : loadHttpPayload();
+
+if (empty($sections)) {
+    respondError('Nenhum dado disponível para o relatório.', 400);
+}
+
+$html = buildReportHtml($sections, $currentDate);
+
 try {
     $mpdf = new \Mpdf\Mpdf([
         'mode' => 'utf-8',
@@ -241,16 +429,20 @@ try {
         'margin_top' => 20,
         'margin_bottom' => 20,
         'margin_header' => 10,
-        'margin_footer' => 10
+        'margin_footer' => 10,
     ]);
-    
+
     $mpdf->SetTitle('Relatório de Custo Histórico dos Ingredientes');
     $mpdf->SetAuthor('Caderno do Chef');
     $mpdf->SetCreator('Sistema Caderno do Chef');
-    
+
     $mpdf->WriteHTML($html);
-    $mpdf->Output('relatorio_ingredientes_' . date('Y-m-d_H-i-s') . '.pdf', 'I');
-} catch (\Mpdf\MpdfException $e) {
-    http_response_code(500);
-    die(json_encode(['error' => 'Erro ao gerar PDF: ' . $e->getMessage()]));
+
+    if ($isCli) {
+        echo $mpdf->Output('', 'S');
+    } else {
+        $mpdf->Output('relatorio_ingredientes_' . date('Y-m-d_H-i-s') . '.pdf', 'I');
+    }
+} catch (\Mpdf\MpdfException $exception) {
+    respondError('Erro ao gerar PDF: ' . $exception->getMessage(), 500);
 }

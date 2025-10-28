@@ -222,7 +222,12 @@ const handleSubmit = async (e) => {
       }))
     ));
 
-    await fetch("http://localhost:3001/api/receitas", {
+    // Log dos dados enviados
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    const response = await fetch("http://localhost:3001/api/receitas", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -230,11 +235,16 @@ const handleSubmit = async (e) => {
       body: formData,
     });
 
-    // Log dos dados enviados
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("❌ Erro do servidor:", errorData);
+      toast.error(errorData.error || "Erro ao salvar receita");
+      return;
     }
 
+    const result = await response.json();
+    console.log("✅ Receita salva com sucesso:", result);
+    
     toast.success("Receita cadastrada com sucesso!");
     onSave();
     onClose();
