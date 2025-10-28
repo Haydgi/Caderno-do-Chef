@@ -109,7 +109,6 @@
 }
 
 .cardImposto {
-  border: 2px solid var(--tangerine) !important;
   box-shadow: 0 4px 16px rgba(255, 165, 0, 0.08);
   background: linear-gradient(135deg, #3d2c4e 0%, #4b2e5e 100%);
   color: #fff;
@@ -121,5 +120,4 @@
   justify-content: space-between;
   padding: 1.6rem;
   border-radius: 15px;
-  transition: box-shadow 0.2s;
 }

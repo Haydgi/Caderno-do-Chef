@@ -308,7 +308,9 @@ function Despesas() {
         }
       >
         <div
-          className={`${styles.cardDespesa} ${styles.cardImposto}`}
+          className={`${styles.cardDespesa} ${styles.cardImposto} ${
+            hoveredDespesaId === imposto.id ? styles.cardDespesaHovered : ''
+          }`}
           style={
             isMobile
               ? {
@@ -379,14 +381,13 @@ function Despesas() {
           </h3>
           <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
             <div className="row g-2">
-              <div className="col-6">
+              <div className="col-6 d-flex flex-column justify-content-center">
                 <div className="text-center">
-                  <div className="d-flex align-items-center justify-content-center mb-1">
-                    <FaHandHoldingUsd className="me-1" style={{ fontSize: '1.3rem', color: 'var(--tangerine)' }} />
-                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>{imposto.Frequencia}</small>
-                  </div>
-                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
-                    R$ {Number(imposto.Valor_Medio).toFixed(2)}
+                  <div className="d-flex align-items-center justify-content-center">
+                    <FaHandHoldingUsd className="me-1" style={{ fontSize: '1.5rem', color: 'var(--tangerine)' }} />
+                    <span className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
+                      {imposto.Frequencia.charAt(0).toUpperCase() + imposto.Frequencia.slice(1)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -775,9 +776,7 @@ function Despesas() {
           <div className="mb-3" style={{ background: 'rgba(255,255,255,0.07)', padding: '0.5rem', borderRadius: '8px' }}>
             <FaMoneyBillWave style={{ color: 'var(--sunset)', marginRight: '6px' }} /> Despesa Operacional &nbsp;|
             <FaHandHoldingUsd style={{ color: 'var(--tangerine)', marginLeft: '12px', marginRight: '6px' }} /> Imposto
-            <span style={{ color: 'rgba(255,255,255,0.7)', marginLeft: '12px' }}>
-              * Legenda: cada linha mostra o tipo e o valor/minuto
-            </span>
+
           </div>
 
           {/* Seção de soma - apenas no desktop */}
@@ -949,7 +948,7 @@ function Despesas() {
 
   return (
     <ModelPage
-      titulo="Despesas e Impostos"
+      titulo="Despesas cadastradas"
       dados={todosOsCustos}
       salvarItem={salvarItem}
       removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
