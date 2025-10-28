@@ -123,3 +123,157 @@
   border-radius: 15px;
   transition: box-shadow 0.2s;
 }
+
+/* Forçar remoção de qualquer scroll horizontal do SweetAlert2 */
+:global(body.swal2-shown) {
+  overflow: hidden !important;
+}
+
+/* container fixo sem scroll da página */
+:global(.swal2-container) {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+/* popup: nunca permitir overflow-x, permitir apenas scroll-y interno se necessário */
+:global(.swal2-popup) {
+  box-sizing: border-box !important;
+  width: calc(100% - 48px) !important;
+  max-width: 520px !important;
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  white-space: normal !important;
+}
+
+/* HTML/content do swal deve respeitar largura do popup e não gerar overflow horizontal */
+:global(.swal2-html-container),
+:global(.swal2-content) {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+/* Inputs/selects dentro do popup — garantir box-sizing e largura */
+:global(.swal2-popup .swal2-input),
+:global(.swal2-popup .swal2-select),
+:global(.swal2-popup input),
+:global(.swal2-popup select),
+:global(.swal2-popup .form-control),
+:global(.swal2-popup .form-select) {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding-right: 0.5rem !important;
+}
+
+/* Ações/botões não devem causar overflow */
+:global(.swal2-actions) {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 0.6rem !important;
+  padding: 1rem 0 0 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Esconder scrollbars visualmente (WebKit + Firefox) como precaução */
+:global(.swal2-popup)::-webkit-scrollbar,
+:global(.swal2-html-container)::-webkit-scrollbar {
+  height: 0 !important;
+  width: 0 !important;
+}
+:global(.swal2-popup),
+:global(.swal2-html-container) {
+  -ms-overflow-style: none !important; /* IE/Edge */
+  scrollbar-width: none !important;    /* Firefox */
+}
+
+/* manter cores dos botões customizados */
+.swalConfirm {
+  /* botão de confirmação usa a cor tema (roxo) */
+  background: linear-gradient(90deg, var(--ultra-violet) 0%, rgba(95,75,139,0.9) 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 8px 18px !important;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(95,75,139,0.18);
+  transition: transform .18s ease, box-shadow .18s ease, background-position .3s ease;
+  background-size: 200% 100%;
+  background-position: right;
+}
+
+.swalConfirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(95,75,139,0.22);
+  background-position: left;
+}
+
+/* botão cancelar usa cor de alerta do tema */
+.swalCancel {
+  background: linear-gradient(90deg, var(--imperial-red) 0%, #d64545 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 8px 18px !important;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(214,69,69,0.14);
+  transition: transform .18s ease, box-shadow .18s ease, background-position .3s ease;
+  background-size: 200% 100%;
+  background-position: right;
+}
+
+.swalCancel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(214,69,69,0.18);
+  background-position: left;
+}
+
+/* Botão de confirmação verde para SweetAlert (classe usada via customClass.confirmButton) */
+.swalConfirmGreen {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.18) !important;
+  transition: transform 120ms ease, box-shadow 120ms ease !important;
+  cursor: pointer !important;
+}
+
+.swalConfirmGreen:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 14px 34px rgba(39, 174, 96, 0.22) !important;
+}
+
+.swalConfirmGreen:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 8px 20px rgba(39, 174, 96, 0.18) !important;
+}
+
+/* Se quiser manter/usar a classe swalConfirm já existente, certifique-se de que ela existe;
+   aqui adicionamos apenas a classe específica verde para garantir a mudança visual. */
+
+/* (Opcional) pequenas melhorias na aparência do botão de cancelar para combinar */
+.swalCancel {
+  background: linear-gradient(135deg, #f14f4f, #e74c3c) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  padding: 0.45rem 0.9rem !important;
+  border: none !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import styles from './ModalCadastroImposto.module.css';
 

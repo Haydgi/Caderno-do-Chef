@@ -243,9 +243,153 @@ function Despesas() {
     }
   };
 
+  // Função para editar imposto (usa Swal para formulário simples) e atualizar via API
+  const editarImposto = async (imposto) => {
+    // evita erros com valores nulos
+    const safeNome = imposto?.Nome_Imposto ?? '';
+    // Prefill: se houver Valor_Medio use-o; caso contrário, derive a partir de custoMensal (convertendo para anual se necessário)
+    const inferredValor = imposto?.Valor_Medio ?? (imposto?.custoMensal != null
+      ? (String((imposto?.Frequencia || '').toLowerCase()) === 'anual' ? Number(imposto.custoMensal) * 12 : Number(imposto.custoMensal))
+      : '');
+    const safeValor = inferredValor ?? '';
+    const frequenciaAtual = (imposto?.Frequencia || '').toLowerCase();
+
+    const { value: dados } = await Swal.fire({
+      title: 'Editar Imposto',
+      showCancelButton: true,
+      confirmButtonText: 'Salvar', // -- trocado para "Salvar"
+      cancelButtonText: 'Cancelar',
+      focusConfirm: false,
+      buttonsStyling: false,
+      customClass: {
+        popup: styles.swalPopup,
+        content: styles.swalContent,
+        // usa a classe verde para o botão de confirmação
+        confirmButton: `${styles.swalConfirm} ${styles.swalConfirmGreen}`,
+        cancelButton: styles.swalCancel
+      },
+      // se quiser manter as animações propostas antes (opcional):
+      showClass: {
+        popup: styles.swalPopupEnter
+      },
+      hideClass: {
+        popup: styles.swalPopupExit
+      },
+      html: `
+        <div class="card" style="border-radius:12px; overflow:hidden; box-shadow:none;">
+          <div class="card-body p-3" style="background:transparent;">
+            <div class="mb-3">
+              <label for="swal-nome" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Nome do imposto</label>
+              <input id="swal-nome" class="form-control" placeholder="Ex: DAS" value="${safeNome}" />
+            </div>
+
+            <div class="row g-2">
+              <div class="col">
+                <label for="swal-valor" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Valor a pagar</label>
+                <input id="swal-valor" type="number" step="0.01" class="form-control" placeholder="Valor (no período selecionado)" value="${safeValor}" />
+                <small class="text-muted" style="display:block; margin-top:6px; font-size:0.82rem">
+                  Digite o valor exato a ser pago no período selecionado.
+                </small>
+              </div>
+
+              <div class="col-auto" style="min-width:140px;">
+                <label for="swal-frequencia" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Frequência</label>
+                <select id="swal-frequencia" class="form-select">
+                  <option value="mensal" ${frequenciaAtual === 'mensal' ? 'selected' : ''}>Mensal</option>
+                  <option value="anual" ${frequenciaAtual === 'anual' ? 'selected' : ''}>Anual</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      preConfirm: () => {
+        const nome = document.getElementById('swal-nome')?.value || '';
+        const valor = document.getElementById('swal-valor')?.value || '';
+        const frequencia = document.getElementById('swal-frequencia')?.value || 'mensal';
+
+        if (!nome || !valor) {
+          Swal.showValidationMessage('Nome e Valor são obrigatórios');
+          return false;
+        }
+
+        return { Nome_Imposto: nome, Valor_Medio: parseFloat(valor), Frequencia: frequencia };
+      }
+    });
+
+    if (dados) {
+      try {
+        // usa ID preferencialmente do campo ID_Imposto se existir
+        const impostoId = imposto?.ID_Imposto || imposto?.id || imposto?.ID || imposto?._id;
+        await atualizarImposto(impostoId, dados);
+        // atualizar estado/local conforme sua implementação
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Erro', 'Não foi possível atualizar o imposto', 'error');
+      }
+    }
+  };
+
+  const atualizarImposto = async (id, dados) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/impostos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          Nome_Imposto: dados.Nome_Imposto,
+          Valor_Medio: String(dados.Valor_Medio),
+          Frequencia: dados.Frequencia
+        })
+      });
+
+      if (!res.ok) throw new Error('Erro ao atualizar imposto');
+
+      // Atualiza o estado local imediatamente com o valor EXATO digitado pelo usuário
+      setImpostos(prev => prev.map(i => {
+        if (i.id !== id) return i;
+        const valor = Number(dados.Valor_Medio);
+        const freq = dados.Frequencia;
+        return {
+          ...i,
+          Nome_Imposto: dados.Nome_Imposto,
+          Valor_Medio: valor,
+          Frequencia: freq,
+          custoMensal: freq === 'anual' ? valor / 12 : valor
+        };
+      }));
+
+      // Não faz novo fetchImpostos() aqui para evitar que o backend sobrescreva o valor exibido.
+      toast.success('Imposto atualizado com sucesso!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao atualizar imposto.');
+    }
+  };
+
   const removerImposto = async (id) => {
-    // Adicionar lógica de exclusão de imposto se necessário no futuro
-    toast.info('A exclusão de impostos ainda não foi implementada.');
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/impostos/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error('Erro ao remover imposto');
+
+      setImpostos(prev => prev.filter(i => i.id !== id));
+      toast.success('Imposto removido com sucesso!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao remover imposto.');
+    }
   };
 
   const handleAbrirModal = () => {
@@ -341,7 +485,8 @@ function Despesas() {
                 }
           }
           onClick={() => {
-            toast.info('Edição de imposto ainda não implementada.');
+            // abre edição do imposto
+            editarImposto(imposto);
           }}
           onMouseEnter={() => setHoveredDespesaId(imposto.id)}
           onMouseLeave={() => setHoveredDespesaId(null)}
@@ -374,9 +519,46 @@ function Despesas() {
             <FaTrash />
           </i>
 
-          <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem' }}>
-            {imposto.nome}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%' }}>
+            <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem', textAlign: 'center', margin: 0 }}>
+              {imposto.nome}
+            </h3>
+
+            {imposto.nome === 'DAS' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  Swal.fire({
+                    title: 'DAS',
+                    html: '<p style="text-align:left">DAS (Documento de Arrecadação do Simples Nacional) é o tributo mensal que reúne impostos e contribuições de micro e pequenas empresas optantes pelo Simples.</p>',
+                    icon: 'info',
+                    confirmButtonText: 'Fechar',
+                    customClass: { popup: styles.swalPopup, content: styles.swalContent, confirmButton: styles.swalConfirm }
+                  });
+                }}
+                title="DAS — clique para mais detalhes"
+                style={{
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: '#fff',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.85rem',
+                  padding: 0,
+                  marginLeft: '6px'
+                }}
+                onMouseDown={(e)=>e.preventDefault()}
+              >
+                ?
+              </button>
+            )}
+          </div>
           <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
             <div className="row g-2">
               <div className="col-6">
