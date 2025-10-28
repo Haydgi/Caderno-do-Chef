@@ -149,7 +149,7 @@ const ModalCadastroImposto = ({ onClose, onSave }) => {
                             Cancelar
                         </button>
                         <button type="submit" className={styles.btnSave} disabled={isLoading}>
-                            {isLoading ? 'Salvando...' : 'Salvar Imposto'}
+                            {isLoading ? 'Salvando...' : 'Salvar'}
                         </button>
                     </div>
                 </form>

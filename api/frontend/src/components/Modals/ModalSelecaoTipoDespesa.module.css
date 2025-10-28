@@ -4,83 +4,109 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1040; /* Abaixo do modal de cadastro */
+    z-index: 999;
 }
 
+/* Caixa principal do modal */
 .modalContent {
-    background: #282a36;
-    padding: 2rem;
-    border-radius: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 2rem 2.5rem;
     width: 90%;
-    max-width: 700px;
+    max-width: 650px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.25s ease-in;
 }
 
+/* Título cursivo com estilo consistente com os outros modais */
 .modalTitle {
-    color: #f8f8f2;
-    margin-bottom: 2rem;
+    font-family: 'Poppins', cursive;
     font-size: 1.8rem;
-    font-weight: bold;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2rem;
 }
 
+/* Container das opções */
 .optionsContainer {
     display: flex;
     justify-content: center;
-    gap: 2rem;
     flex-wrap: wrap;
+    gap: 2rem;
 }
 
+/* Cartões das opções */
 .optionCard {
-    background: #44475a;
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
     padding: 1.5rem;
-    border-radius: 15px;
     width: 250px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #6272a4;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .optionCard:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Ícones */
 .icon {
-    color: var(--tangerine);
+    color: #f39c12;
     margin-bottom: 1rem;
 }
 
+/* Título e descrição das opções */
 .optionTitle {
-    color: #f8f8f2;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
     margin-bottom: 0.5rem;
 }
 
 .optionDescription {
-    color: #bd93f9;
+    color: #666;
     font-size: 0.9rem;
+    line-height: 1.3rem;
 }
 
+/* Container do botão de fechar */
 .closeButtonContainer {
     margin-top: 2rem;
 }
 
+/* Botão de fechar com cor #3085d6 */
 .btnClose {
-    background: #6272a4;
-    color: #f8f8f2;
+    background-color: #3085d6;
+    color: #fff;
     border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: 600;
 }
 
 .btnClose:hover {
-    background: #ff5555;
+    background-color: #2c78c4;
+}
+
+/* Animação suave de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
