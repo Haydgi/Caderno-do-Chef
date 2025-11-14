@@ -30,13 +30,40 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: MSGS.tokenNaoFornecido });
   }
 
-  jwt.verify(token, process.env.SECRET_JWT, (err, usuario) => {
+  jwt.verify(token, process.env.SECRET_JWT, async (err, usuario) => {
     if (err) {
       return res.status(403).json({ error: MSGS.tokenInvalido });
     }
-    req.usuario = usuario;
-    next();
+    
+    try {
+      // Buscar o papel do usuário no banco
+      const [usuarios] = await db.query(
+        'SELECT tipo_usuario FROM usuario WHERE ID_Usuario = ?',
+        [usuario.ID_Usuario]
+      );
+      
+      if (usuarios.length === 0) {
+        return res.status(401).json({ error: 'Usuário não encontrado' });
+      }
+      
+      req.usuario = {
+        ...usuario,
+        role: usuarios[0].tipo_usuario
+      };
+      next();
+    } catch (dbError) {
+      console.error('Erro ao buscar papel do usuário:', dbError);
+      return res.status(500).json({ error: 'Erro ao validar permissões' });
+    }
   });
+}
+
+// Middleware de permissão: apenas Proprietário ou Gerente podem modificar
+function proprietarioOuGerente(req, res, next) {
+  if (req.usuario.role !== 'Proprietário' && req.usuario.role !== 'Gerente') {
+    return res.status(403).json({ error: 'Acesso negado. Apenas proprietários e gerentes podem modificar despesas.' });
+  }
+  next();
 }
 
 // Função auxiliar de validação
@@ -48,8 +75,8 @@ function validarCampos(nome, custoMensal, tempoOperacional) {
   return true;
 }
 
-// POST - Cadastrar despesa
-router.post('/', authenticateToken, upload.none(), async (req, res) => {
+// POST - Cadastrar despesa (Proprietário e Gerente)
+router.post('/', authenticateToken, proprietarioOuGerente, upload.none(), async (req, res) => {
   let { nome, custoMensal, tempoOperacional } = req.body;
   const ID_Usuario = req.usuario.ID_Usuario;
 
@@ -82,8 +109,8 @@ router.post('/', authenticateToken, upload.none(), async (req, res) => {
   }
 });
 
-// GET - Listar despesas com paginação e filtro de busca
-router.get('/', authenticateToken, async (req, res) => {
+// GET - Listar despesas com paginação e filtro de busca (Proprietário e Gerente)
+router.get('/', authenticateToken, proprietarioOuGerente, async (req, res) => {
   const ID_Usuario = req.usuario.ID_Usuario;
   const { page = 1, limit = 10, search = '' } = req.query;
   const offset = (page - 1) * limit;
@@ -114,7 +141,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // PUT - Atualizar despesa
-router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), async (req, res) => {
+router.put('/:id', authenticateToken, proprietarioOuGerente, express.urlencoded({ extended: true }), async (req, res) => {
   let { nome, custoMensal, tempoOperacional } = req.body;
   const { id } = req.params;
   const ID_Usuario = req.usuario.ID_Usuario;
@@ -168,7 +195,7 @@ router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), as
 });
 
 // DELETE - Excluir despesa
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, proprietarioOuGerente, async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.usuario.ID_Usuario;
 

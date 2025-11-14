@@ -24,7 +24,8 @@ import impostosRoutes from "./routes/impostos.js";
 import LucroPorReceita from "./routes/LucroPorReceita.js";
 import receitaDetalhadaRouter from './routes/receitaDetalhada.js';
 import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js';
-import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js"; 
+import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js";
+import { proprietarioOuGerente } from "./middleware/permissions.js"; 
 
 
 
@@ -106,18 +107,18 @@ app.use('/api/impostos', auth, impostosRoutes);
 // Gerenciamento de usuários (apenas Proprietário)
 app.use('/api', auth, gerenciamentoUsuariosRoutes);
 
-// Relatórios e métricas
-app.use('/api/receitas', auth, LucroPorReceita);
-app.use('/api/receitas', auth, Tempomedio);
-app.use('/api/receitas', auth, ContaReceita);
-app.use('/api/receitas', auth, CategoriaReceitas);
-app.use('/api/receita-detalhada', auth, receitaDetalhadaRouter);
-app.use('/api/ingredientes/indice', auth, IndiceDesperdicio);
-app.use('/api/ingredientes', auth, DesperdicioMedio);
-app.use('/api/ingredientes', auth, ContaIngredientes);
-app.use('/api/ingredientes', auth, UnderusedController);
-app.use('/api/historico-ingredientes', auth, historicoIngredientesRoutes);
-app.use('/api', auth, pdfExportRoute); // exportação de PDF
+// Relatórios e métricas (apenas Proprietário e Gerente)
+app.use('/api/receitas', auth, proprietarioOuGerente, LucroPorReceita);
+app.use('/api/receitas', auth, proprietarioOuGerente, Tempomedio);
+app.use('/api/receitas', auth, proprietarioOuGerente, ContaReceita);
+app.use('/api/receitas', auth, proprietarioOuGerente, CategoriaReceitas);
+app.use('/api/receita-detalhada', auth, proprietarioOuGerente, receitaDetalhadaRouter);
+app.use('/api/ingredientes/indice', auth, proprietarioOuGerente, IndiceDesperdicio);
+app.use('/api/ingredientes', auth, proprietarioOuGerente, DesperdicioMedio);
+app.use('/api/ingredientes', auth, proprietarioOuGerente, ContaIngredientes);
+app.use('/api/ingredientes', auth, proprietarioOuGerente, UnderusedController);
+app.use('/api/historico-ingredientes', auth, proprietarioOuGerente, historicoIngredientesRoutes);
+app.use('/api', auth, proprietarioOuGerente, pdfExportRoute); // exportação de PDF
 
 // Observação: se alguma dessas rotas de relatórios deva ser pública,
 // remova o `auth` apenas nessa linha específica.

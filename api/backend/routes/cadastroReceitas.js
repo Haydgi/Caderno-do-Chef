@@ -34,14 +34,40 @@ function authenticateToken(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: MSGS.tokenNaoFornecido });
 
-  jwt.verify(token, process.env.SECRET_JWT, (err, decoded) => {
+  jwt.verify(token, process.env.SECRET_JWT, async (err, decoded) => {
     if (err) return res.status(403).json({ error: MSGS.tokenInvalido });
     if (!decoded || !decoded.ID_Usuario)
       return res.status(403).json({ error: 'Token malformado - ID_Usuario não encontrado' });
 
-    req.usuario = { ID_Usuario: decoded.ID_Usuario };
-    next();
+    try {
+      // Buscar o papel do usuário no banco
+      const [usuarios] = await db.query(
+        'SELECT tipo_usuario FROM usuario WHERE ID_Usuario = ?',
+        [decoded.ID_Usuario]
+      );
+      
+      if (usuarios.length === 0) {
+        return res.status(401).json({ error: 'Usuário não encontrado' });
+      }
+      
+      req.usuario = {
+        ID_Usuario: decoded.ID_Usuario,
+        role: usuarios[0].tipo_usuario
+      };
+      next();
+    } catch (dbError) {
+      console.error('Erro ao buscar papel do usuário:', dbError);
+      return res.status(500).json({ error: 'Erro ao validar permissões' });
+    }
   });
+}
+
+// Middleware de permissão: apenas Proprietário ou Gerente podem modificar
+function proprietarioOuGerente(req, res, next) {
+  if (req.usuario.role !== 'Proprietário' && req.usuario.role !== 'Gerente') {
+    return res.status(403).json({ error: 'Acesso negado. Apenas proprietários e gerentes podem modificar receitas.' });
+  }
+  next();
 }
 
 // Configuração multer para upload de imagens
@@ -66,8 +92,8 @@ const upload = multer({
   }
 });
 
-// POST / - Cadastrar receita
-router.post('/', authenticateToken, upload.single('imagem_URL'), async (req, res) => {
+// POST / - Cadastrar receita (Proprietário e Gerente)
+router.post('/', authenticateToken, proprietarioOuGerente, upload.single('imagem_URL'), async (req, res) => {
   try {
     let {
       Nome_Receita,
@@ -205,7 +231,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // DELETE /:id - Excluir receita
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, proprietarioOuGerente, async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.usuario.ID_Usuario;
   const idNum = Number(id);
@@ -241,7 +267,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // PUT /:id - Atualizar receita
-router.put('/:id', authenticateToken, upload.single('imagem_URL'), async (req, res) => {
+router.put('/:id', authenticateToken, proprietarioOuGerente, upload.single('imagem_URL'), async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.usuario.ID_Usuario;
   const idNum = Number(id);

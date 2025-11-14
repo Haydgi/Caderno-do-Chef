@@ -28,15 +28,42 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: MSGS.tokenNaoFornecido });
   }
 
-  jwt.verify(token, process.env.SECRET_JWT, (err, usuario) => {
+  jwt.verify(token, process.env.SECRET_JWT, async (err, usuario) => {
     if (err) return res.status(403).json({ error: MSGS.tokenInvalido });
-    req.usuario = usuario;
-    next();
+    
+    try {
+      // Buscar o papel do usuário no banco
+      const [usuarios] = await db.query(
+        'SELECT tipo_usuario FROM usuario WHERE ID_Usuario = ?',
+        [usuario.ID_Usuario]
+      );
+      
+      if (usuarios.length === 0) {
+        return res.status(401).json({ error: 'Usuário não encontrado' });
+      }
+      
+      req.usuario = {
+        ...usuario,
+        role: usuarios[0].tipo_usuario
+      };
+      next();
+    } catch (dbError) {
+      console.error('Erro ao buscar papel do usuário:', dbError);
+      return res.status(500).json({ error: 'Erro ao validar permissões' });
+    }
   });
 }
 
-// POST - Cadastrar ingrediente (protegida)
-router.post('/', authenticateToken, upload.none(), async (req, res) => {
+// Middleware de permissão: apenas Proprietário ou Gerente podem modificar
+function proprietarioOuGerente(req, res, next) {
+  if (req.usuario.role !== 'Proprietário' && req.usuario.role !== 'Gerente') {
+    return res.status(403).json({ error: 'Acesso negado. Apenas proprietários e gerentes podem modificar ingredientes.' });
+  }
+  next();
+}
+
+// POST - Cadastrar ingrediente (protegida - Proprietário e Gerente)
+router.post('/', authenticateToken, proprietarioOuGerente, upload.none(), async (req, res) => {
   const {
     nome = null,
     unidadeDeMedida = null,
@@ -154,7 +181,7 @@ async function atualizaReceitasPorIngrediente(idIngrediente) {
 
 // PUT - Atualizar ingrediente (atualiza preco e cria novo histórico)
 // PUT - Atualizar ingrediente (protegida)
-router.put('/:id', authenticateToken, upload.none(), async (req, res) => {
+router.put('/:id', authenticateToken, proprietarioOuGerente, upload.none(), async (req, res) => {
   const {
     nome = null,
     unidadeDeMedida = null,
@@ -250,7 +277,7 @@ router.put('/:id', authenticateToken, upload.none(), async (req, res) => {
 
 
 // DELETE - Excluir ingrediente e dependências
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, proprietarioOuGerente, async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.usuario.ID_Usuario;
 
