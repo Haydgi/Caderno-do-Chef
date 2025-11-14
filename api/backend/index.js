@@ -23,7 +23,8 @@ import cadastroDespesas from "./routes/cadastroDespesas.js";
 import impostosRoutes from "./routes/impostos.js";
 import LucroPorReceita from "./routes/LucroPorReceita.js";
 import receitaDetalhadaRouter from './routes/receitaDetalhada.js';
-import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js'; 
+import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js';
+import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js"; 
 
 
 
@@ -101,6 +102,9 @@ app.use('/api/ingredientes', auth, ingredientesRoutes);
 app.use('/api/receitas', auth, cadastroReceitas);
 app.use('/api/despesas', auth, cadastroDespesas);
 app.use('/api/impostos', auth, impostosRoutes);
+
+// Gerenciamento de usuários (apenas Proprietário)
+app.use('/api', auth, gerenciamentoUsuariosRoutes);
 
 // Relatórios e métricas
 app.use('/api/receitas', auth, LucroPorReceita);
