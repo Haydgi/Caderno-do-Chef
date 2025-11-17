@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import { MdMenu, MdMenuBook, MdBarChart, MdShoppingCart, MdAttachMoney } from "react-icons/md";
+import { FaUserCog } from "react-icons/fa";
 
 /* Small helper (keeps same logic used elsewhere) */
 const isTokenValid = () => {
@@ -14,9 +15,13 @@ export default function Navbar({ onLogout }) {
   if (!isTokenValid()) return null;
 
   const [menuAberto, setMenuAberto] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false); // desktop profile/menu dropdown
   const [shouldRender, setShouldRender] = useState(true);
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const profileRef = useRef(null);
+
+  const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -36,6 +41,7 @@ export default function Navbar({ onLogout }) {
   const handleLogout = () => {
     // remove token
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     // notify other listeners (tabs/components)
     try {
       window.dispatchEvent(new CustomEvent("authChanged", { detail: { token: null } }));
@@ -57,8 +63,17 @@ export default function Navbar({ onLogout }) {
         setMenuAberto(false);
       }
     };
+    const handleClickOutsideProfile = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutsideProfile);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutsideProfile);
+    };
   }, []);
 
   useEffect(() => {
@@ -99,9 +114,28 @@ export default function Navbar({ onLogout }) {
             </NavLink>
           </li>
         </ul>
-        <button className="btnLogout" onClick={handleLogout}>
-          <i className="bi bi-box-arrow-right"></i> Sair
-        </button>
+        {/* Profile/Menu button (desktop) */}
+        <div className="position-relative" ref={profileRef}>
+          <button className="btn" onClick={() => setProfileOpen((v) => !v)} title="Menu">
+            <FaUserCog style={{ fontSize: "1.25rem", color: 'var(--sunset)' }} />
+          </button>
+          {profileOpen && (
+            <div className="card shadow" style={{ position: 'absolute', right: 0, top: '110%', minWidth: 220, zIndex: 1000 }}>
+              <ul className="list-group list-group-flush">
+                {role === 'Proprietário' && (
+                  <li className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }}
+                      onClick={() => { setProfileOpen(false); navigate('/usuarios'); }}>
+                    Configurações
+                  </li>
+                )}
+                <li className="list-group-item list-group-item-action text-danger" style={{ cursor: 'pointer' }}
+                    onClick={() => { setProfileOpen(false); handleLogout(); }}>
+                  Sair
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </nav>
 
       <nav className="navbar navbar-expand-md d-flex d-md-none px-3">
@@ -139,8 +173,15 @@ export default function Navbar({ onLogout }) {
                 <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
               </NavLink>
             </li>
+            {role === 'Proprietário' && (
+              <li className="nav-item">
+                <NavLink to="/usuarios" className="nav-link" onClick={() => setMenuAberto(false)}>
+                  <FaUserCog style={{ verticalAlign: "middle", marginRight: 6 }} /> Configurações
+                </NavLink>
+              </li>
+            )}
             <li className="nav-item mt-2">
-              <button className="btnLogoutCelular" onClick={handleLogout}>
+              <button className="btnLogoutCelular" onClick={() => { setMenuAberto(false); handleLogout(); }}>
                 Sair <i className="bi bi-box-arrow-right"></i>
               </button>
             </li>

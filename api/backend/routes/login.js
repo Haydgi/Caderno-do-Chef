@@ -63,14 +63,16 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     // Evitar logar token/payload em produção
 
-    // Retornar sucesso com token e dados do usuário
+    // Retornar sucesso com token e dados do usuário (inclui papel/tipo_usuario)
     return res.status(200).json({
       mensagem: "Login realizado com sucesso!",
       token,
       usuario: {
         id: usuario.ID_Usuario,
         nome: usuario.Nome_Usuario,
-        email: usuario.Email
+        email: usuario.Email,
+        role: usuario.tipo_usuario, // ex.: Proprietário | Gerente | Funcionário
+        tipo_usuario: usuario.tipo_usuario // compatibilidade com consumidores que preferem este nome
       }
     });
 

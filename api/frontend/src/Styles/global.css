@@ -30,6 +30,15 @@ body.produtos-page {
     padding: 0;
 }
 
+/* Fundo global para a página de Usuários (cobre todo o body, por trás da navbar/footer) */
+body.usuarios-page {
+  background: url("/midia/ingredientes-bg.png") no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 /* Botão estilizado em roxo com efeito  */
 .btnUltraViolet {
     background: linear-gradient(to right, #a36acb, var(--ultra-violet));
