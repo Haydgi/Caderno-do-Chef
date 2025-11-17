@@ -1,11 +1,11 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import db from "../database/connection.js";
 import multer from 'multer';
 import { calculaPrecoReceitaCompleto } from './atualizaReceitas.js';
 
 const router = express.Router();
 const upload = multer(); // Para multipart/form-data
+import { funcionarioOuAcima, gerenteOuAcima } from "../middleware/permissions.js";
 
 const MSGS = {
   camposFaltando: 'Campos obrigatórios faltando',
@@ -19,51 +19,11 @@ const MSGS = {
   idInvalido: 'ID inválido',
 };
 
-// Middleware de autenticação JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: MSGS.tokenNaoFornecido });
-  }
-
-  jwt.verify(token, process.env.SECRET_JWT, async (err, usuario) => {
-    if (err) return res.status(403).json({ error: MSGS.tokenInvalido });
-    
-    try {
-      // Buscar o papel do usuário no banco
-      const [usuarios] = await db.query(
-        'SELECT tipo_usuario FROM usuario WHERE ID_Usuario = ?',
-        [usuario.ID_Usuario]
-      );
-      
-      if (usuarios.length === 0) {
-        return res.status(401).json({ error: 'Usuário não encontrado' });
-      }
-      
-      req.usuario = {
-        ...usuario,
-        role: usuarios[0].tipo_usuario
-      };
-      next();
-    } catch (dbError) {
-      console.error('Erro ao buscar papel do usuário:', dbError);
-      return res.status(500).json({ error: 'Erro ao validar permissões' });
-    }
-  });
-}
-
-// Middleware de permissão: apenas Proprietário ou Gerente podem modificar
-function proprietarioOuGerente(req, res, next) {
-  if (req.usuario.role !== 'Proprietário' && req.usuario.role !== 'Gerente') {
-    return res.status(403).json({ error: 'Acesso negado. Apenas proprietários e gerentes podem modificar ingredientes.' });
-  }
-  next();
-}
+// Observação: autenticação (req.user) já está aplicada em index.js
 
 // POST - Cadastrar ingrediente (protegida - Proprietário e Gerente)
-router.post('/', authenticateToken, proprietarioOuGerente, upload.none(), async (req, res) => {
+// Funcionário ou acima pode cadastrar
+router.post('/', funcionarioOuAcima, upload.none(), async (req, res) => {
   const {
     nome = null,
     unidadeDeMedida = null,
@@ -72,7 +32,7 @@ router.post('/', authenticateToken, proprietarioOuGerente, upload.none(), async 
     categoria = null
   } = req.body;
 
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   if (!nome || !unidadeDeMedida || custo === null || custo === undefined) {
     return res.status(400).json({ error: MSGS.camposFaltando });
@@ -116,8 +76,7 @@ router.post('/', authenticateToken, proprietarioOuGerente, upload.none(), async 
 });
 
 // GET - Listar ingredientes com paginação e busca (protegida)
-router.get('/', authenticateToken, async (req, res) => {
-  const ID_Usuario = req.usuario.ID_Usuario;
+router.get('/', async (req, res) => {
   const { page = 1, limit = 10, search = '' } = req.query;
   const offset = (page - 1) * limit;
 
@@ -125,8 +84,8 @@ router.get('/', authenticateToken, async (req, res) => {
     let sql = `
       SELECT ID_Ingredientes, Nome_Ingrediente, Unidade_De_Medida, Custo_Ingrediente, Indice_de_Desperdicio, Categoria, Data_Ingrediente
       FROM ingredientes
-      WHERE ID_Usuario = ?`;
-    const params = [ID_Usuario];
+      WHERE 1=1`;
+    const params = [];
 
     if (search.trim()) {
       sql += ` AND Nome_Ingrediente LIKE ?`;
@@ -181,7 +140,8 @@ async function atualizaReceitasPorIngrediente(idIngrediente) {
 
 // PUT - Atualizar ingrediente (atualiza preco e cria novo histórico)
 // PUT - Atualizar ingrediente (protegida)
-router.put('/:id', authenticateToken, proprietarioOuGerente, upload.none(), async (req, res) => {
+// Funcionário ou acima pode editar
+router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
   const {
     nome = null,
     unidadeDeMedida = null,
@@ -191,7 +151,7 @@ router.put('/:id', authenticateToken, proprietarioOuGerente, upload.none(), asyn
   } = req.body;
 
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   const idNum = Number(id);
   if (isNaN(idNum)) return res.status(400).json({ error: MSGS.idInvalido });
@@ -277,9 +237,10 @@ router.put('/:id', authenticateToken, proprietarioOuGerente, upload.none(), asyn
 
 
 // DELETE - Excluir ingrediente e dependências
-router.delete('/:id', authenticateToken, proprietarioOuGerente, async (req, res) => {
+// Somente gerente ou acima podem excluir
+router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   const idNum = Number(id);
   if (isNaN(idNum)) return res.status(400).json({ error: MSGS.idInvalido });

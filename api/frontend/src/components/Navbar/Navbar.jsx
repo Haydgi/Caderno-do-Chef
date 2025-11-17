@@ -96,9 +96,15 @@ export default function Navbar({ onLogout }) {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/relatorios" className="hoverable">
-              <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
-            </NavLink>
+            {role === 'Funcionário' ? (
+              <span className="disabledLink">
+                <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
+              </span>
+            ) : (
+              <NavLink to="/relatorios" className="hoverable">
+                <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
+              </NavLink>
+            )}
           </li>
           <li>
             <img src={`${import.meta.env.BASE_URL}midia/logo_caderno_do_che2.png`} alt="Logo" />
@@ -109,20 +115,26 @@ export default function Navbar({ onLogout }) {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/despesas" className="hoverable">
-              <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
-            </NavLink>
+            {role === 'Funcionário' ? (
+              <span className="disabledLink">
+                <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
+              </span>
+            ) : (
+              <NavLink to="/despesas" className="hoverable">
+                <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
+              </NavLink>
+            )}
           </li>
         </ul>
         {/* Profile/Menu button (desktop) */}
         <div className="position-relative" ref={profileRef}>
           <button className="btn" onClick={() => setProfileOpen((v) => !v)} title="Menu">
-            <FaUserCog style={{ fontSize: "1.25rem", color: 'var(--sunset)' }} />
+            <FaUserCog style={{ fontSize: "1.8em", color: 'var(--sunset)', marginTop: 9 }} />
           </button>
           {profileOpen && (
             <div className="card shadow" style={{ position: 'absolute', right: 0, top: '110%', minWidth: 220, zIndex: 1000 }}>
               <ul className="list-group list-group-flush">
-                {role === 'Proprietário' && (
+                {(role === 'Proprietário' || role === 'Gerente' || role === 'Funcionário') && (
                   <li className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }}
                       onClick={() => { setProfileOpen(false); navigate('/usuarios'); }}>
                     Configurações
@@ -159,9 +171,15 @@ export default function Navbar({ onLogout }) {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
-                <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
-              </NavLink>
+              {role === 'Funcionário' ? (
+                <span className="nav-link disabledLink">
+                  <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
+                </span>
+              ) : (
+                <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
+                  <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
+                </NavLink>
+              )}
             </li>
             <li className="nav-item">
               <NavLink to="/ingredientes" className="nav-link" onClick={() => setMenuAberto(false)}>
@@ -169,11 +187,17 @@ export default function Navbar({ onLogout }) {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>
-                <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
-              </NavLink>
+              {role === 'Funcionário' ? (
+                <span className="nav-link disabledLink">
+                  <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
+                </span>
+              ) : (
+                <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>
+                  <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
+                </NavLink>
+              )}
             </li>
-            {role === 'Proprietário' && (
+            {(role === 'Proprietário' || role === 'Gerente' || role === 'Funcionário') && (
               <li className="nav-item">
                 <NavLink to="/usuarios" className="nav-link" onClick={() => setMenuAberto(false)}>
                   <FaUserCog style={{ verticalAlign: "middle", marginRight: 6 }} /> Configurações

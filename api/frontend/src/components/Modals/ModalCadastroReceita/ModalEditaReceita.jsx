@@ -4,6 +4,7 @@ import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
 import { GiKnifeFork } from "react-icons/gi";
+import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
 
 function ModalEditaReceita({ onClose, onSave, receita }) {
   const [form, setForm] = useState({
@@ -250,9 +251,19 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
             "Authorization": `Bearer ${token}`,
           },
         });
+        if (!res.ok) {
+          if (res.status === 403) {
+            showPermissionDeniedOnce();
+            setDespesas([]);
+            return;
+          }
+          throw new Error("Erro ao buscar despesas do banco");
+        }
         const data = await res.json();
-        setDespesas(data);
+        setDespesas(Array.isArray(data) ? data : []);
       } catch (err) {
+        // Evita duplicar mensagem quando já foi 403
+        if (err?.message && err.message.includes("403")) return;
         toast.error("Erro ao buscar despesas do banco!");
       }
     }
@@ -281,7 +292,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
   const calcularCustoTotalReceita = ({ ingredientes, tempo_preparo_min, despesas }) => {
     const custoIngredientes = ingredientes.reduce((total, item) => total + item.custo_calculado, 0);
-    const custoOperacionalPorMinuto = despesas.reduce((total, despesa) => {
+    const lista = Array.isArray(despesas) ? despesas : [];
+    const custoOperacionalPorMinuto = lista.reduce((total, despesa) => {
       const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
       return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
     }, 0);
@@ -774,7 +786,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                             );
                           }, 0);
                           const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
-                          const custoOperacional = despesas.reduce((total, despesa) => {
+                          const custoOperacional = (Array.isArray(despesas) ? despesas : []).reduce((total, despesa) => {
                             const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
                             return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
                           }, 0) * tempo_preparo_min;
@@ -788,7 +800,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         <strong>Custo Operacional:</strong>
                         <br />R$ {(() => {
                           const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
-                          const custoOperacional = despesas.reduce((total, despesa) => {
+                          const custoOperacional = (Array.isArray(despesas) ? despesas : []).reduce((total, despesa) => {
                             const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
                             return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
                           }, 0) * tempo_preparo_min;
@@ -807,7 +819,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                             );
                           }, 0);
                           const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
-                          const custoOperacional = despesas.reduce((total, despesa) => {
+                          const custoOperacional = (Array.isArray(despesas) ? despesas : []).reduce((total, despesa) => {
                             const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
                             return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
                           }, 0) * tempo_preparo_min;

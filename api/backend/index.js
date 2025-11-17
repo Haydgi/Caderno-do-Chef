@@ -25,7 +25,7 @@ import LucroPorReceita from "./routes/LucroPorReceita.js";
 import receitaDetalhadaRouter from './routes/receitaDetalhada.js';
 import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js';
 import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js";
-import { proprietarioOuGerente } from "./middleware/permissions.js"; 
+import { proprietarioOuGerente, apenasProprietario } from "./middleware/permissions.js"; 
 
 
 
@@ -53,6 +53,8 @@ app.use(
 );
 
 app.use(express.json());
+// Suporte a application/x-www-form-urlencoded (usado por alguns formulários no frontend)
+app.use(express.urlencoded({ extended: true }));
 
 
 // Servir imagens com headers de cache otimizados
@@ -118,7 +120,8 @@ app.use('/api/ingredientes', auth, proprietarioOuGerente, DesperdicioMedio);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, ContaIngredientes);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, UnderusedController);
 app.use('/api/historico-ingredientes', auth, proprietarioOuGerente, historicoIngredientesRoutes);
-app.use('/api', auth, proprietarioOuGerente, pdfExportRoute); // exportação de PDF
+// Exportação de relatórios (apenas Proprietário)
+app.use('/api', auth, apenasProprietario, pdfExportRoute);
 
 // Observação: se alguma dessas rotas de relatórios deva ser pública,
 // remova o `auth` apenas nessa linha específica.

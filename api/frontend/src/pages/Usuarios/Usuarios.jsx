@@ -16,6 +16,12 @@ export default function Usuarios() {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
 
+  // Meu Perfil state
+  const [meLoading, setMeLoading] = useState(true);
+  const [me, setMe] = useState(null);
+  const [meForm, setMeForm] = useState({ nome: "", email: "", telefone: "", senha: "", confirmarSenha: "" });
+  const [meSaving, setMeSaving] = useState(false);
+
   // Edit modal state
   const [editing, setEditing] = useState(null); // user object being edited
   const [form, setForm] = useState({ nome: "", email: "", telefone: "", papel: "", senha: "", confirmarSenha: "" });
@@ -26,6 +32,7 @@ export default function Usuarios() {
   const [removing, setRemoving] = useState(false);
 
   const role = getRole();
+  const userId = localStorage.getItem("userId");
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -43,7 +50,32 @@ export default function Usuarios() {
   useEffect(() => {
     // manter o ingredientes-bg por trás do cadernohorizontal
     document.body.classList.add('usuarios-page');
-    fetchUsers();
+    if (role !== "Funcionário") {
+      fetchUsers();
+    } else {
+      setLoading(false);
+    }
+    // Carregar Meu Perfil
+    (async () => {
+      setMeLoading(true);
+      try {
+        const data = await UsersAPI.getMe();
+        const perfil = data?.usuario || data; // suporte a {usuario} ou objeto direto
+        setMe(perfil);
+        setMeForm({
+          nome: perfil?.Nome_Usuario || "",
+          email: perfil?.Email || "",
+          telefone: perfil?.Telefone || "",
+          senha: "",
+          confirmarSenha: "",
+        });
+      } catch (e) {
+        const msg = e?.response?.data?.mensagem || "Erro ao carregar seu perfil.";
+        toast.error(msg);
+      } finally {
+        setMeLoading(false);
+      }
+    })();
     return () => {
       document.body.classList.remove('usuarios-page');
     };
@@ -79,6 +111,10 @@ export default function Usuarios() {
     if (!editing) return;
     if (!form.nome?.trim() || !form.email?.trim()) {
       toast.error("Nome e e-mail são obrigatórios.");
+      return;
+    }
+    if (form.senha && form.senha !== form.confirmarSenha) {
+      toast.error("As senhas não coincidem.");
       return;
     }
     const payload = {
@@ -121,6 +157,61 @@ export default function Usuarios() {
     }
   };
 
+  // UI gating helpers
+  const canEditRow = (u) => {
+    if (role === "Proprietário") return true;
+    if (role === "Gerente") return u.tipo_usuario === "Funcionário" && String(u.ID_Usuario) !== String(userId);
+    // Funcionário não edita via tabela (usa Meu Perfil)
+    return false;
+  };
+
+  const canDeleteRow = (u) => {
+    if (role !== "Proprietário") return false;
+    return String(u.ID_Usuario) !== String(userId);
+  };
+
+  // Meu Perfil save
+  const saveMe = async () => {
+    if (!meForm.nome?.trim() || !meForm.email?.trim()) {
+      toast.error("Nome e e-mail são obrigatórios.");
+      return;
+    }
+    if (meForm.senha && meForm.senha !== meForm.confirmarSenha) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    const payload = {
+      nome: meForm.nome.trim(),
+      email: meForm.email.trim(),
+      telefone: meForm.telefone?.trim() || null,
+    };
+    if (meForm.senha?.length) payload.senha = meForm.senha;
+    setMeSaving(true);
+    try {
+      await UsersAPI.updateMe(payload);
+      toast.success("Perfil atualizado com sucesso.");
+      // Atualiza estado base
+      setMe((prev) => ({ ...prev, Nome_Usuario: payload.nome, Email: payload.email, Telefone: payload.telefone }));
+      setMeForm({ ...meForm, senha: "", confirmarSenha: "" });
+    } catch (e) {
+      const msg = e?.response?.data?.mensagem || "Erro ao salvar perfil.";
+      toast.error(msg);
+    } finally {
+      setMeSaving(false);
+    }
+  };
+
+  const resetMe = () => {
+    if (!me) return;
+    setMeForm({
+      nome: me?.Nome_Usuario || "",
+      email: me?.Email || "",
+      telefone: me?.Telefone || "",
+      senha: "",
+      confirmarSenha: "",
+    });
+  };
+
   return (
     <>
     <Navbar />
@@ -144,13 +235,15 @@ export default function Usuarios() {
       {loading ? (
         <div className="text-center py-5 text-white">Carregando...</div>
       ) : (
+        role !== "Funcionário" ? (
         <div className={styles.costPanel}>
           <div className={styles.costPanelHeader}>
             <h5 className="mb-0">Usuários</h5>
           </div>
           <div className={styles.costPanelBody}>
-          <div className={`table-responsive ${styles.tableRounded}`}>
-          <table className={`table align-middle ${styles.tableViolet}`}>
+          <div className={`${styles.tableRounded}`}>
+          <div className={`table-responsive ${styles.scrollArea}`}>
+          <table className={`table align-middle ${styles.tableViolet} mb-0`}>
             <thead>
               <tr>
                 <th>ID</th>
@@ -159,13 +252,15 @@ export default function Usuarios() {
                 <th>Telefone</th>
                 <th>Cargo</th>
                 <th>Data</th>
-                <th style={{ width: 160 }}>Ações</th>
+                {(role === "Proprietário" || role === "Gerente") && (
+                  <th style={{ width: 160 }}>Ações</th>
+                )}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center text-white-50 py-4">
+                  <td colSpan={(role === "Proprietário" || role === "Gerente") ? 7 : 6} className="text-center text-white-50 py-4">
                     Nenhum usuário encontrado.
                   </td>
                 </tr>
@@ -178,33 +273,86 @@ export default function Usuarios() {
                   <td>{u.Telefone || "-"}</td>
                   <td>{u.tipo_usuario}</td>
                   <td>{u.Data ? new Date(u.Data).toLocaleDateString() : "-"}</td>
-                  <td>
-                    <div className="d-flex gap-2">
-                      <button
-                        className={`${modalStyles.btnSave} ${styles.btnSaveBlue} ${styles.btnCompact}`}
-                        onClick={() => startEdit(u)}
-                        title="Editar usuário"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className={`${modalStyles.btnCancel} ${styles.btnCompact}`}
-                        onClick={() => confirmDelete(u)}
-                        disabled={String(u.ID_Usuario) === String(localStorage.getItem("userId"))}
-                        title={String(u.ID_Usuario) === String(localStorage.getItem("userId")) ? "Você não pode excluir sua própria conta" : "Excluir usuário"}
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  </td>
+                  {(role === "Proprietário" || role === "Gerente") && (
+                    <td>
+                      <div className="d-flex gap-2">
+                        {canEditRow(u) && (
+                          <button
+                            className={`${modalStyles.btnSave} ${styles.btnSaveBlue} ${styles.btnCompact}`}
+                            onClick={() => startEdit(u)}
+                            title="Editar usuário"
+                          >
+                            Editar
+                          </button>
+                        )}
+                        {canDeleteRow(u) && (
+                          <button
+                            className={`${modalStyles.btnCancel} ${styles.btnCompact}`}
+                            onClick={() => confirmDelete(u)}
+                            title="Excluir usuário"
+                          >
+                            Excluir
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
           </div>
           </div>
+          </div>
         </div>
+        ) : null
       )}
+
+      {/* Meu Perfil - agora após a lista de usuários */}
+      <div className={`${styles.costPanel} mt-4`}>
+        <div className={styles.costPanelHeader}>
+          <h5 className="mb-0">Meu Perfil</h5>
+        </div>
+        <div className={styles.costPanelBody}>
+          {meLoading ? (
+            <div className="text-white-50">Carregando seu perfil...</div>
+          ) : (
+            <div className={modalStyles.formGrid}>
+              <div className={`${modalStyles.formGroup} ${modalStyles.colSpan2}`}>
+                <label>Nome</label>
+                <input className="form-control" value={meForm.nome} onChange={(e) => setMeForm({ ...meForm, nome: e.target.value })} />
+              </div>
+              <div className={`${modalStyles.formGroup} ${modalStyles.colSpan2}`}>
+                <label>E-mail</label>
+                <input type="email" className="form-control" value={meForm.email} onChange={(e) => setMeForm({ ...meForm, email: e.target.value })} />
+              </div>
+              <div className={modalStyles.formGroup}>
+                <label>Telefone</label>
+                <input className="form-control" value={meForm.telefone} onChange={(e) => setMeForm({ ...meForm, telefone: e.target.value })} />
+              </div>
+              <div className={modalStyles.formGroup}>
+                <label>Seu cargo</label>
+                <input className="form-control" value={role || me?.tipo_usuario || "-"} disabled />
+              </div>
+              <div className={modalStyles.formGroup}>
+                <label>Senha (opcional)</label>
+                <input type="password" className="form-control" value={meForm.senha} onChange={(e) => setMeForm({ ...meForm, senha: e.target.value })} />
+              </div>
+              <div className={modalStyles.formGroup}>
+                <label>Confirmar senha</label>
+                <input type="password" className="form-control" value={meForm.confirmarSenha} onChange={(e) => setMeForm({ ...meForm, confirmarSenha: e.target.value })} />
+              </div>
+              <div className={`${modalStyles.formGroup} ${modalStyles.colSpan2}`}>
+                <div className="d-flex gap-2">
+                  <button className={modalStyles.btnSave} onClick={saveMe} disabled={meSaving}>
+                    {meSaving ? "Salvando..." : "Salvar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Edit Modal */}
       {editing && createPortal(
@@ -231,7 +379,12 @@ export default function Usuarios() {
                   </div>
                   <div className={modalStyles.formGroup}>
                     <label>Cargo</label>
-                    <select className="form-control" value={form.papel} onChange={(e) => setForm({ ...form, papel: e.target.value })}>
+                    <select
+                      className="form-control"
+                      value={form.papel}
+                      onChange={(e) => setForm({ ...form, papel: e.target.value })}
+                      disabled={role !== "Proprietário"}
+                    >
                       {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                     {String(editing.ID_Usuario) === String(localStorage.getItem("userId")) && role === "Proprietário" && (

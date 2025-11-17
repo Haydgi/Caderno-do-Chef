@@ -5,6 +5,8 @@ import ModelPage from '../ModelPage';
 import { FaTrash } from 'react-icons/fa';
 import { GiKnifeFork } from "react-icons/gi";
 import Swal from "sweetalert2";
+import { toast } from 'react-toastify';
+import { showPermissionDeniedOnce } from '../../../utils/permissionToast';
 import styles from './Receitas.module.css';
 
 function Receitas() {
@@ -20,6 +22,7 @@ function Receitas() {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const apiUrl = `${baseUrl}/api/receitas`;
   const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
 
   // Ajusta quantidade de cards por tela
   useEffect(() => {
@@ -103,6 +106,8 @@ function Receitas() {
       if (res.ok) {
         const data = await res.json();
         setDespesas(data);
+      } else if (res.status === 403) {
+        showPermissionDeniedOnce();
       }
     } catch (err) {
       console.error('Erro ao buscar despesas:', err);
@@ -412,7 +417,13 @@ function Receitas() {
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
       removerItem={removerReceita}
-      abrirModal={() => setMostrarModal(true)}
+      abrirModal={() => {
+        if (role === 'Funcionário') {
+          toast.error('Nível de permissão insuficiente');
+          return;
+        }
+        setMostrarModal(true);
+      }}
       fecharModal={() => setMostrarModal(false)}
       abrirModalEditar={() => setMostrarModalEditar(true)}
       fecharModalEditar={() => setMostrarModalEditar(false)}

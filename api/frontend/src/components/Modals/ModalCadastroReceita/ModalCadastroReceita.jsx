@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
+import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
@@ -322,7 +323,14 @@ const handleSubmit = async (e) => {
           "Authorization": `Bearer ${token}`,
         },
       });
-      if (!response.ok) throw new Error("Erro ao buscar despesas");
+      if (!response.ok) {
+        if (response.status === 403) {
+          showPermissionDeniedOnce();
+          setDespesas([]);
+          return;
+        }
+        throw new Error("Erro ao buscar despesas");
+      }
       const data = await response.json();
       setDespesas(data);
       console.log("Despesas carregadas:", despesas);
@@ -459,24 +467,32 @@ const handleSubmit = async (e) => {
 
                 <div className="col-6">
 
-                  {/* imagem */}
+                  {/* imagem + input hidden */}
                   <div className={`${styles.formGroup} align-items-center`}>
                     <label htmlFor="imagemInput" className={styles.imagePreviewBox}>
-  {form.imagem_URL ? (
-    <div
-      style={{
-        backgroundImage: `url(${form.imagem_preview})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        width: "100%",
-        height: "100%",
-        borderRadius: "10px"
-      }}
-    />
-  ) : (
-    <GiKnifeFork className={styles.iconeReceitaVazia} />
-  )}
-</label>
+                      {form.imagem_URL ? (
+                        <div
+                          style={{
+                            backgroundImage: `url(${form.imagem_preview})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "10px"
+                          }}
+                        />
+                      ) : (
+                        <GiKnifeFork className={styles.iconeReceitaVazia} />
+                      )}
+                    </label>
+                    <input
+                      id="imagemInput"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: 'none' }}
+                    />
                   </div>
                   
                   {/* Tempo de Preparo */}

@@ -115,7 +115,7 @@ function App() {
         <Route
           path="/usuarios"
           element={
-            <RoleGuard allow={["Proprietário"]}>
+            <RoleGuard allow={["Proprietário", "Gerente", "Funcionário"]}>
               <Usuarios />
             </RoleGuard>
           }

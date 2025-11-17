@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import ModelPage from '../ModelPage';
+import { showPermissionDeniedOnce } from '../../../utils/permissionToast';
 import ModalCadastroDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalCadastroDespesa';
 import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalEditaDespesa';
 import ModalCadastroImposto from '../../../components/Modals/ModalCadastroImposto/ModalCadastroImposto';
@@ -100,6 +101,11 @@ function Despesas() {
       });
 
       if (!res.ok) {
+        if (res.status === 403) {
+          showPermissionDeniedOnce();
+          setDespesas([]);
+          return;
+        }
         console.error('Erro na resposta:', res.status);
         throw new Error('Erro ao buscar despesas');
       }
@@ -122,7 +128,10 @@ function Despesas() {
     } catch (error) {
       console.error('Erro no fetchDespesas:', error);
       setDespesas([]);
-      toast.error('Falha ao buscar despesas.');
+      // Evita mensagem duplicada quando já foi 403
+      if (!(error?.message && error.message.includes('403'))) {
+        toast.error('Falha ao buscar despesas.');
+      }
     }
   };
 
@@ -144,7 +153,14 @@ function Despesas() {
         cache: 'no-store'
       });
 
-      if (!res.ok) throw new Error('Erro ao buscar impostos');
+      if (!res.ok) {
+        if (res.status === 403) {
+          showPermissionDeniedOnce();
+          setImpostos([]);
+          return;
+        }
+        throw new Error('Erro ao buscar impostos');
+      }
       
       const data = await res.json();
       const impostosNormalizados = data.map(item => ({
@@ -393,6 +409,11 @@ function Despesas() {
   };
 
   const handleAbrirModal = () => {
+    const role = localStorage.getItem('role');
+    if (role === 'Funcionário') {
+      toast.error('Nível de permissão insuficiente');
+      return;
+    }
     setMostrarModalSelecao(true);
   };
 
@@ -1136,7 +1157,9 @@ function Despesas() {
       removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
       abrirModal={handleAbrirModal}
       fecharModal={handleFecharModais}
+      fecharModalEditar={() => { setMostrarModalEditar(false); setItemSelecionado(null); }}
       mostrarModal={mostrarModal || mostrarModalImposto || mostrarModalSelecao}
+      mostrarModalEditar={mostrarModalEditar}
       ModalCadastro={() => {
         if (mostrarModalSelecao) {
           return <ModalSelecaoTipoDespesa onSelect={handleSelecaoTipo} onClose={handleFecharModais} />;
@@ -1149,18 +1172,20 @@ function Despesas() {
         }
         return null;
       }}
-      ModalEditar={() =>
-        mostrarModalEditar && (
-          <ModalEditaDespesa
-            despesa={itemSelecionado}
-            onClose={() => {
-              setMostrarModalEditar(false);
-              setItemSelecionado(null);
-            }}
-            onSave={atualizarDespesa}
-          />
-        )
-      }
+      ModalEditar={({ onClose, onSave }) => (
+        <ModalEditaDespesa
+          despesa={itemSelecionado}
+          onClose={() => {
+            onClose?.();
+            setItemSelecionado(null);
+          }}
+          onSave={(despesaAtualizada) => {
+            atualizarDespesa(despesaAtualizada);
+            // Após atualização, dispara onSave para sincronizar lista
+            onSave?.();
+          }}
+        />
+      )}
       renderCard={renderCard}
       itensPorPagina={itensPorPagina}
       termoBusca={termoBusca}

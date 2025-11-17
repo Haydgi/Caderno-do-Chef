@@ -10,6 +10,7 @@ const router = express.Router();
 const loginLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutos
   max: 5, // máximo de 5 tentativas por IP nesse período
+  skipSuccessfulRequests: true, // não contar logins bem-sucedidos no limite
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {

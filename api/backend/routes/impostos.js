@@ -1,7 +1,7 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import db from '../database/connection.js';
 import { atualizaReceitasPorDespesa, limparCacheDespesas } from './atualizaReceitas.js';
+import { gerenteOuAcima } from '../middleware/permissions.js';
 
 const router = express.Router();
 
@@ -18,29 +18,10 @@ const MSGS = {
   idInvalido: 'ID inválido',
 };
 
-// Middleware de autenticação JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: MSGS.tokenNaoFornecido });
-  }
-
-  jwt.verify(token, process.env.SECRET_JWT, (err, usuario) => {
-    if (err) {
-      console.error('JWT verify error:', err);
-      return res.status(401).json({ error: MSGS.tokenInvalido });
-    }
-    req.usuario = usuario;
-    next();
-  });
-}
-
-// POST - Cadastrar ou atualizar imposto
-router.post('/', authenticateToken, express.json(), async (req, res) => {
+// POST - Cadastrar ou atualizar imposto (Gerente ou acima)
+router.post('/', gerenteOuAcima, async (req, res) => {
   const { nome, categoria, frequencia, valor } = req.body;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   if (!nome || !frequencia || !valor || valor <= 0) {
     return res.status(400).json({ error: MSGS.camposFaltando });
@@ -115,9 +96,9 @@ router.post('/', authenticateToken, express.json(), async (req, res) => {
   }
 });
 
-// GET - Listar nomes dos impostos para autocomplete
-router.get('/nomes', authenticateToken, async (req, res) => {
-    const ID_Usuario = req.usuario.ID_Usuario;
+// GET - Listar nomes dos impostos para autocomplete (Gerente ou acima)
+router.get('/nomes', gerenteOuAcima, async (req, res) => {
+  const ID_Usuario = req.user.ID_Usuario;
     try {
         const [nomes] = await db.query(
             'SELECT DISTINCT Nome_Imposto FROM impostos WHERE ID_Usuario = ? ORDER BY Nome_Imposto ASC',
@@ -130,9 +111,9 @@ router.get('/nomes', authenticateToken, async (req, res) => {
     }
 });
 
-// GET - Listar todos os impostos do usuário
-router.get('/', authenticateToken, async (req, res) => {
-    const ID_Usuario = req.usuario.ID_Usuario;
+// GET - Listar todos os impostos do usuário (Gerente ou acima)
+router.get('/', gerenteOuAcima, async (req, res) => {
+  const ID_Usuario = req.user.ID_Usuario;
     const { page = 1, limit = 10, search = '' } = req.query;
     const offset = (page - 1) * limit;
 
@@ -160,11 +141,11 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 });
 
-// PUT - Atualizar imposto
-router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), async (req, res) => {
+// PUT - Atualizar imposto (Gerente ou acima)
+router.put('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
   const { Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio } = req.body;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   if (!id || isNaN(Number(id))) {
     return res.status(400).json({ error: MSGS.idInvalido });
@@ -266,10 +247,10 @@ router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), as
   }
 });
 
-// DELETE - Remover imposto
-router.delete('/:id', authenticateToken, async (req, res) => {
+// DELETE - Remover imposto (Gerente ou acima)
+router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   if (!id || isNaN(Number(id))) {
     return res.status(400).json({ error: MSGS.idInvalido });

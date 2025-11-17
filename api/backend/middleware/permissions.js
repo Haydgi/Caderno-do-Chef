@@ -26,3 +26,33 @@ export function qualquerUsuario(req, res, next) {
   // Todos os papéis podem acessar
   next();
 }
+
+export const Roles = {
+  PROPRIETARIO: 'Proprietário',
+  GERENTE: 'Gerente',
+  FUNCIONARIO: 'Funcionário',
+};
+
+export function requireRole(allowed = []) {
+  return (req, res, next) => {
+    if (!req.user?.role) return res.status(401).json({ mensagem: 'Não autenticado' });
+    if (!allowed.includes(req.user.role)) {
+      return res.status(403).json({ mensagem: 'Acesso negado' });
+    }
+    next();
+  };
+}
+
+export function funcionarioOuAcima(req, res, next) {
+  if (!req.user?.role) return res.status(401).json({ mensagem: 'Não autenticado' });
+  const ok = [Roles.FUNCIONARIO, Roles.GERENTE, Roles.PROPRIETARIO].includes(req.user.role);
+  if (!ok) return res.status(403).json({ mensagem: 'Acesso negado' });
+  next();
+}
+
+export function gerenteOuAcima(req, res, next) {
+  if (!req.user?.role) return res.status(401).json({ mensagem: 'Não autenticado' });
+  const ok = [Roles.GERENTE, Roles.PROPRIETARIO].includes(req.user.role);
+  if (!ok) return res.status(403).json({ mensagem: 'Acesso negado' });
+  next();
+}
