@@ -967,7 +967,7 @@ function Despesas() {
                         textAlign: 'center'
                       }}
                     >
-                      R$ {custoMinuto.toFixed(3)}
+                      R$ {custoMinuto.toFixed(4)}
                     </span>
                   </div>
                 );
@@ -1007,7 +1007,7 @@ function Despesas() {
                 >
                   {todosOsCustos.map((item) => {
                     const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
-                    return custoMinuto.toFixed(3);
+                    return custoMinuto.toFixed(4);
                   }).join(' + ')} =
                 </span>
               </div>

@@ -53,7 +53,12 @@ const upload = multer({
 });
 
 // POST / - Cadastrar receita (Proprietário e Gerente)
-router.post('/', gerenteOuAcima, async (req, res) => {
+router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) => {
+  console.log('📥 Recebendo requisição POST para cadastrar receita');
+  console.log('Body recebido:', req.body);
+  console.log('Arquivo recebido:', req.file);
+  console.log('Usuário autenticado:', req.user);
+  
   try {
     let {
       Nome_Receita,
@@ -66,6 +71,7 @@ router.post('/', gerenteOuAcima, async (req, res) => {
     } = req.body;
 
   const ID_Usuario = req.user.ID_Usuario;
+  console.log('ID_Usuario extraído:', ID_Usuario);
 
     // Parse ingredientes se vier como string (caso do multipart/form-data)
     if (typeof ingredientes === "string") {
@@ -151,6 +157,7 @@ router.post('/', gerenteOuAcima, async (req, res) => {
 // GET /?search= - Buscar receitas do usuário com filtro de pesquisa
 router.get('/', async (req, res) => {
   const search = req.query.search ? `%${req.query.search.toLowerCase()}%` : null;
+  const ID_Usuario = req.user?.ID_Usuario;
 
   try {
     let query = `
@@ -161,6 +168,12 @@ router.get('/', async (req, res) => {
       WHERE 1=1
     `;
     let params = [];
+
+    // Filtrar por usuário se autenticado
+    if (ID_Usuario) {
+      query += ` AND ID_Usuario = ?`;
+      params.push(ID_Usuario);
+    }
 
     if (search) {
       console.log("Aplicando filtro de busca:", search);

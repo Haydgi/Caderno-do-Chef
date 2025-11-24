@@ -71,13 +71,24 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
         const token = localStorage.getItem("token");
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         const id = receita.ID_Receita || receita.id;
+        
+        console.log('🔄 Buscando receita detalhada com ID:', id);
+        
         const res = await fetch(`${baseUrl}/api/receita-detalhada/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('❌ Erro na resposta da API:', res.status, errorData);
+          toast.error(`Erro ao buscar receita: ${errorData.error || 'Erro desconhecido'}`);
+          return;
+        }
+        
         const data = await res.json();
-        console.log("Receita detalhada recebida:", data);
+        console.log("✅ Receita detalhada recebida:", data);
         console.log("Campo imagem_URL:", data.imagem_URL);
         
         // Determina a URL da imagem (do endpoint ou da receita passada)
@@ -121,7 +132,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
           })
         );
       } catch (err) {
-        toast.error("Erro ao buscar detalhes da receita!");
+        console.error("❌ Erro ao buscar detalhes da receita:", err);
+        toast.error(`Erro ao buscar detalhes da receita: ${err.message}`);
       }
     }
 

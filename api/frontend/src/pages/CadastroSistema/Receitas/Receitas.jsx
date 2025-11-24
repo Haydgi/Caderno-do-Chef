@@ -107,7 +107,9 @@ function Receitas() {
         const data = await res.json();
         setDespesas(data);
       } else if (res.status === 403) {
-        showPermissionDeniedOnce();
+        // Funcionário não tem acesso a despesas, mas isso é normal
+        // Não mostrar erro pois o funcionário pode visualizar receitas
+        console.log('Usuário sem permissão para acessar despesas');
       }
     } catch (err) {
       console.error('Erro ao buscar despesas:', err);

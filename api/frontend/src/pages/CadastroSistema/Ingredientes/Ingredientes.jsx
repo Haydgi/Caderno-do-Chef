@@ -76,9 +76,9 @@ function Ingredientes() {
       );
       if (!res.ok) throw new Error('Erro ao buscar ingredientes');
       const data = await res.json();
-      // Normaliza os dados
+      // Normaliza os dados - mantém campos originais para edição
       setIngredientes(data.map(item => ({
-        ...item,
+        ...item, // Mantém TODOS os campos originais do banco
         id: item.ID_Ingredientes,
         nome: item.Nome_Ingrediente,
         preco: item.Custo_Ingrediente,
