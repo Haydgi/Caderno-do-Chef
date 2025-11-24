@@ -33,14 +33,14 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 
   try {
-    // Buscar dados da receita
+    // Buscar dados da receita - todos os usuários autenticados podem visualizar
     const [receitaRows] = await db.query(
-      `SELECT * FROM receitas WHERE ID_Receita = ? AND ID_Usuario = ?`,
-      [idNum, ID_Usuario]
+      `SELECT * FROM receitas WHERE ID_Receita = ?`,
+      [idNum]
     );
 
     if (receitaRows.length === 0) {
-      return res.status(404).json({ error: "Receita não encontrada ou não pertence ao usuário." });
+      return res.status(404).json({ error: "Receita não encontrada." });
     }
 
     const receita = receitaRows[0];

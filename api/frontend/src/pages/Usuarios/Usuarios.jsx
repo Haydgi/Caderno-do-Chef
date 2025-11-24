@@ -272,7 +272,7 @@ export default function Usuarios() {
                   <td>{u.Email}</td>
                   <td>{u.Telefone || "-"}</td>
                   <td>{u.tipo_usuario}</td>
-                  <td>{u.Data ? new Date(u.Data).toLocaleDateString() : "-"}</td>
+                  <td>{u.Data ? new Date(u.Data).toLocaleDateString('pt-BR') : "-"}</td>
                   {(role === "Proprietário" || role === "Gerente") && (
                     <td>
                       <div className="d-flex gap-2">

@@ -157,7 +157,6 @@ router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) =
 // GET /?search= - Buscar receitas do usuário com filtro de pesquisa
 router.get('/', async (req, res) => {
   const search = req.query.search ? `%${req.query.search.toLowerCase()}%` : null;
-  const ID_Usuario = req.user?.ID_Usuario;
 
   try {
     let query = `
@@ -168,12 +167,6 @@ router.get('/', async (req, res) => {
       WHERE 1=1
     `;
     let params = [];
-
-    // Filtrar por usuário se autenticado
-    if (ID_Usuario) {
-      query += ` AND ID_Usuario = ?`;
-      params.push(ID_Usuario);
-    }
 
     if (search) {
       console.log("Aplicando filtro de busca:", search);

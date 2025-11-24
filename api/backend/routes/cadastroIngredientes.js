@@ -79,7 +79,6 @@ router.post('/', funcionarioOuAcima, upload.none(), async (req, res) => {
 router.get('/', async (req, res) => {
   const { page = 1, limit = 10, search = '' } = req.query;
   const offset = (page - 1) * limit;
-  const ID_Usuario = req.user?.ID_Usuario;
 
   try {
     let sql = `
@@ -87,12 +86,6 @@ router.get('/', async (req, res) => {
       FROM ingredientes
       WHERE 1=1`;
     const params = [];
-
-    // Filtrar por usuário se autenticado
-    if (ID_Usuario) {
-      sql += ` AND ID_Usuario = ?`;
-      params.push(ID_Usuario);
-    }
 
     if (search.trim()) {
       sql += ` AND Nome_Ingrediente LIKE ?`;
