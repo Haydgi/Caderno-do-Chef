@@ -445,6 +445,277 @@ textarea {
   transition-delay: 0.5s;
 }
 
+/* Tooltips para botões da barra de ferramentas do Quill */
+:global(.ql-toolbar) :global(.ql-bold) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-bold)::before {
+  content: 'Negrito (Ctrl+B)';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-bold)::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-bold):hover::before,
+:global(.ql-toolbar) :global(.ql-bold):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
+:global(.ql-toolbar) :global(.ql-italic) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-italic)::before {
+  content: 'Itálico (Ctrl+I)';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-italic)::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-italic):hover::before,
+:global(.ql-toolbar) :global(.ql-italic):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
+:global(.ql-toolbar) :global(.ql-underline) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-underline)::before {
+  content: 'Sublinhado (Ctrl+U)';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-underline)::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-underline):hover::before,
+:global(.ql-toolbar) :global(.ql-underline):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="ordered"]) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="ordered"])::before {
+  content: 'Lista Numerada';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="ordered"])::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="ordered"]):hover::before,
+:global(.ql-toolbar) :global(.ql-list[value="ordered"]):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="bullet"]) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="bullet"])::before {
+  content: 'Lista com Marcadores';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="bullet"])::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-list[value="bullet"]):hover::before,
+:global(.ql-toolbar) :global(.ql-list[value="bullet"]):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
+:global(.ql-toolbar) :global(.ql-clean) {
+  position: relative;
+}
+
+:global(.ql-toolbar) :global(.ql-clean)::before {
+  content: 'Limpar Formatação';
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-clean)::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+:global(.ql-toolbar) :global(.ql-clean):hover::before,
+:global(.ql-toolbar) :global(.ql-clean):hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
+}
+
 /* Responsividade para telas menores que 600px */
 @media (max-width: 600px) {
   

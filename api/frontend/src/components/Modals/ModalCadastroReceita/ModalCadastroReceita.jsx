@@ -6,6 +6,8 @@ import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
 import axios from "axios";
 import { GiKnifeFork } from "react-icons/gi";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 function ModalCadastroReceita({ onClose, onSave, }) {
 
@@ -602,14 +604,19 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
               <div className={`${styles.formGroup} mt-2`}>
                 <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
-                <textarea
-                  name="Descricao"
-                  className="form-control"
+                <ReactQuill
+                  theme="snow"
                   value={form.Descricao}
-                  onChange={handleChange}
-                  rows={4}
+                  onChange={(content) => setForm(prev => ({ ...prev, Descricao: content }))}
                   placeholder="Descreva aqui o modo de preparo (opcional)..."
-                  maxLength={245}
+                  modules={{
+                    toolbar: [
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['clean']
+                    ]
+                  }}
+                  style={{ height: '90px', marginBottom: '50px' }}
                 />
               </div>
             </div>
@@ -681,7 +688,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                   ))}
                 </div>
 
-                <div style={{ marginTop: '40px' }}>
+                <div style={{ marginTop: '50px' }}>
                   <div className="row">
                     <div className="col-6">
                       <div className="mb-2">

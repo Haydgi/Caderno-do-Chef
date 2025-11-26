@@ -5,6 +5,8 @@ import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
 import { GiKnifeFork } from "react-icons/gi";
 import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 function ModalEditaReceita({ onClose, onSave, receita }) {
   const [form, setForm] = useState({
@@ -722,14 +724,19 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
               <div className={`${styles.formGroup} mt-2`}>
                 <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
-                <textarea
-                  name="descricao"
-                  className="form-control"
+                <ReactQuill
+                  theme="snow"
                   value={form.descricao}
-                  onChange={handleChange}
-                  rows={4}
+                  onChange={(content) => setForm(prev => ({ ...prev, descricao: content }))}
                   placeholder="Descreva aqui o modo de preparo (opcional)..."
-                  maxLength={245}
+                  modules={{
+                    toolbar: [
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['clean']
+                    ]
+                  }}
+                  style={{ height: '90px', marginBottom: '50px' }}
                 />
               </div>
             </div>
@@ -814,7 +821,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                 </div>
 
                 {/* Seção de custos */}
-                <div style={{ marginTop: '40px' }}>
+                <div style={{ marginTop: '50px' }}>
                   <div className="row">
                     <div className="col-6">
                       <div className="mb-2">
