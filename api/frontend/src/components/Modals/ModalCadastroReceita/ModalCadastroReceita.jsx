@@ -321,24 +321,22 @@ function ModalCadastroReceita({ onClose, onSave, }) {
   const buscarDespesasDoBanco = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/despesas", {
+      const response = await fetch("http://localhost:3001/api/despesas/calculo", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
       });
       if (!response.ok) {
-        if (response.status === 403) {
-          showPermissionDeniedOnce();
-          setDespesas([]);
-          return;
-        }
-        throw new Error("Erro ao buscar despesas");
+        console.error("Erro ao buscar despesas para cálculo:", response.status);
+        setDespesas([]);
+        return;
       }
       const data = await response.json();
       setDespesas(data);
-      console.log("Despesas carregadas:", despesas);
+      console.log("Despesas carregadas para cálculo:", data);
     } catch (err) {
-      toast.error("Erro ao buscar despesas");
+      console.error("Erro ao buscar despesas:", err);
+      setDespesas([]);
     }
   };
 
@@ -530,7 +528,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
               </div>
 
               {/* Nome da Receita */}
-              <div className={styles.formGroup} style={{ marginTop: '35px' }}>
+              <div className={styles.formGroup} style={{ marginTop: '15px' }}>
                 <label>
                   <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
                   Nome da Receita
@@ -602,7 +600,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                 </div>
               </div>
 
-              <div className={`${styles.formGroup} mt-2`}>
+              <div className={styles.formGroup} style={{ marginTop: '25px' }}>
                 <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
                 <ReactQuill
                   theme="snow"

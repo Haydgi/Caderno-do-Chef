@@ -260,25 +260,22 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     async function fetchDespesas() {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/api/despesas", {
+        const res = await fetch("http://localhost:3001/api/despesas/calculo", {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
         });
         if (!res.ok) {
-          if (res.status === 403) {
-            showPermissionDeniedOnce();
-            setDespesas([]);
-            return;
-          }
-          throw new Error("Erro ao buscar despesas do banco");
+          console.error("Erro ao buscar despesas para cálculo:", res.status);
+          setDespesas([]);
+          return;
         }
         const data = await res.json();
         setDespesas(Array.isArray(data) ? data : []);
+        console.log("Despesas carregadas para cálculo:", data);
       } catch (err) {
-        // Evita duplicar mensagem quando já foi 403
-        if (err?.message && err.message.includes("403")) return;
-        toast.error("Erro ao buscar despesas do banco!");
+        console.error("Erro ao buscar despesas:", err);
+        setDespesas([]);
       }
     }
     fetchDespesas();

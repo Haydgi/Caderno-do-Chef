@@ -295,12 +295,37 @@ function Receitas() {
       <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={receita.id || receita.ID_Receita}>
         <div
           className={styles.cardReceita}
-          onClick={() => {
-            setReceitaSelecionada(receita);
+          onClick={async () => {
+            // Se for funcionário, usa os dados da listagem
             if (role === 'Funcionário') {
+              console.log('👤 Funcionário - usando dados da listagem:', receita);
+              setReceitaSelecionada(receita);
               setMostrarModalVisualizar(true);
             } else {
-              setMostrarModalEditar(true);
+              // Para outros usuários, busca detalhes completos
+              try {
+                const res = await fetch(`${baseUrl}/api/receita-detalhada/${receita.ID_Receita}`, {
+                  headers: {
+                    'Authorization': token ? `Bearer ${token}` : '',
+                  }
+                });
+                
+                if (res.ok) {
+                  const receitaCompleta = await res.json();
+                  console.log('Receita completa:', receitaCompleta);
+                  setReceitaSelecionada(receitaCompleta);
+                  setMostrarModalEditar(true);
+                } else {
+                  throw new Error('Erro ao buscar detalhes da receita');
+                }
+              } catch (error) {
+                console.error('Erro ao buscar receita:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Erro',
+                  text: 'Não foi possível carregar os detalhes da receita'
+                });
+              }
             }
           }}
           style={{ cursor: "pointer" }}

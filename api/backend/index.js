@@ -109,12 +109,14 @@ app.use('/api/impostos', auth, impostosRoutes);
 // Gerenciamento de usuários (apenas Proprietário)
 app.use('/api', auth, gerenciamentoUsuariosRoutes);
 
+// Rota de receita detalhada (todos os usuários autenticados podem visualizar)
+app.use('/api/receita-detalhada', auth, receitaDetalhadaRouter);
+
 // Relatórios e métricas (apenas Proprietário e Gerente)
 app.use('/api/receitas', auth, proprietarioOuGerente, LucroPorReceita);
 app.use('/api/receitas', auth, proprietarioOuGerente, Tempomedio);
 app.use('/api/receitas', auth, proprietarioOuGerente, ContaReceita);
 app.use('/api/receitas', auth, proprietarioOuGerente, CategoriaReceitas);
-app.use('/api/receita-detalhada', auth, proprietarioOuGerente, receitaDetalhadaRouter);
 app.use('/api/ingredientes/indice', auth, proprietarioOuGerente, IndiceDesperdicio);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, DesperdicioMedio);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, ContaIngredientes);

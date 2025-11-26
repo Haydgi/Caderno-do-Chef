@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
 import { GiKnifeFork } from "react-icons/gi";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 function ModalVisualizarReceita({ onClose, receita }) {
     const [form, setForm] = useState({
@@ -26,72 +27,101 @@ function ModalVisualizarReceita({ onClose, receita }) {
         "Molhos e Pastas", "Bebidas", "Vegano", "Vegetariano", "Sem Glúten", "Sem Lactose"
     ];
 
-    // Buscar despesas operacionais
+    // Buscar despesas operacionais para cálculos (rota acessível a todos)
     useEffect(() => {
         async function fetchDespesas() {
             try {
                 const token = localStorage.getItem("token");
                 const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                const response = await fetch(`${baseUrl}/api/despesas`, {
+                const response = await fetch(`${baseUrl}/api/despesas/calculo`, {
                     headers: {
                         "Authorization": `Bearer ${token}`,
                     },
                 });
 
-                if (!response.ok) throw new Error("Erro ao buscar despesas");
-
-                const data = await response.json();
-                setDespesas(data);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📊 Despesas recebidas para cálculo:', data);
+                    setDespesas(data);
+                } else {
+                    console.error('Erro ao buscar despesas para cálculo:', response.status);
+                    setDespesas([]);
+                }
             } catch (error) {
                 console.error("Erro ao buscar despesas:", error);
-                toast.error("Erro ao carregar despesas");
+                setDespesas([]);
             }
         }
 
         fetchDespesas();
     }, []);
 
-    // Carregar dados da receita
+    // Carregar dados da receita e buscar ingredientes
     useEffect(() => {
-        if (receita) {
-            console.log('📋 Receita recebida:', receita);
+        async function carregarReceita() {
+            if (!receita) return;
+
+            console.log('📋 Receita recebida no modal:', receita);
 
             setForm({
-                imagem: receita.Caminho_Imagem || null,
-                nome: receita.Nome_Receita || "",
-                categoria: receita.Categoria || "",
-                tempoDePreparo: receita.Tempo_Preparo || "",
-                porcentagemDeLucro: receita.Porcentagem_De_Lucro || "",
-                descricao: receita.Descricao || "",
-                custoTotalIngredientes: receita.Custo_Total_Ingredientes || "0.00",
-                id: receita.ID_Receita,
+                imagem: receita.imagem_URL || receita.Caminho_Imagem || receita.imagem_url || null,
+                nome: receita.Nome_Receita || receita.nome || "",
+                categoria: receita.Categoria || receita.categoria || "",
+                tempoDePreparo: receita.Tempo_Preparo || receita.tempo_preparo || "",
+                porcentagemDeLucro: receita.Porcentagem_De_Lucro || receita.porcentagem_lucro || "",
+                descricao: receita.Descricao || receita.descricao || "",
+                custoTotalIngredientes: receita.Custo_Total_Ingredientes || receita.custo_total || "0.00",
+                id: receita.ID_Receita || receita.id,
             });
 
-            if (receita.ingredientes && receita.ingredientes.length > 0) {
-                setIngredientesSelecionados(
-                    receita.ingredientes.map((ing) => ({
-                        id: ing.ID_Ingredientes,
-                        nome: ing.Nome_Ingrediente,
-                        quantidade: ing.Quantidade,
-                        unidade: ing.Unidade,
-                        preco: ing.Preco,
-                    }))
-                );
+            // Buscar ingredientes da receita
+            try {
+                const token = localStorage.getItem("token");
+                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const idReceita = receita.ID_Receita || receita.id;
+                
+                const response = await fetch(`${baseUrl}/api/receita-detalhada/${idReceita}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const receitaDetalhada = await response.json();
+                    console.log('📋 Receita detalhada recebida:', receitaDetalhada);
+                    console.log('📋 Ingredientes recebidos:', receitaDetalhada.ingredientes);
+
+                    if (receitaDetalhada.ingredientes && receitaDetalhada.ingredientes.length > 0) {
+                        const ingredientesMapeados = receitaDetalhada.ingredientes.map((ing) => {
+                            console.log('Ingrediente individual:', ing);
+                            return {
+                                id_ingrediente: ing.ID_Ingredientes,
+                                nome: ing.Nome_Ingrediente,
+                                quantidade: ing.Quantidade_Utilizada,
+                                unidade: ing.Unidade_De_Medida,
+                                quantidade_total: 1000, // valor padrão
+                                custo_ingrediente: ing.Custo_Ingrediente,
+                                Indice_de_Desperdicio: ing.Indice_de_Desperdicio || 0
+                            };
+                        });
+                        console.log('📋 Ingredientes mapeados:', ingredientesMapeados);
+                        setIngredientesSelecionados(ingredientesMapeados);
+                    } else {
+                        console.log('⚠️ Nenhum ingrediente encontrado');
+                        setIngredientesSelecionados([]);
+                    }
+                } else {
+                    console.error('Erro ao buscar ingredientes:', response.status);
+                    setIngredientesSelecionados([]);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar ingredientes:', error);
+                setIngredientesSelecionados([]);
             }
         }
-    }, [receita]);
 
-    // Calcular custo total dos ingredientes
-    useEffect(() => {
-        const custoTotal = ingredientesSelecionados.reduce(
-            (acc, ing) => acc + parseFloat(ing.preco || 0),
-            0
-        );
-        setForm((prev) => ({
-            ...prev,
-            custoTotalIngredientes: custoTotal.toFixed(2),
-        }));
-    }, [ingredientesSelecionados]);
+        carregarReceita();
+    }, [receita]);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -100,30 +130,35 @@ function ModalVisualizarReceita({ onClose, receita }) {
         }, 300);
     };
 
-    // Calcular custo operacional
-    const calcularCustoOperacional = () => {
-        if (despesas.length === 0) return 0;
+    // Função de cálculo de custo do ingrediente (mesma lógica dos outros modais)
+    function calcularCustoIngrediente(quantidadeUsada, quantidadeTotal, custoIngrediente, indiceDesperdicio = 0) {
+        if (!quantidadeUsada || !quantidadeTotal || !custoIngrediente) return 0;
+        const custoBase = (Number(quantidadeUsada) / Number(quantidadeTotal)) * Number(custoIngrediente);
+        return custoBase * (1 + Number(indiceDesperdicio) / 100);
+    }
 
-        const custoIngredientes = parseFloat(form.custoTotalIngredientes) || 0;
-        const totalDespesas = despesas.reduce((acc, desp) => {
-            return acc + parseFloat(desp.Valor || 0);
-        }, 0);
+    // Calcular custo por minuto de despesa
+    function calcularCustoPorMinutoDespesa(despesa) {
+        const diasNoMes = 30;
+        const custoMensal = Number(despesa.Custo_Mensal);
+        const tempoDia = Number(despesa.Tempo_Operacional);
 
-        return (custoIngredientes * (totalDespesas / 100)).toFixed(2);
-    };
+        if (!custoMensal || !tempoDia) return 0;
 
-    // Calcular preço final
-    const calcularPrecoFinal = () => {
-        const custoIngredientes = parseFloat(form.custoTotalIngredientes) || 0;
-        const custoOperacional = parseFloat(calcularCustoOperacional()) || 0;
-        const custoTotal = custoIngredientes + custoOperacional;
-        const porcentagemLucro = parseFloat(form.porcentagemDeLucro) || 0;
+        const custoDiario = custoMensal / diasNoMes;
+        const custoPorHora = custoDiario / tempoDia;
+        return custoPorHora / 60;
+    }
 
-        if (custoTotal === 0) return "0.00";
-
-        const precoFinal = custoTotal * (1 + porcentagemLucro / 100);
-        return precoFinal.toFixed(2);
-    };
+    // Calcular custo total dos ingredientes
+    const custoTotalIngredientes = ingredientesSelecionados.reduce((soma, ing) => {
+        return soma + calcularCustoIngrediente(
+            ing.quantidade,
+            ing.quantidade_total,
+            ing.custo_ingrediente,
+            ing.Indice_de_Desperdicio
+        );
+    }, 0);
 
     return (
         <div className={`${styles.modalOverlay} ${isClosing ? styles.closing : ""}`}>
@@ -135,6 +170,7 @@ function ModalVisualizarReceita({ onClose, receita }) {
                         className={styles.btnClose}
                         onClick={handleClose}
                         aria-label="Fechar modal"
+                        style={{ backgroundColor: 'var(--imperial-red)', color: 'var(--white-smoke)' }}
                     >
                         ✕
                     </button>
@@ -145,32 +181,40 @@ function ModalVisualizarReceita({ onClose, receita }) {
                         {/* Coluna Esquerda */}
                         <div className="col-6" style={{ flex: '1' }}>
                             {/* Campo de Imagem */}
-                            <div className={styles.formGroup}>
-                                <label className="mb-2">Imagem da Receita</label>
-                                {form.imagem ? (
-                                    <div
-                                        className={styles.imageUploadContainer}
-                                        style={{
-                                            backgroundImage: `url(${form.imagem})`,
-                                            backgroundSize: 'contain',
-                                            backgroundPosition: 'center',
-                                            backgroundRepeat: 'no-repeat',
-                                            position: 'relative',
-                                            cursor: 'default',
-                                        }}
-                                    />
-                                ) : (
-                                    <div className={styles.imageUploadContainer} style={{ cursor: 'default' }}>
+                            <div className={`${styles.formGroup} ${styles.imageFormGroup}`}>
+                                <label className="mb-2 d-flex justify-content-center">Imagem da Receita</label>
+                                <div className={styles.imageUploadContainer} style={{ cursor: 'default' }}>
+                                    {form.imagem ? (
+                                        <div style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <img
+                                                src={form.imagem}
+                                                alt="Imagem da receita"
+                                                style={{
+                                                    maxWidth: '100%',
+                                                    maxHeight: '100%',
+                                                    objectFit: 'contain',
+                                                    borderRadius: "10px"
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
                                         <div className={styles.emptyImageState}>
                                             <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
-                                            <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: '500' }}>Sem imagem</p>
+                                            <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: 'normal' }}>Sem imagem</p>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
 
                             {/* Nome da Receita */}
-                            <div className={styles.formGroup}>
+                            <div className={styles.formGroup} style={{ marginTop: '15px' }}>
                                 <label>Nome da Receita</label>
                                 <input
                                     name="nome"
@@ -232,16 +276,14 @@ function ModalVisualizarReceita({ onClose, receita }) {
                                 </div>
                             </div>
 
-                            <div className={`${styles.formGroup} mt-2`}>
+                            <div className={styles.formGroup} style={{ marginTop: '25px' }}>
                                 <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
-                                <textarea
-                                    name="descricao"
-                                    className="form-control"
-                                    value={form.descricao}
-                                    disabled
-                                    readOnly
-                                    rows={3}
-                                    style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                                <ReactQuill
+                                    theme="snow"
+                                    value={form.descricao || ''}
+                                    readOnly={true}
+                                    modules={{ toolbar: false }}
+                                    style={{ height: '180px', marginBottom: '20px', backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
                                 />
                             </div>
                         </div>
@@ -249,90 +291,90 @@ function ModalVisualizarReceita({ onClose, receita }) {
                         {/* Coluna Direita */}
                         <div className="col-6" style={{ flex: '1' }}>
                             <div>
-                                {/* Ingredientes da Receita */}
-                                <div className="mb-3">
-                                    <div className="d-flex justify-content-center mb-2">
-                                        <label style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem', margin: 0 }}>
-                                            Ingredientes da Receita
-                                        </label>
-                                    </div>
-
-                                    {/* Tabela de Ingredientes */}
-                                    <div className={styles.tabelaIngredientes}>
-                                        <table className="table table-bordered table-hover">
-                                            <thead className={styles.tabelaCabecalho}>
-                                                <tr>
-                                                    <th>Nome</th>
-                                                    <th>Quantidade</th>
-                                                    <th>Unidade</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {ingredientesSelecionados.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan="3" className="text-center">
-                                                            Nenhum ingrediente adicionado
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    ingredientesSelecionados.map((ing) => (
-                                                        <tr key={ing.id}>
-                                                            <td>{ing.nome}</td>
-                                                            <td>{ing.quantidade}</td>
-                                                            <td>{ing.unidade}</td>
-                                                        </tr>
-                                                    ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div className="d-flex justify-content-center mb-2">
+                                    <label style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem', margin: 0 }}>
+                                        Ingredientes da Receita
+                                    </label>
                                 </div>
 
-                                {/* Custos */}
-                                <div className="row mt-3">
-                                    <div className="col-6">
-                                        <strong>Custo dos Ingredientes:</strong>
-                                        <p>R$ {form.custoTotalIngredientes}</p>
+                                {/* Tabela de Ingredientes com mesma estrutura dos outros modais */}
+                                <div className={styles.ingredientesBox} style={{ height: '479px', maxHeight: '479px' }}>
+                                    <div className={styles.tabelaCabecalho}>
+                                        <div style={{ flex: '2', textAlign: 'center', fontWeight: 'bold', padding: '10px' }}>Nome</div>
+                                        <div style={{ flex: '1', textAlign: 'center', fontWeight: 'bold', padding: '10px' }}>Quantidade</div>
+                                        <div style={{ flex: '1', textAlign: 'center', fontWeight: 'bold', padding: '10px' }}>Unidade</div>
                                     </div>
-                                    <div className="col-6">
-                                        <strong>Custo Operacional:</strong>
-                                        <p>R$ {calcularCustoOperacional()}</p>
-                                    </div>
+
+                                    {ingredientesSelecionados.length === 0 ? (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                                            Nenhum ingrediente adicionado
+                                        </div>
+                                    ) : (
+                                        ingredientesSelecionados.map((ing, index) => (
+                                            <div
+                                                key={ing.id_ingrediente}
+                                                className={`${styles.ingredienteItem} ${index % 2 === 0 ? styles.linhaBege : ""}`}
+                                            >
+                                                <div style={{ flex: '2', textAlign: 'center', padding: '10px' }}>{ing.nome}</div>
+                                                <div style={{ flex: '1', textAlign: 'center', padding: '10px' }}>{ing.quantidade}</div>
+                                                <div style={{ flex: '1', textAlign: 'center', padding: '10px' }}>{ing.unidade}</div>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
 
-                                <div className="row">
-                                    <div className="col-6">
-                                        <strong>Custo Total de Produção:</strong>
-                                        <p>R$ {(parseFloat(form.custoTotalIngredientes) + parseFloat(calcularCustoOperacional())).toFixed(2)}</p>
-                                    </div>
-                                    <div className="col-6">
-                                        <strong style={{ color: 'var(--green)' }}>Preço Final (0% lucro):</strong>
-                                        <p style={{ color: 'var(--green)', fontWeight: 'bold' }}>R$ {calcularPrecoFinal()}</p>
+                                {/* Custos com mesmo layout dos outros modais */}
+                                <div style={{ marginTop: '50px' }}>
+                                    <div className="row">
+                                        <div className="col-6">
+                                            <div className="mb-2">
+                                                <strong>Custo dos Ingredientes:</strong>
+                                                <br />R$ {custoTotalIngredientes.toFixed(2)}
+                                            </div>
+                                            <div className="mb-2">
+                                                <strong>Custo Total de Produção:</strong>
+                                                <br />R$ {(() => {
+                                                    const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                                                    const custoOperacional = despesas.reduce((total, despesa) => {
+                                                        const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                                                        return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                                                    }, 0) * tempo_preparo_min;
+                                                    const custoTotal = custoTotalIngredientes + custoOperacional;
+                                                    return custoTotal.toFixed(2);
+                                                })()}
+                                            </div>
+                                        </div>
+                                        <div className="col-6">
+                                            <div className="mb-2">
+                                                <strong>Custo Operacional:</strong>
+                                                <br />R$ {(() => {
+                                                    const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                                                    const custoOperacional = despesas.reduce((total, despesa) => {
+                                                        const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                                                        return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                                                    }, 0) * tempo_preparo_min;
+                                                    return custoOperacional.toFixed(2);
+                                                })()}
+                                            </div>
+                                            <div className="mb-2 text-success">
+                                                <strong>Preço Final ({form.porcentagemDeLucro || 0}% lucro):</strong>
+                                                <br />R$ {(() => {
+                                                    const tempo_preparo_min = Number(form.tempoDePreparo) || 0;
+                                                    const custoOperacional = despesas.reduce((total, despesa) => {
+                                                        const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
+                                                        return total + (isNaN(custoMinuto) ? 0 : custoMinuto);
+                                                    }, 0) * tempo_preparo_min;
+                                                    const custoTotal = custoTotalIngredientes + custoOperacional;
+                                                    const precoFinal = custoTotal * (1 + (Number(form.porcentagemDeLucro) || 0) / 100);
+                                                    return precoFinal.toFixed(2);
+                                                })()}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div className={styles.modalFooter}>
-                    <button
-                        type="button"
-                        className="btn"
-                        onClick={handleClose}
-                        style={{
-                            backgroundColor: 'var(--gray)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: '8px',
-                            fontSize: '1rem',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        Fechar
-                    </button>
                 </div>
             </div>
         </div>
