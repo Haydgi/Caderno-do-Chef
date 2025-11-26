@@ -67,6 +67,19 @@ router.post('/', gerenteOuAcima, async (req, res) => {
 
 // GET - Listar despesas com paginação e filtro de busca (Proprietário e Gerente)
 // GET global - listar todas as despesas (sem filtro por usuário) para Gerente ou acima
+// GET /calculo - Retorna apenas dados necessários para cálculos (todos os usuários autenticados)
+router.get('/calculo', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT Custo_Mensal, Tempo_Operacional FROM despesas ORDER BY Data_Despesa DESC`
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar despesas para cálculo:', error);
+    res.status(500).json({ error: 'Erro ao buscar dados de despesas' });
+  }
+});
+
 router.get('/', gerenteOuAcima, async (req, res) => {
   const { page = 1, limit = 10, search = '' } = req.query;
   const offset = (page - 1) * limit;
