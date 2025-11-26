@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+.usersPage {
+  /* Wrapper sem fundo (fundo agora vem do body.usuarios-page para cobrir toda a tela) */
+  min-height: calc(100vh - 80px);
+  width: 100%;
+}
+
+.sectionCard {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px 16px 20px 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.tableCard table {
+  background: var(--floral-white);
+}
+
+/* Ajustes de título no card */
+.sectionCard h2 {
+  font-size: 2.2rem;
+  font-family: "Lobster Two", cursive;
+  margin: 0;
+}
+
+/* Overrides for modals in this page */
+.overlayTop {
+  z-index: 10000 !important; /* above navbar/sidebar */
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.containerWide {
+  width: 840px !important;
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+  overflow-y: auto;
+}
+
+.containerConfirm {
+  width: 720px !important;
+  max-width: 95vw !important;
+}
+
+/* Variação do botão Salvar (azul) para ação Editar */
+.btnSaveBlue {
+  background: linear-gradient(to right, #3b82f6, #2563eb) !important; /* azul */
+  background-size: 200% 100% !important;
+  background-position: right !important;
+}
+
+/* Tornar botões dos itens compactos para tabela */
+.btnCompact {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px !important;
+  font-size: 0.9rem !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+}
+
+/* ===== Painel no estilo "Custo Operacional" (Despesas) ===== */
+.costPanel {
+  position: relative;
+  background: linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.costPanelHeader {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 18px;
+  color: #fff;
+}
+
+.costPanelHeader h5 {
+  color: #fff;
+  font-weight: 700;
+}
+
+.costPanelBody {
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+}
+
+/* Tabela com tema violeta translúcido */
+.tableViolet {
+  margin: 0;
+}
+
+.tableViolet th,
+.tableViolet td {
+  vertical-align: middle;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.tableViolet thead th {
+  color: #fff;
+  background: var(--ultra-violet);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  position: sticky;
+  top: 0;
+  z-index: 3; /* stay above body rows while scrolling */
+}
+
+.tableViolet tbody td {
+  color: var(--rich-black) !important;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.tableViolet tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+/* Wrapper com cantos arredondados para a tabela */
+.tableRounded {
+  border-radius: 14px;
+  overflow: hidden;
+  background: transparent; /* mantém o visual do painel violeta */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Área de rolagem para a lista de usuários */
+.scrollArea {
+  max-height: 160px;
+  overflow-y: auto;
+  position: relative; /* needed for sticky header context */
+}
+
+/* Responsividade do painel */
+@media (max-width: 768px) {
+  .costPanelBody {
+    padding: 1rem 0.75rem;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .sectionCard {
+    padding: 12px;
+  }
+  .sectionCard h2 {
+    font-size: 1.7rem;
+  }
+}

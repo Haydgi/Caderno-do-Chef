@@ -15,6 +15,8 @@ import EsqueciSenha from "./features/Auth/ForgotPasswordEmail/ForgotPswdEmail";
 import RedefinirSenha from "./features/Auth/ForgotPassword/ForgotPswd";
 import ExpiredLink from "./features/Auth/ExpiredLink/ExpiredLink";
 import SuccessfullPasswordChange from "./features/Auth/SuccessfullPasswordChange/SuccessfullPasswordChange";
+import RoleGuard from "./features/Auth/RoleGuard";
+import Usuarios from "./pages/Usuarios/Usuarios";
 
 const isTokenValid = () => {
   const t = localStorage.getItem("token");
@@ -108,6 +110,14 @@ function App() {
             <ProtectedRoute>
               <Despesas />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/usuarios"
+          element={
+            <RoleGuard allow={["Proprietário", "Gerente", "Funcionário"]}>
+              <Usuarios />
+            </RoleGuard>
           }
         />
         {/* keep other routes as before */}

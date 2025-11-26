@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 // Configurar base URL
 axios.defaults.baseURL = 'http://localhost:3001';
@@ -18,9 +19,22 @@ axios.interceptors.request.use(
 );
 
 // Interceptor para tratar respostas de erro 401 (token expirado)
+// Throttle state for 403 toasts
+let last403ToastAt = 0;
+const PERMISSION_TOAST_INTERVAL = 2000; // 2s
+
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Tratamento de acesso negado (403)
+    if (error.response?.status === 403) {
+      const now = Date.now();
+      if (now - last403ToastAt > PERMISSION_TOAST_INTERVAL) {
+        last403ToastAt = now;
+        toast.error('Nível de permissão insuficiente');
+      }
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401) {
       const originalRequest = error.config || {};
       const url = originalRequest.url || '';

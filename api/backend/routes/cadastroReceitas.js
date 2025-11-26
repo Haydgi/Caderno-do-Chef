@@ -1,10 +1,10 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import db from '../database/connection.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import { gerenteOuAcima } from '../middleware/permissions.js';
 
 // Para funcionar com ESModules
 const __filename = fileURLToPath(import.meta.url);
@@ -28,21 +28,7 @@ const MSGS = {
   arquivoInvalido: 'Apenas imagens JPG, JPEG e PNG são permitidas'
 };
 
-// Middleware de autenticação JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: MSGS.tokenNaoFornecido });
-
-  jwt.verify(token, process.env.SECRET_JWT, (err, decoded) => {
-    if (err) return res.status(403).json({ error: MSGS.tokenInvalido });
-    if (!decoded || !decoded.ID_Usuario)
-      return res.status(403).json({ error: 'Token malformado - ID_Usuario não encontrado' });
-
-    req.usuario = { ID_Usuario: decoded.ID_Usuario };
-    next();
-  });
-}
+// Observação: autenticação e role já são aplicadas em index.js (req.user)
 
 // Configuração multer para upload de imagens
 const storage = multer.diskStorage({
@@ -66,8 +52,13 @@ const upload = multer({
   }
 });
 
-// POST / - Cadastrar receita
-router.post('/', authenticateToken, upload.single('imagem_URL'), async (req, res) => {
+// POST / - Cadastrar receita (Proprietário e Gerente)
+router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) => {
+  console.log('📥 Recebendo requisição POST para cadastrar receita');
+  console.log('Body recebido:', req.body);
+  console.log('Arquivo recebido:', req.file);
+  console.log('Usuário autenticado:', req.user);
+  
   try {
     let {
       Nome_Receita,
@@ -79,7 +70,8 @@ router.post('/', authenticateToken, upload.single('imagem_URL'), async (req, res
       ingredientes // array esperado de ingredientes [{ID_Ingredientes, Quantidade_Utilizada, Unidade_De_Medida}, ...]
     } = req.body;
 
-    const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
+  console.log('ID_Usuario extraído:', ID_Usuario);
 
     // Parse ingredientes se vier como string (caso do multipart/form-data)
     if (typeof ingredientes === "string") {
@@ -163,8 +155,7 @@ router.post('/', authenticateToken, upload.single('imagem_URL'), async (req, res
 });
 
 // GET /?search= - Buscar receitas do usuário com filtro de pesquisa
-router.get('/', authenticateToken, async (req, res) => {
-  const ID_Usuario = req.usuario.ID_Usuario;
+router.get('/', async (req, res) => {
   const search = req.query.search ? `%${req.query.search.toLowerCase()}%` : null;
 
   try {
@@ -173,9 +164,9 @@ router.get('/', authenticateToken, async (req, res) => {
              Custo_Total_Ingredientes, Porcentagem_De_Lucro,
              Categoria, imagem_URL, Data_Receita
       FROM receitas
-      WHERE ID_Usuario = ?
+      WHERE 1=1
     `;
-    let params = [ID_Usuario];
+    let params = [];
 
     if (search) {
       console.log("Aplicando filtro de busca:", search);
@@ -205,9 +196,10 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // DELETE /:id - Excluir receita
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
+  const userRole = req.user.role;
   const idNum = Number(id);
 
   if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: MSGS.idInvalido });
@@ -216,7 +208,11 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const [rows] = await db.query(`SELECT ID_Usuario, imagem_URL FROM receitas WHERE ID_Receita = ?`, [idNum]);
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.receitaNaoEncontrada });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
+    
+    // Proprietário pode excluir qualquer receita; Gerente só pode excluir suas próprias
+    if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
+      return res.status(403).json({ error: MSGS.naoAutorizado });
+    }
 
     if (rows[0].imagem_URL) {
       const caminhoImagem = path.join(__dirname, '../uploads', rows[0].imagem_URL);
@@ -240,14 +236,17 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// PUT /:id - Atualizar receita
-router.put('/:id', authenticateToken, upload.single('imagem_URL'), async (req, res) => {
+// PUT /:id - Atualizar receita (suporta multipart/form-data para imagem e campos de texto)
+router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
+  const userRole = req.user.role;
   const idNum = Number(id);
 
   if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: "ID inválido." });
 
+  // Garante que req.body exista mesmo quando nenhum parser apropriado atuar
+  const body = req.body || {};
   let {
     Nome_Receita,
     Descricao,
@@ -256,13 +255,13 @@ router.put('/:id', authenticateToken, upload.single('imagem_URL'), async (req, r
     Porcentagem_De_Lucro,
     Categoria,
     ingredientes // array esperado
-  } = req.body;
+  } = body;
 
   try {
     console.log("========== RECEBIDO NO PUT /api/receitas/:id ==========");
     console.log("Body:", req.body);
     console.log("Ingredientes (antes do parse):", req.body.ingredientes);
-    console.log("Imagem:", req.file?.filename);
+  console.log("Imagem:", req.file?.filename);
 
     // Parse ingredientes se vier como string (caso de multipart/form-data)
     if (typeof ingredientes === "string") {
@@ -298,7 +297,11 @@ router.put('/:id', authenticateToken, upload.single('imagem_URL'), async (req, r
       const [rows] = await db.query(`SELECT ID_Usuario, imagem_URL FROM receitas WHERE ID_Receita = ?`, [idNum]);
 
       if (rows.length === 0) return res.status(404).json({ error: "Receita não encontrada." });
-      if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: "Não autorizado." });
+      
+      // Proprietário pode editar qualquer receita; Gerente só pode editar suas próprias
+      if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
+        return res.status(403).json({ error: "Não autorizado." });
+      }
 
       let imagem_URL = rows[0].imagem_URL || '';
 

@@ -1,9 +1,8 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import db from '../database/connection.js';
 import multer from 'multer';
-import { atualizaReceitasPorDespesa, limparCacheDespesas } from './atualizaReceitas.js'; // ajuste o caminho conforme seu projeto
-
+import { atualizaReceitasPorDespesa, limparCacheDespesas, atualizaReceitasTodasDespesas } from './atualizaReceitas.js'; // ajuste o caminho conforme seu projeto
+import { gerenteOuAcima } from '../middleware/permissions.js';
 
 const router = express.Router();
 const upload = multer();
@@ -21,23 +20,7 @@ const MSGS = {
   idInvalido: 'ID inválido',
 };
 
-// Middleware de autenticação JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: MSGS.tokenNaoFornecido });
-  }
-
-  jwt.verify(token, process.env.SECRET_JWT, (err, usuario) => {
-    if (err) {
-      return res.status(403).json({ error: MSGS.tokenInvalido });
-    }
-    req.usuario = usuario;
-    next();
-  });
-}
+// Observação: autenticação e roles (req.user) são aplicadas em index.js
 
 // Função auxiliar de validação
 function validarCampos(nome, custoMensal, tempoOperacional) {
@@ -48,10 +31,10 @@ function validarCampos(nome, custoMensal, tempoOperacional) {
   return true;
 }
 
-// POST - Cadastrar despesa
-router.post('/', authenticateToken, upload.none(), async (req, res) => {
+// POST - Cadastrar despesa (Proprietário e Gerente)
+router.post('/', gerenteOuAcima, async (req, res) => {
   let { nome, custoMensal, tempoOperacional } = req.body;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   if (!validarCampos(nome, custoMensal, tempoOperacional)) {
     return res.status(400).json({ error: MSGS.camposFaltando });
@@ -82,30 +65,21 @@ router.post('/', authenticateToken, upload.none(), async (req, res) => {
   }
 });
 
-// GET - Listar despesas com paginação e filtro de busca
-router.get('/', authenticateToken, async (req, res) => {
-  const ID_Usuario = req.usuario.ID_Usuario;
+// GET - Listar despesas com paginação e filtro de busca (Proprietário e Gerente)
+// GET global - listar todas as despesas (sem filtro por usuário) para Gerente ou acima
+router.get('/', gerenteOuAcima, async (req, res) => {
   const { page = 1, limit = 10, search = '' } = req.query;
   const offset = (page - 1) * limit;
-
   try {
-    let sql = `
-      SELECT ID_Despesa, Nome_Despesa, Custo_Mensal, Tempo_Operacional, Data_Despesa
-      FROM despesas
-      WHERE ID_Usuario = ?
-    `;
-    const params = [ID_Usuario];
-
+    let sql = `SELECT ID_Despesa, Nome_Despesa, Custo_Mensal, Tempo_Operacional, Data_Despesa, ID_Usuario FROM despesas WHERE 1=1`;
+    const params = [];
     if (search.trim()) {
       sql += ` AND Nome_Despesa LIKE ?`;
       params.push(`%${search.trim()}%`);
     }
-
     sql += ` ORDER BY Data_Despesa DESC LIMIT ? OFFSET ?`;
     params.push(Number(limit), Number(offset));
-
     const [rows] = await db.query(sql, params);
-
     res.status(200).json(rows);
   } catch (error) {
     console.error('Erro ao buscar despesas:', error);
@@ -114,10 +88,10 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // PUT - Atualizar despesa
-router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), async (req, res) => {
+router.put('/:id', gerenteOuAcima, async (req, res) => {
   let { nome, custoMensal, tempoOperacional } = req.body;
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   const idNum = Number(id);
   if (isNaN(idNum)) {
@@ -129,18 +103,8 @@ router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), as
   }
 
   try {
-    const [rows] = await db.query(
-      `SELECT ID_Usuario FROM despesas WHERE ID_Despesa = ?`,
-      [idNum]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: MSGS.despesaNaoEncontrada });
-    }
-
-    if (rows[0].ID_Usuario !== ID_Usuario) {
-      return res.status(403).json({ error: MSGS.naoAutorizado });
-    }
+    const [rows] = await db.query(`SELECT ID_Usuario FROM despesas WHERE ID_Despesa = ?`, [idNum]);
+    if (rows.length === 0) return res.status(404).json({ error: MSGS.despesaNaoEncontrada });
 
     await db.query(
       `UPDATE despesas
@@ -149,10 +113,9 @@ router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), as
       [nome.trim(), custoMensal, tempoOperacional, idNum]
     );
 
-    limparCacheDespesas(ID_Usuario); // Limpa o cache antes de recalcular
-
-    console.log(`[PUT] Despesa atualizada para usuário ${ID_Usuario}. Recalculando receitas...`);
-    await atualizaReceitasPorDespesa(ID_Usuario);
+  // Recalcula para todos os usuários (despesas globais)
+  console.log(`[PUT] Despesa ${idNum} atualizada. Recalculando receitas globais...`);
+  await atualizaReceitasTodasDespesas();
 
     res.status(200).json({
       id: idNum,
@@ -168,9 +131,9 @@ router.put('/:id', authenticateToken, express.urlencoded({ extended: true }), as
 });
 
 // DELETE - Excluir despesa
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.usuario.ID_Usuario;
+  const ID_Usuario = req.user.ID_Usuario;
 
   const idNum = Number(id);
   if (isNaN(idNum)) {
@@ -178,25 +141,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 
   try {
-    const [rows] = await db.query(
-      `SELECT ID_Usuario FROM despesas WHERE ID_Despesa = ?`,
-      [idNum]
-    );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: MSGS.despesaNaoEncontrada });
-    }
-
-    if (rows[0].ID_Usuario !== ID_Usuario) {
-      return res.status(403).json({ error: MSGS.naoAutorizado });
-    }
+    const [rows] = await db.query(`SELECT ID_Usuario FROM despesas WHERE ID_Despesa = ?`, [idNum]);
+    if (rows.length === 0) return res.status(404).json({ error: MSGS.despesaNaoEncontrada });
 
     await db.query(`DELETE FROM despesas WHERE ID_Despesa = ?`, [idNum]);
 
-    limparCacheDespesas(ID_Usuario); // Limpa o cache antes de recalcular
-
-    console.log(`[DELETE] Despesa excluída para usuário ${ID_Usuario}. Recalculando receitas...`);
-    await atualizaReceitasPorDespesa(ID_Usuario);
+  console.log(`[DELETE] Despesa ${idNum} excluída. Recalculando receitas globais...`);
+  await atualizaReceitasTodasDespesas();
 
     res.status(200).json({ message: 'Despesa excluída com sucesso' });
   } catch (error) {

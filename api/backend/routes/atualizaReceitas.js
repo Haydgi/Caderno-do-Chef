@@ -306,6 +306,23 @@ export async function atualizaReceitasPorDespesa(ID_Usuario) {
   }
 }
 
+// Recalcula todas as receitas de todos os usuários (usado quando despesas são globais)
+export async function atualizaReceitasTodasDespesas() {
+  try {
+    const [usuarios] = await db.query(`SELECT DISTINCT ID_Usuario FROM receitas`);
+    for (const u of usuarios) {
+      const ID_Usuario = u.ID_Usuario;
+      despesasCache.delete(ID_Usuario); // limpa cache antes de recalcular
+      await atualizaReceitasPorDespesa(ID_Usuario);
+    }
+    console.log(`Recalculo global de receitas concluído para ${usuarios.length} usuários.`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao recalcular todas as receitas após mudança de despesas:', error.message);
+    return false;
+  }
+}
+
 export async function atualizaDespesa(ID_Despesa, nome, custoMensal, tempoOperacional, ID_Usuario) {
   try {
     const idNum = Number(ID_Despesa);

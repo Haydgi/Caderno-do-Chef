@@ -55,6 +55,11 @@ export default function Login() {
 
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", userId);
+        // guarda papel/role caso venha na resposta para habilitar guardas por cargo
+        const role = response.data.usuario?.role || response.data.usuario?.tipo_usuario;
+        if (role) {
+          localStorage.setItem("role", role);
+        }
         navigate("/receitas");
       } else {
         toast.error("Falha no login. Tente novamente.");
