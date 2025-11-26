@@ -155,6 +155,8 @@
 .emptyState p {
   font-size: 1.3rem;
   color: var(--rich-black);
+  margin-top: 10px;
+  font-weight: bold;
 }
 
 /* Contêiner dos cards */

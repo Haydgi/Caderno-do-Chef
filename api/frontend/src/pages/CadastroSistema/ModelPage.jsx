@@ -35,6 +35,8 @@ function ModelPage({
   setFiltroTipo,
   // Props para alinhamento da paginação
   centerPagination = false,
+  // Props para desabilitar botão adicionar
+  desabilitarBotaoAdicionar = false,
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -226,12 +228,14 @@ function ModelPage({
                   </ul>
                 </div>
               )}
-              <button
-                className={`${styles.addBtn} btnUltraViolet btn`}
-                onClick={abrirModal}
-              >
-                <i className="bi bi-plus-circle"></i>
-              </button>
+              {!desabilitarBotaoAdicionar && (
+                <button
+                  className={`${styles.addBtn} btnUltraViolet btn`}
+                  onClick={abrirModal}
+                >
+                  <i className="bi bi-plus-circle"></i>
+                </button>
+              )}
             </div>
           </div>
 
@@ -281,22 +285,24 @@ function ModelPage({
                     <>
                       {dados.length === 0 ? (
                         <div id="sem-dados" className={`${styles.emptyState}`}>
-                          <p>
+                          <p style={{ fontWeight: 'normal' }}>
                             {termoBusca && termoBusca.trim() !== ""
                               ? "Nenhum item encontrado para sua busca."
                               : "Não há itens cadastrados"}
                           </p>
-                          <button
-                            className={`${styles.btnDetails} btnUltraViolet btn`}
-                            onClick={abrirModal}
-                          >
-                            <p className={styles.btnText}>
-                              <i className="bi bi-plus-circle me-2"></i>
-                              {termoBusca && termoBusca.trim() !== ""
-                                ? "Criar Item"
-                                : "Criar o Primeiro Item"}
-                            </p>
-                          </button>
+                          {!desabilitarBotaoAdicionar && (
+                            <button
+                              className={`${styles.btnDetails} btnUltraViolet btn`}
+                              onClick={abrirModal}
+                            >
+                              <p className={styles.btnText}>
+                                <i className="bi bi-plus-circle me-2"></i>
+                                {termoBusca && termoBusca.trim() !== ""
+                                  ? "Criar Item"
+                                  : "Criar o Primeiro Item"}
+                              </p>
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div className="row">
@@ -324,22 +330,24 @@ function ModelPage({
                         className={`${styles.emptyState}`}
                         style={painelLateral ? { marginRight: '150px' } : {}}
                       >
-                        <p>
+                        <p style={{ fontWeight: 'normal' }}>
                           {termoBusca && termoBusca.trim() !== ""
                             ? "Nenhum item encontrado para sua busca."
                             : "Não há itens cadastrados"}
                         </p>
-                        <button
-                          className={`${styles.btnDetails} btnUltraViolet btn`}
-                          onClick={abrirModal}
-                        >
-                          <p className={styles.btnText}>
-                            <i className="bi bi-plus-circle me-2"></i>
-                            {termoBusca && termoBusca.trim() !== ""
-                              ? "Criar Item"
-                              : "Criar o Primeiro Item"}
-                          </p>
-                        </button>
+                        {!desabilitarBotaoAdicionar && (
+                          <button
+                            className={`${styles.btnDetails} btnUltraViolet btn`}
+                            onClick={abrirModal}
+                          >
+                            <p className={styles.btnText}>
+                              <i className="bi bi-plus-circle me-2"></i>
+                              {termoBusca && termoBusca.trim() !== ""
+                                ? "Criar Item"
+                                : "Criar o Primeiro Item"}
+                            </p>
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="row">
@@ -408,7 +416,7 @@ function ModelPage({
           )}
 
           {/* Botão flutuante para mobile */}
-          {isMobile && (
+          {isMobile && !desabilitarBotaoAdicionar && (
             <button
               className={`${styles.floatingAddBtn}`}
               onClick={abrirModal}

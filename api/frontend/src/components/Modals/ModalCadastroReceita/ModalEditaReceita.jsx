@@ -541,90 +541,155 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
         </div>
 
         <div className={styles.modalBody}>
-          <div className="row">
-            <div className="col-6">
-              <div className="row">
-                <div className="col-6">
-                  <div className={`${styles.formGroup} align-items-center`}>
-                    <label htmlFor="imagemInputEdit" className={styles.imagePreviewBox}>
-                      {(() => {
-                        console.log('🔍 Debug Modal Preview:', {
-                          'form.imagem': form.imagem,
-                          'tipo': typeof form.imagem,
-                          'isFile': form.imagem instanceof File,
-                          'isEmpty': !form.imagem || form.imagem === '',
-                          'imagemRemovida': form.imagemRemovida,
-                          'condicaoString': form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida
-                        });
+          <div className="row" style={{ columnGap: '12px' }}>
+            <div className="col-6" style={{ flex: '1' }}>
+              {/* Coluna da imagem */}
+              <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
+                <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
+                <label htmlFor="imagemInputEdit" className={styles.imageUploadContainer}>
+                  {(() => {
+                    console.log('🔍 Debug Modal Preview:', {
+                      'form.imagem': form.imagem,
+                      'tipo': typeof form.imagem,
+                      'isFile': form.imagem instanceof File,
+                      'isEmpty': !form.imagem || form.imagem === '',
+                      'imagemRemovida': form.imagemRemovida,
+                      'condicaoString': form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida
+                    });
 
-                        if (form.imagem instanceof File) {
-                          console.log('✅ Mostrando imagem nova (File)');
-                          return (
-                            <div
-                              style={{
-                                backgroundImage: `url(${URL.createObjectURL(form.imagem)})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                                width: "100%",
-                                height: "100%",
-                                borderRadius: "10px"
-                              }}
-                            />
-                          );
-                        } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
-                          const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                          const imageUrl = `${baseUrl}/uploads/${form.imagem}`;
-                          console.log('✅ Mostrando imagem existente:', imageUrl);
-                          return (
-                            <div
-                              style={{
-                                backgroundImage: `url(${imageUrl})`,
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                                width: "100%",
-                                height: "100%",
-                                borderRadius: "10px"
-                              }}
-                              onError={(e) => {
-                                console.log('❌ Erro ao carregar imagem no modal:', imageUrl);
-                                e.target.style.display = 'none';
-                              }}
-                            />
-                          );
-                        } else {
-                          console.log('⭕ Mostrando ícone padrão');
-                          return <GiKnifeFork className={styles.iconeReceitaVazia} />;
-                        }
-                      })()}
-                    </label>
-                    <input
-                      id="imagemInputEdit"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      style={{ display: 'none' }}
-                    />
-                    {(form.imagem instanceof File || (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida)) && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-danger mt-2 w-100"
-                        onClick={() => {
-                          setForm(prev => ({
-                            ...prev,
-                            imagem: null,
-                            imagemRemovida: true // Marca que a imagem foi removida
-                          }));
-                          const input = document.getElementById('imagemInputEdit');
-                          if (input) input.value = '';
-                          toast.info('Imagem removida');
-                        }}
-                      >
-                        <i className="bi bi-trash"></i> Remover imagem
-                      </button>
-                    )}
+                    if (form.imagem instanceof File) {
+                      console.log('✅ Mostrando imagem nova (File)');
+                      return (
+                        <div className={styles.imagePreview}>
+                          <div
+                            style={{
+                              backgroundImage: `url(${URL.createObjectURL(form.imagem)})`,
+                              backgroundSize: "contain",
+                              backgroundRepeat: "no-repeat",
+                              backgroundPosition: "center",
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "10px"
+                            }}
+                          />
+                        </div>
+                      );
+                    } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
+                      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                      const imageUrl = `${baseUrl}/uploads/${form.imagem}`;
+                      console.log('✅ Mostrando imagem existente:', imageUrl);
+                      return (
+                        <div className={styles.imagePreview}>
+                          <div
+                            style={{
+                              backgroundImage: `url(${imageUrl})`,
+                              backgroundSize: "contain",
+                              backgroundRepeat: "no-repeat",
+                              backgroundPosition: "center",
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "10px"
+                            }}
+                            onError={(e) => {
+                              console.log('❌ Erro ao carregar imagem no modal:', imageUrl);
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      );
+                    } else {
+                      console.log('⭕ Mostrando estado vazio');
+                      return (
+                        <div className={styles.emptyImageState}>
+                          <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
+                          <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: '500' }}>Clique para adicionar</p>
+                          <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, PNG ou GIF</span>
+                        </div>
+                      );
+                    }
+                  })()}
+                </label>
+                <input
+                  id="imagemInputEdit"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+                {(form.imagem instanceof File || (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida)) && (
+                  <div className="d-flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary flex-fill"
+                      onClick={() => document.getElementById('imagemInputEdit').click()}
+                      title="Editar imagem"
+                    >
+                      <i className="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger flex-fill"
+                      onClick={() => {
+                        setForm(prev => ({
+                          ...prev,
+                          imagem: null,
+                          imagemRemovida: true
+                        }));
+                        const input = document.getElementById('imagemInputEdit');
+                        if (input) input.value = '';
+                        toast.info('Imagem removida');
+                      }}
+                      title="Remover imagem"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </div>
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Tempo de Preparo (Min.)</label>
+                )}
+              </div>
+
+              {/* Nome da Receita */}
+              <div className={styles.formGroup} style={{ marginTop: '35px' }}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Nome da Receita
+                </label>
+                <input
+                  name="nome"
+                  autoComplete="off"
+                  className={`form-control ${camposInvalidos.nome ? styles.erroInput : ""}`}
+                  value={form.nome}
+                  onChange={handleChange}
+                  placeholder="Ex: Bolo de Chocolate"
+                />
+              </div>
+
+              {/* Categoria */}
+              <div className={`${styles.formGroup} mt-2`}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Categoria
+                </label>
+                <select
+                  name="categoria"
+                  className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
+                  value={form.categoria}
+                  onChange={handleChange}
+                >
+                  <option value="">Selecione...</option>
+                  {categorias.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Linha com Tempo de Preparo e Porcentagem de Lucro */}
+              <div className="row mt-2">
+                <div className="col-6">
+                  <div className={styles.formGroup}>
+                    <label>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Tempo de Preparo (Min.)
+                    </label>
                     <input
                       name="tempoDePreparo"
                       autoComplete="off"
@@ -636,37 +701,12 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     />
                   </div>
                 </div>
-
                 <div className="col-6">
                   <div className={styles.formGroup}>
-                    <label>Nome Da Receita</label>
-                    <input
-                      name="nome"
-                      autoComplete="off"
-                      className={`form-control ${camposInvalidos.nome ? styles.erroInput : ""}`}
-                      value={form.nome}
-                      onChange={handleChange}
-                      placeholder="Ex: Bolo de Chocolate"
-                    />
-                  </div>
-
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Categoria</label>
-                    <select
-                      name="categoria"
-                      className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
-                      value={form.categoria}
-                      onChange={handleChange}
-                    >
-                      <option value="">Selecione...</option>
-                      {categorias.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Porcentagem de Lucro (%)</label>
+                    <label style={{ fontSize: '0.9rem' }}>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Porcentagem de Lucro (%)
+                    </label>
                     <input
                       name="porcentagemDeLucro"
                       autoComplete="off"
@@ -680,24 +720,27 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                 </div>
               </div>
 
-              <div className={`${styles.formGroup} mt-3`}>
-                <label>Descrição</label>
+              <div className={`${styles.formGroup} mt-2`}>
+                <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
                 <textarea
                   name="descricao"
                   className="form-control"
                   value={form.descricao}
                   onChange={handleChange}
-                  rows={7}
-                  placeholder="Descreva a receita..."
+                  rows={4}
+                  placeholder="Descreva aqui o modo de preparo (opcional)..."
                   maxLength={245}
                 />
               </div>
             </div>
 
-            <div className="col-6">
+            <div className="col-6" style={{ flex: '1' }}>
               <div>
                 <div className={`${styles.formGroup} ${styles.suggestionsContainer}`}>
-                  <label>Buscar Ingrediente</label>
+                  <label className="mb-1">
+                    <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                    Buscar Ingrediente
+                  </label>
                   <input
                     type="text"
                     className="form-control"
@@ -736,7 +779,9 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                   )}
                 </div>
 
-                <label className="mt-4">Ingredientes da Receita</label>
+                <div className="d-flex justify-content-center">
+                  <label className="mt-2 mb-2" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Ingredientes da Receita</label>
+                </div>
                 <div className={styles.ingredientesBox}>
                   <div className={styles.tabelaCabecalho}>
                     <span className={styles.nomeIngrediente}>Nome</span>
@@ -769,7 +814,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                 </div>
 
                 {/* Seção de custos */}
-                <div className="mt-3">
+                <div style={{ marginTop: '40px' }}>
                   <div className="row">
                     <div className="col-6">
                       <div className="mb-2">

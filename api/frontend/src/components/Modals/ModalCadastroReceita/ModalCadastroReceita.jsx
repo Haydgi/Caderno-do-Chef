@@ -459,46 +459,117 @@ function ModalCadastroReceita({ onClose, onSave, }) {
         </div>
 
         <div className={styles.modalBody}>
-          <div className="row">
+          <div className="row" style={{ columnGap: '12px' }}>
             {/* Coluna Esquerda */}
 
-            <div className="col-6">
-
-              <div className="row">
-
-                <div className="col-6">
-
-                  {/* imagem + input hidden */}
-                  <div className={`${styles.formGroup} align-items-center`}>
-                    <label htmlFor="imagemInput" className={styles.imagePreviewBox}>
-                      {form.imagem_URL ? (
-                        <div
-                          style={{
-                            backgroundImage: `url(${form.imagem_preview})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            width: "100%",
-                            height: "100%",
-                            borderRadius: "10px"
-                          }}
-                        />
-                      ) : (
-                        <GiKnifeFork className={styles.iconeReceitaVazia} />
-                      )}
-                    </label>
-                    <input
-                      id="imagemInput"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      style={{ display: 'none' }}
-                    />
+            <div className="col-6" style={{ flex: '1' }}>
+              {/* Coluna da imagem */}
+              <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
+                <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
+                <label htmlFor="imagemInput" className={styles.imageUploadContainer}>
+                  {form.imagem_URL ? (
+                    <div className={styles.imagePreview}>
+                      <div
+                        style={{
+                          backgroundImage: `url(${form.imagem_preview})`,
+                          backgroundSize: "contain",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center",
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "10px"
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.emptyImageState}>
+                      <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
+                      <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: '500' }}>Clique para adicionar</p>
+                      <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, PNG ou GIF</span>
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="imagemInput"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+                {form.imagem_URL && (
+                  <div className="d-flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary flex-fill"
+                      onClick={() => document.getElementById('imagemInput').click()}
+                      title="Editar imagem"
+                    >
+                      <i className="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger flex-fill"
+                      onClick={() => {
+                        setForm(prev => ({
+                          ...prev,
+                          imagem_URL: "",
+                          imagem_preview: ""
+                        }));
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                        toast.info('Imagem removida');
+                      }}
+                      title="Remover imagem"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </div>
+                )}
+              </div>
 
-                  {/* Tempo de Preparo */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Tempo de Preparo (Min.)</label>
+              {/* Nome da Receita */}
+              <div className={styles.formGroup} style={{ marginTop: '35px' }}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Nome da Receita
+                </label>
+                <input
+                  name="Nome_Receita"
+                  autoComplete="off"
+                  className={`form-control ${camposInvalidos.Nome_Receita ? styles.erroInput : ""}`}
+                  value={form.Nome_Receita}
+                  onChange={handleChange}
+                  placeholder="Ex: Bolo de Chocolate"
+                />
+              </div>
+
+              {/* Categoria */}
+              <div className={`${styles.formGroup} mt-2`}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Categoria
+                </label>
+                <select
+                  name="Categoria"
+                  className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
+                  value={form.Categoria}
+                  onChange={handleChange}
+                >
+                  <option value="">Selecione...</option>
+                  {categorias.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Linha com Tempo de Preparo e Porcentagem de Lucro */}
+              <div className="row mt-2">
+                <div className="col-6">
+                  <div className={styles.formGroup}>
+                    <label>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Tempo de Preparo (Min.)
+                    </label>
                     <input
                       name="Tempo_Preparo"
                       autoComplete="off"
@@ -510,41 +581,12 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                     />
                   </div>
                 </div>
-
                 <div className="col-6">
-
-                  {/* NOME */}
                   <div className={styles.formGroup}>
-                    <label>Nome Da Receita</label>
-                    <input
-                      name="Nome_Receita"
-                      autoComplete="off"
-                      className={`form-control ${camposInvalidos.Nome_Receita ? styles.erroInput : ""}`}
-                      value={form.Nome_Receita}
-                      onChange={handleChange}
-                      placeholder="Ex: Bolo de Chocolate"
-                    />
-                  </div>
-
-                  {/* Categoria */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Categoria</label>
-                    <select
-                      name="Categoria"
-                      className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
-                      value={form.Categoria}
-                      onChange={handleChange}
-                    >
-                      <option value="">Selecione...</option>
-                      {categorias.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Porcentagem */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Porcentagem de Lucro (%)</label>
+                    <label style={{ fontSize: '0.9rem' }}>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Porcentagem de Lucro (%)
+                    </label>
                     <input
                       name="Porcentagem_De_Lucro"
                       autoComplete="off"
@@ -558,26 +600,29 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                 </div>
               </div>
 
-              <div className={`${styles.formGroup} mt-3`}>
-                <label>Descrição</label>
+              <div className={`${styles.formGroup} mt-2`}>
+                <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
                 <textarea
                   name="Descricao"
                   className="form-control"
                   value={form.Descricao}
                   onChange={handleChange}
-                  rows={7}
-                  placeholder="Descreva a receita..."
+                  rows={4}
+                  placeholder="Descreva aqui o modo de preparo (opcional)..."
                   maxLength={245}
                 />
               </div>
             </div>
 
             {/* Coluna Direita */}
-            <div className="col-6">
+            <div className="col-6" style={{ flex: '1' }}>
               <div>
 
                 <div className={`${styles.formGroup} ${styles.suggestionsContainer}`}>
-                  <label>Buscar Ingrediente</label>
+                  <label className="mb-1">
+                    <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                    Buscar Ingrediente
+                  </label>
                   <input
                     type="text"
                     className="form-control"
@@ -600,7 +645,9 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                 </div>
 
 
-                <label className="mt-4">Ingredientes da Receita</label>
+                <div className="d-flex justify-content-center">
+                  <label className="mt-2 mb-2" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Ingredientes da Receita</label>
+                </div>
                 <div className={styles.ingredientesBox}>
                   <div className={`${styles.tabelaCabecalho}`}>
                     <span className={`${styles.nomeIngrediente}`}>Nome</span>
@@ -634,7 +681,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                   ))}
                 </div>
 
-                <div className="mt-3">
+                <div style={{ marginTop: '40px' }}>
                   <div className="row">
                     <div className="col-6">
                       <div className="mb-2">

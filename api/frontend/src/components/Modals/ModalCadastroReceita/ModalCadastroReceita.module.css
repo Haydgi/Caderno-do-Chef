@@ -22,8 +22,9 @@
   background-color: var(--white-smoke);
   color: var(--rich-black);
   width: 900px;
+  max-height: 95vh;
   border-radius: 12px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: fadeIn 0.3s ease-in-out;
@@ -34,8 +35,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .modalHeader h5 {
@@ -166,7 +167,13 @@
 .formGroup {
   display: flex;
   flex-direction: column;
-  
+}
+
+.imageFormGroup {
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  max-height: 250px;
 }
 
 textarea {
@@ -230,8 +237,8 @@ textarea {
 }
 
 .ingredientesBox {
-  height: 347px;
-  max-height: 347px;
+  height: 384px;
+  max-height: 384px;
   overflow-y: auto;
   border-radius: 10px;
   background-color: var(--white);
@@ -344,6 +351,98 @@ textarea {
 
 .linhaBege {
   background-color: rgba(235, 235, 235, 0.87); /* tom de bege claro */
+}
+
+/* Estilos para upload de imagem profissional */
+.imageUploadContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  min-height: 200px;
+  max-height: 200px;
+  margin: 0 auto;
+  border: 2px dashed var(--ultra-violet);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  background-color: rgba(147, 112, 219, 0.05);
+}
+
+.imageUploadContainer:hover {
+  border-color: var(--tangerine);
+  background-color: rgba(147, 112, 219, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 112, 219, 0.2);
+}
+
+.emptyImageState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 10px;
+  text-align: center;
+  gap: 2px;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Tooltip customizado para asterisco obrigatório */
+.requiredAsterisk {
+  color: red;
+  margin-right: 4px;
+  cursor: help;
+  position: relative;
+  display: inline-block;
+}
+
+.requiredAsterisk::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.requiredAsterisk::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.requiredAsterisk:hover::before,
+.requiredAsterisk:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.5s;
 }
 
 /* Responsividade para telas menores que 600px */

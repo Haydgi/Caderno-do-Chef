@@ -99,17 +99,17 @@ function App() {
         <Route
           path="/relatorios"
           element={
-            <ProtectedRoute>
+            <RoleGuard allow={["Proprietário", "Gerente"]}>
               <Relatorios />
-            </ProtectedRoute>
+            </RoleGuard>
           }
         />
         <Route
           path="/despesas"
           element={
-            <ProtectedRoute>
+            <RoleGuard allow={["Proprietário", "Gerente"]}>
               <Despesas />
-            </ProtectedRoute>
+            </RoleGuard>
           }
         />
         <Route

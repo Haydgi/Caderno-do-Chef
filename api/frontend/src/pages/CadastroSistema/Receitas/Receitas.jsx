@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalCadastroReceita from '../../../components/Modals/ModalCadastroReceita/ModalCadastroReceita';
 import ModalEditaReceita from '../../../components/Modals/ModalCadastroReceita/ModalEditaReceita';
+import ModalVisualizarReceita from '../../../components/Modals/ModalCadastroReceita/ModalVisualizarReceita';
 import ModelPage from '../ModelPage';
 import { FaTrash } from 'react-icons/fa';
 import { GiKnifeFork } from "react-icons/gi";
@@ -13,6 +14,7 @@ function Receitas() {
   const [receitas, setReceitas] = useState([]);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [mostrarModalVisualizar, setMostrarModalVisualizar] = useState(false);
   const [receitaSelecionada, setReceitaSelecionada] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(8);
   const [termoBusca, setTermoBusca] = useState('');
@@ -295,34 +297,40 @@ function Receitas() {
           className={styles.cardReceita}
           onClick={() => {
             setReceitaSelecionada(receita);
-            setMostrarModalEditar(true);
+            if (role === 'Funcionário') {
+              setMostrarModalVisualizar(true);
+            } else {
+              setMostrarModalEditar(true);
+            }
           }}
           style={{ cursor: "pointer" }}
         >
           {/* Ícone de excluir no canto superior direito */}
-          <i
-            className={styles.Trash}
-            onClick={(e) => {
-              e.stopPropagation();
-              Swal.fire({
-                title: 'Tem certeza?',
-                text: 'Você deseja excluir esta receita?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sim, excluir',
-                cancelButtonText: 'Cancelar',
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  removerReceita(receita.id || receita.ID_Receita);
-                }
-              });
-            }}
-            title="Excluir"
-          >
-            <FaTrash />
-          </i>
+          {role !== 'Funcionário' && (
+            <i
+              className={styles.Trash}
+              onClick={(e) => {
+                e.stopPropagation();
+                Swal.fire({
+                  title: 'Tem certeza?',
+                  text: 'Você deseja excluir esta receita?',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#EF4444',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Sim, excluir',
+                  cancelButtonText: 'Cancelar',
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    removerReceita(receita.id || receita.ID_Receita);
+                  }
+                });
+              }}
+              title="Excluir"
+            >
+              <FaTrash />
+            </i>
+          )}
           {/* Imagem ou Placeholder - NUNCA ambos */}
           {(() => {
             console.log('🔍 Debug Card (renderizando):', {
@@ -443,47 +451,58 @@ function Receitas() {
   }, [receitas, ordenacao, despesas]);
 
   return (
-    <ModelPage
-      titulo="Receitas cadastradas"
-      dados={receitasOrdenadas}
-      termoBusca={termoBusca}
-      setTermoBusca={setTermoBusca}
-      centerPagination={true}
-      ordenacao={ordenacao}
-      setOrdenacao={setOrdenacao}
-      removerItem={removerReceita}
-      abrirModal={() => {
-        if (role === 'Funcionário') {
-          toast.error('Nível de permissão insuficiente');
-          return;
-        }
-        setMostrarModal(true);
-      }}
-      fecharModal={() => setMostrarModal(false)}
-      abrirModalEditar={() => setMostrarModalEditar(true)}
-      fecharModalEditar={() => setMostrarModalEditar(false)}
-      mostrarModal={mostrarModal}
-      mostrarModalEditar={mostrarModalEditar}
-      ModalCadastro={() => (
-        <ModalCadastroReceita
-          onSave={handleSaveReceita}
-          onClose={() => setMostrarModal(false)}
-        />
-      )}
-      ModalEditar={() => (
-        <ModalEditaReceita
+    <>
+      <ModelPage
+        titulo="Receitas cadastradas"
+        dados={receitasOrdenadas}
+        termoBusca={termoBusca}
+        setTermoBusca={setTermoBusca}
+        centerPagination={true}
+        ordenacao={ordenacao}
+        setOrdenacao={setOrdenacao}
+        removerItem={removerReceita}
+        abrirModal={() => {
+          if (role === 'Funcionário') {
+            toast.error('Nível de permissão insuficiente');
+            return;
+          }
+          setMostrarModal(true);
+        }}
+        fecharModal={() => setMostrarModal(false)}
+        abrirModalEditar={() => setMostrarModalEditar(true)}
+        fecharModalEditar={() => setMostrarModalEditar(false)}
+        mostrarModal={mostrarModal}
+        mostrarModalEditar={mostrarModalEditar}
+        desabilitarBotaoAdicionar={role === 'Funcionário'}
+        ModalCadastro={() => (
+          <ModalCadastroReceita
+            onSave={handleSaveReceita}
+            onClose={() => setMostrarModal(false)}
+          />
+        )}
+        ModalEditar={() => (
+          <ModalEditaReceita
+            receita={receitaSelecionada}
+            onSave={handleSaveReceita}
+            onClose={() => {
+              setMostrarModalEditar(false);
+              setReceitaSelecionada(null);
+            }}
+          />
+        )}
+        renderCard={renderCard}
+        itensPorPagina={itensPorPagina}
+      />
+      {mostrarModalVisualizar && (
+        <ModalVisualizarReceita
           receita={receitaSelecionada}
-          onSave={handleSaveReceita}
           onClose={() => {
-            setMostrarModalEditar(false);
+            setMostrarModalVisualizar(false);
             setReceitaSelecionada(null);
           }}
         />
-      )
-      }
-      renderCard={renderCard}
-      itensPorPagina={itensPorPagina}
-    />
+      )}
+    </>
   );
 }
 
