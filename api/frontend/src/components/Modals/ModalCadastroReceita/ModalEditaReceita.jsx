@@ -60,7 +60,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       ID_Receita: receita?.ID_Receita,
       id: receita?.id
     });
-    
+
     if (!receita?.ID_Receita && !receita?.id) {
       console.log('⚠️ Nenhuma receita válida recebida');
       return;
@@ -71,30 +71,30 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
         const token = localStorage.getItem("token");
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         const id = receita.ID_Receita || receita.id;
-        
+
         console.log('🔄 Buscando receita detalhada com ID:', id);
-        
+
         const res = await fetch(`${baseUrl}/api/receita-detalhada/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-        
+
         if (!res.ok) {
           const errorData = await res.json();
           console.error('❌ Erro na resposta da API:', res.status, errorData);
           toast.error(`Erro ao buscar receita: ${errorData.error || 'Erro desconhecido'}`);
           return;
         }
-        
+
         const data = await res.json();
         console.log("✅ Receita detalhada recebida:", data);
         console.log("Campo imagem_URL:", data.imagem_URL);
-        
+
         // Determina a URL da imagem (do endpoint ou da receita passada)
         const imagemUrl = data.imagem_URL || receita?.imagem_URL || receita?.Imagem_URL || null;
         console.log('🇺🇷L da imagem determinada:', imagemUrl);
-        
+
         // Atualize o estado com os dados detalhados
         setForm({
           imagem: imagemUrl, // URL da imagem (string) ou null
@@ -107,7 +107,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
           id: data.ID_Receita || data.id || null,
           imagemRemovida: false, // Reset da flag ao carregar
         });
-        
+
         console.log("Estado do form após carregar:", {
           imagem: imagemUrl,
           temImagem: !!(imagemUrl && imagemUrl.trim() !== ""),
@@ -170,27 +170,27 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
   const handleImageChange = (e) => {
     const arquivo = e.target.files[0];
-    
+
     if (arquivo) {
       // Validações do arquivo
       const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
       const tamanhoMaximo = 5 * 1024 * 1024; // 5MB
-      
+
       if (!tiposPermitidos.includes(arquivo.type)) {
         toast.error(`Formato de imagem não aceito! O arquivo "${arquivo.name}" tem formato ${arquivo.type}. Apenas imagens JPG, PNG e WEBP são permitidas.`);
         e.target.value = ''; // Limpa o input
         return;
       }
-      
+
       if (arquivo.size > tamanhoMaximo) {
         const tamanhoMB = (arquivo.size / (1024 * 1024)).toFixed(1);
         toast.error(`Imagem muito grande! O arquivo "${arquivo.name}" tem ${tamanhoMB}MB. O tamanho máximo permitido é 5MB.`);
         e.target.value = ''; // Limpa o input
         return;
       }
-      
-      setForm((prev) => ({ 
-        ...prev, 
+
+      setForm((prev) => ({
+        ...prev,
         imagem: arquivo,
         imagemRemovida: false // Reset da flag quando nova imagem é selecionada
       }));
@@ -406,7 +406,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       formData.append('Custo_Total_Ingredientes', Number(precoFinal));
       formData.append('Porcentagem_De_Lucro', Number(form.porcentagemDeLucro) || 0);
       formData.append('Categoria', form.categoria || "");
-      
+
       // Controle de imagem
       if (form.imagemRemovida) {
         formData.append('remover_imagem', 'true');
@@ -556,7 +556,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                           'imagemRemovida': form.imagemRemovida,
                           'condicaoString': form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida
                         });
-                        
+
                         if (form.imagem instanceof File) {
                           console.log('✅ Mostrando imagem nova (File)');
                           return (
@@ -609,9 +609,9 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         type="button"
                         className="btn btn-sm btn-outline-danger mt-2 w-100"
                         onClick={() => {
-                          setForm(prev => ({ 
-                            ...prev, 
-                            imagem: null, 
+                          setForm(prev => ({
+                            ...prev,
+                            imagem: null,
                             imagemRemovida: true // Marca que a imagem foi removida
                           }));
                           const input = document.getElementById('imagemInputEdit');
@@ -767,7 +767,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     </div>
                   ))}
                 </div>
-                
+
                 {/* Seção de custos */}
                 <div className="mt-3">
                   <div className="row">

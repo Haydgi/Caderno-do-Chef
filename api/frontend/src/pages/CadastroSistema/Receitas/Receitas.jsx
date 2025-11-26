@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ModalCadastroReceita from '../../../components/Modals/ModalCadastroReceita/ModalCadastroReceita';
 import ModalEditaReceita from '../../../components/Modals/ModalCadastroReceita/ModalEditaReceita';
 import ModelPage from '../ModelPage';
@@ -18,6 +18,7 @@ function Receitas() {
   const [termoBusca, setTermoBusca] = useState('');
   const [isUpdating, setIsUpdating] = useState(false); // Flag para evitar múltiplas atualizações
   const [despesas, setDespesas] = useState([]); // Para cálculo do custo operacional
+  const [ordenacao, setOrdenacao] = useState('nome-asc'); // Ordenação padrão alfabética
 
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const apiUrl = `${baseUrl}/api/receitas`;
@@ -59,7 +60,7 @@ function Receitas() {
 
   const fetchReceitas = async (busca = '') => {
     if (isUpdating) return; // Evita múltiplas chamadas
-    
+
     try {
       setIsUpdating(true);
       const url = busca ? `${apiUrl}?search=${encodeURIComponent(busca)}` : apiUrl;
@@ -94,7 +95,7 @@ function Receitas() {
       setTimeout(() => setIsUpdating(false), 500); // Reset após 500ms
     }
   };
-  
+
   // Buscar despesas para cálculo do custo operacional
   const fetchDespesas = async () => {
     try {
@@ -115,20 +116,20 @@ function Receitas() {
       console.error('Erro ao buscar despesas:', err);
     }
   };
-  
+
   // Funções para cálculo do custo operacional
   const calcularCustoPorMinutoDespesa = (despesa) => {
     const diasNoMes = 30;
     const custoMensal = Number(despesa.Custo_Mensal);
     const tempoDia = Number(despesa.Tempo_Operacional);
-    
+
     if (!custoMensal || !tempoDia) return 0;
-    
+
     const custoDiario = custoMensal / diasNoMes;
     const custoPorHora = custoDiario / tempoDia;
     return custoPorHora / 60;
   };
-  
+
   const calcularCustoOperacionalTotal = (tempoPreparo) => {
     const custoOperacionalPorMinuto = despesas.reduce((total, despesa) => {
       const custoMinuto = calcularCustoPorMinutoDespesa(despesa);
@@ -136,7 +137,7 @@ function Receitas() {
     }, 0);
     return custoOperacionalPorMinuto * Number(tempoPreparo);
   };
-  
+
   // Função wrapper para onSave que evita múltiplas execuções
   const handleSaveReceita = async () => {
     if (!isUpdating) {
@@ -179,12 +180,12 @@ function Receitas() {
 
       await res.json(); // Se precisar validar resposta, salve aqui
       await fetchReceitas(); // Atualiza as receitas na tela
-      
+
       // Limpa completamente os estados para evitar abertura do modal de edição
       setMostrarModal(false);
       setMostrarModalEditar(false);
       setReceitaSelecionada(null);
-      
+
       Swal.fire('Sucesso', 'Receita criada com sucesso!', 'success');
     } catch (error) {
       console.error(error);
@@ -257,28 +258,28 @@ function Receitas() {
     const imagemCampo = receita.imagem_URL || receita.Imagem_URL || receita.imagem || receita.IMAGEM;
     const temImagem = imagemCampo && typeof imagemCampo === 'string' && imagemCampo.trim() !== "";
     const urlImagem = temImagem ? imagemCampo.trim() : null;
-    
+
     // Cálculos de preço (o valor salvo no banco já é o preço final com margem)
     const precoFinalSalvo = Number(receita.Custo_Total_Ingredientes ?? 0);
     const porcentagemLucro = Number(receita.Porcentagem_De_Lucro ?? 0);
     const tempoPreparo = Number(receita.Tempo_Preparo ?? 0);
-    
+
     // Calcular custo operacional
     const custoOperacional = calcularCustoOperacionalTotal(tempoPreparo);
-    
+
     // Reverter o cálculo: preço final = custo total * (1 + margem/100)
     // Logo: custo total = preço final / (1 + margem/100)
     const fatorMargem = 1 + (porcentagemLucro / 100);
     const custoTotalProducao = fatorMargem > 0 ? precoFinalSalvo / fatorMargem : precoFinalSalvo;
-    
+
     // O custo de produção inclui ingredientes + operacional
     const custoProducao = custoTotalProducao;
     const custoComMargem = precoFinalSalvo;
-    
-    console.log('Card debug:', { 
-      imagemCampo, 
-      temImagem, 
-      urlImagem, 
+
+    console.log('Card debug:', {
+      imagemCampo,
+      temImagem,
+      urlImagem,
       receita: receita.Nome_Receita,
       campos_originais: {
         imagem_URL: receita.imagem_URL,
@@ -287,7 +288,7 @@ function Receitas() {
         IMAGEM: receita.IMAGEM
       }
     });
-    
+
     return (
       <div className="col-12 col-sm-6 col-md-4 col-lg-3 mb-4" key={receita.id || receita.ID_Receita}>
         <div
@@ -331,7 +332,7 @@ function Receitas() {
               urlImagem,
               tipoImagemCampo: typeof imagemCampo
             });
-            
+
             if (temImagem) {
               console.log('✅ Card mostrando IMAGEM para:', receita.Nome_Receita);
               return (
@@ -386,15 +387,15 @@ function Receitas() {
           <div className={styles.cardContent}>
             <div>
               <h5 className={`fw-bold ${styles.tituloReceita}`}>{receita.Nome_Receita || "Sem Nome"}</h5>
-              <p className="mb-1 fs-6" style={{margin: '2px 0'}}>{receita.Categoria || "Sem Categoria"}</p>
-              
-              <div className="d-flex justify-content-between fs-6 mb-2" style={{fontSize: '0.85rem'}}>
+              <p className="mb-1 fs-6" style={{ margin: '2px 0' }}>{receita.Categoria || "Sem Categoria"}</p>
+
+              <div className="d-flex justify-content-between fs-6 mb-2" style={{ fontSize: '0.85rem' }}>
                 <span>
-                  <i className="bi bi-clock" style={{marginRight: '4px'}}></i>
+                  <i className="bi bi-clock" style={{ marginRight: '4px' }}></i>
                   {receita.Tempo_Preparo ?? 0} min
                 </span>
                 <span>
-                  <i className="bi bi-currency-dollar" style={{marginRight: '4px'}}></i>
+                  <i className="bi bi-currency-dollar" style={{ marginRight: '4px' }}></i>
                   {receita.Porcentagem_De_Lucro ?? 0}%
                 </span>
               </div>
@@ -402,10 +403,10 @@ function Receitas() {
 
             {/* Preços na parte inferior - formato simples */}
             <div className="d-flex justify-content-between align-items-center mt-auto">
-              <div style={{fontSize: '0.85rem'}}>
+              <div style={{ fontSize: '0.85rem' }}>
                 <div>Custo: R$ {custoProducao.toFixed(2)}</div>
               </div>
-              <div style={{fontSize: '0.9rem', fontWeight: 'bold'}}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
                 <div>Preço: R$ {custoComMargem.toFixed(2)}</div>
               </div>
             </div>
@@ -415,15 +416,41 @@ function Receitas() {
     );
   };
 
+  // Ordenar receitas
+  const receitasOrdenadas = React.useMemo(() => {
+    const lista = [...receitas];
 
+    switch (ordenacao) {
+      case 'nome-asc':
+        return lista.sort((a, b) => (a.Nome_Receita || '').localeCompare(b.Nome_Receita || ''));
+      case 'nome-desc':
+        return lista.sort((a, b) => (b.Nome_Receita || '').localeCompare(a.Nome_Receita || ''));
+      case 'preco-asc':
+        return lista.sort((a, b) => {
+          const precoA = calcularPrecoFinal(a);
+          const precoB = calcularPrecoFinal(b);
+          return precoA - precoB;
+        });
+      case 'preco-desc':
+        return lista.sort((a, b) => {
+          const precoA = calcularPrecoFinal(a);
+          const precoB = calcularPrecoFinal(b);
+          return precoB - precoA;
+        });
+      default:
+        return lista;
+    }
+  }, [receitas, ordenacao, despesas]);
 
   return (
     <ModelPage
       titulo="Receitas cadastradas"
-      dados={receitas}
+      dados={receitasOrdenadas}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
       centerPagination={true}
+      ordenacao={ordenacao}
+      setOrdenacao={setOrdenacao}
       removerItem={removerReceita}
       abrirModal={() => {
         if (role === 'Funcionário') {

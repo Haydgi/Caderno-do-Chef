@@ -23,7 +23,7 @@ function Ingredientes() {
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [ingredienteSelecionado, setIngredienteSelecionado] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(12);
-  const [ordenacao, setOrdenacao] = useState('padrao'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc 
+  const [ordenacao, setOrdenacao] = useState('nome-asc'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc 
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -101,7 +101,7 @@ function Ingredientes() {
   // Função para ordenar ingredientes
   const ingredientesOrdenados = React.useMemo(() => {
     const lista = [...ingredientes];
-    
+
     switch (ordenacao) {
       case 'nome-asc':
         return lista.sort((a, b) => a.nome.localeCompare(b.nome));

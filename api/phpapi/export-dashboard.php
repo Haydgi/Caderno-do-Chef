@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $isCli = PHP_SAPI === 'cli';
@@ -37,7 +38,7 @@ function respondError(string $message, int $statusCode = 500): void
 function formatDateTimeLabel(?string $value): string
 {
     $timezone = new DateTimeZone('America/Sao_Paulo');
-    
+
     if (empty($value)) {
         return (new DateTime('now', $timezone))->format('d/m/Y H:i:s');
     }

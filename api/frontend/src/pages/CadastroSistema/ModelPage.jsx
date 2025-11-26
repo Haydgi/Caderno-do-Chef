@@ -26,10 +26,13 @@ function ModelPage({
   enableMobileTabs = false,
   mobileTabs = [],
   activeMobileTab = 0,
-  setActiveMobileTab = () => {},
+  setActiveMobileTab = () => { },
   // Props para ordenação
   ordenacao,
   setOrdenacao,
+  // Props para filtro de tipo (usado em Despesas)
+  filtroTipo,
+  setFiltroTipo,
   // Props para alinhamento da paginação
   centerPagination = false,
 }) {
@@ -38,38 +41,25 @@ function ModelPage({
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const [isMobileTab, setIsMobileTab] = useState(window.innerWidth < 768);
   const floatingSearchRef = useRef(null);
-  const prevTotalPaginas = useRef(0);
 
 
   const totalPaginas = Math.ceil(dados.length / itensPorPagina);
 
   useEffect(() => {
     document.body.classList.add('produtos-page');
+    // Reset para página 1 ao montar o componente (navegar para a página)
+    setPaginaAtual(0);
     return () => {
       document.body.classList.remove('produtos-page');
     };
   }, []);
 
   useEffect(() => {
-    // Só muda a página se realmente há novos dados
-    if (totalPaginas > prevTotalPaginas.current && dados.length > 0) {
-      setPaginaAtual(Math.max(0, totalPaginas - 1));
-    }
-    prevTotalPaginas.current = totalPaginas;
-  }, [dados, totalPaginas]);
-
-  useEffect(() => {
+    // Ajusta página atual se ultrapassar o total de páginas
     if (paginaAtual >= totalPaginas && totalPaginas > 0) {
       setPaginaAtual(totalPaginas - 1);
     }
   }, [paginaAtual, totalPaginas]);
-
-  // Reset página para 0 quando dados mudarem drasticamente
-  useEffect(() => {
-    if (dados.length > 0 && paginaAtual >= Math.ceil(dados.length / itensPorPagina)) {
-      setPaginaAtual(0);
-    }
-  }, [dados.length, itensPorPagina]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -152,21 +142,56 @@ function ModelPage({
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                     title="Ordenar"
+                    style={{ margin: '8px' }}
                   >
                     <i className="bi bi-filter"></i>
                   </button>
                   <ul className="dropdown-menu dropdown-menu-end">
+                    {/* Filtro por tipo (apenas para Despesas) */}
+                    {setFiltroTipo && (
+                      <>
+                        <li className="dropdown-header">Filtrar por Tipo</li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'todos' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('todos')}
+                          >
+                            <i className="bi bi-list-ul me-2"></i>Todos
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'despesas' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('despesas')}
+                          >
+                            <i className="bi bi-receipt me-2"></i>Apenas Despesas
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'impostos' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('impostos')}
+                          >
+                            <i className="bi bi-percent me-2"></i>Apenas Impostos
+                          </button>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                      </>
+                    )}
+
+                    {/* Ordenação */}
+                    <li className="dropdown-header">Ordenar</li>
                     <li>
-                      <button 
+                      <button
                         className={`dropdown-item ${ordenacao === 'padrao' ? 'active' : ''}`}
                         onClick={() => setOrdenacao('padrao')}
                       >
-                        <i className="bi bi-list-ul me-2"></i>Padrão
+                        <i className="bi bi-clock-history me-2"></i>Último Cadastrado
                       </button>
                     </li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button 
+                      <button
                         className={`dropdown-item ${ordenacao === 'nome-asc' ? 'active' : ''}`}
                         onClick={() => setOrdenacao('nome-asc')}
                       >
@@ -174,7 +199,7 @@ function ModelPage({
                       </button>
                     </li>
                     <li>
-                      <button 
+                      <button
                         className={`dropdown-item ${ordenacao === 'nome-desc' ? 'active' : ''}`}
                         onClick={() => setOrdenacao('nome-desc')}
                       >
@@ -183,7 +208,7 @@ function ModelPage({
                     </li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button 
+                      <button
                         className={`dropdown-item ${ordenacao === 'preco-asc' ? 'active' : ''}`}
                         onClick={() => setOrdenacao('preco-asc')}
                       >
@@ -191,7 +216,7 @@ function ModelPage({
                       </button>
                     </li>
                     <li>
-                      <button 
+                      <button
                         className={`dropdown-item ${ordenacao === 'preco-desc' ? 'active' : ''}`}
                         onClick={() => setOrdenacao('preco-desc')}
                       >

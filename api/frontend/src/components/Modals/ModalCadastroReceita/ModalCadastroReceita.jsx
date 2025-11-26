@@ -65,18 +65,18 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
 
 
- const handleImageChange = (e) => {
-  const arquivo = e.target.files[0];
-  if (arquivo) {
-    // Cria URL temporária para preview
-    const previewUrl = URL.createObjectURL(arquivo);
-    setForm(prev => ({
-      ...prev,
-      imagem_URL: arquivo,
-      imagem_preview: previewUrl,  // armazena a url para preview
-    }));
-  }
-};
+  const handleImageChange = (e) => {
+    const arquivo = e.target.files[0];
+    if (arquivo) {
+      // Cria URL temporária para preview
+      const previewUrl = URL.createObjectURL(arquivo);
+      setForm(prev => ({
+        ...prev,
+        imagem_URL: arquivo,
+        imagem_preview: previewUrl,  // armazena a url para preview
+      }));
+    }
+  };
 
   const handleSelectIngrediente = (ingrediente) => {
     setIngredientesSelecionados((prev) => [
@@ -139,126 +139,126 @@ function ModalCadastroReceita({ onClose, onSave, }) {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  console.log("==== Ingredientes selecionados ====");
-  console.table(ingredientesSelecionados);
-  console.log("==== Despesas carregadas do banco ====");
-  console.table(despesas);
+    console.log("==== Ingredientes selecionados ====");
+    console.table(ingredientesSelecionados);
+    console.log("==== Despesas carregadas do banco ====");
+    console.table(despesas);
 
-  // Log detalhado do cálculo dos ingredientes com desperdício
-  ingredientesSelecionados.forEach((ing, idx) => {
-    const custoCalculado = calcularCustoIngrediente(
-      ing.quantidade,
-      ing.quantidade_total,
-      ing.custo_ingrediente,
-      ing.Indice_de_Desperdicio
-    );
-    console.log(
-      `Ingrediente #${idx + 1}:`,
-      `Nome: ${ing.nome}`,
-      `Qtd usada: ${ing.quantidade}`,
-      `Qtd total: ${ing.quantidade_total}`,
-      `Custo ingrediente: ${ing.custo_ingrediente}`,
-      `Índice de desperdício: ${ing.Indice_de_Desperdicio || 0}%`,
-      `Custo calculado: ${custoCalculado}`
-    );
-  });
-
-  despesas.forEach((desp, idx) => {
-    const custoMinuto = calcularCustoPorMinutoDespesa(desp);
-    console.log(
-      `Despesa #${idx + 1}:`,
-      `Nome: ${desp.Nome_Despesa}`,
-      `Custo mensal: ${desp.Custo_Mensal}`,
-      `Tempo operacional: ${desp.Tempo_Operacional}`,
-      `Custo por minuto: ${custoMinuto}`
-    );
-  });
-
-  const tempo_preparo_min = Number(form.Tempo_Preparo);
-
-  const resultado = calcularCustoTotalReceita({
-    ingredientes: ingredientesSelecionados.map(i => ({
-      ...i,
-      custo_calculado: calcularCustoIngrediente(
-        i.quantidade,
-        i.quantidade_total,
-        i.custo_ingrediente,
-        i.Indice_de_Desperdicio // <-- agora aplicado corretamente!
-      )
-    })),
-    tempo_preparo_min,
-    despesas
-  });
-
-  console.log("==== Resultado final do cálculo ====");
-  console.log("Custo ingredientes:", resultado.custoIngredientes);
-  console.log("Custo operacional:", resultado.custoOperacionalReceita);
-  console.log("Custo total:", resultado.custoTotal);
-
-  const precoFinal = calcularPrecoFinalComLucro(resultado.custoTotal, form.Porcentagem_De_Lucro);
-  console.log("Preço final com lucro:", precoFinal);
-
-  try {
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append('Nome_Receita', form.Nome_Receita || "");
-    formData.append('Descricao', form.Descricao || "");
-    formData.append('Tempo_Preparo', form.Tempo_Preparo || 0);
-    formData.append('Custo_Total_Ingredientes', precoFinal); // com desperdício
-    formData.append('Porcentagem_De_Lucro', form.Porcentagem_De_Lucro || 0);
-    formData.append('Categoria', form.Categoria || "");
-    if (form.imagem_URL && form.imagem_URL instanceof File) {
-      formData.append('imagem_URL', form.imagem_URL);
-    }
-      // ADICIONE NA LINHA 214:
-
-    formData.append('ingredientes', JSON.stringify(
-      ingredientesSelecionados.map(i => ({
-        ID_Ingredientes: Number(i.ID_Ingredientes ?? i.id_ingrediente ?? i.id),
-        Quantidade_Utilizada: Number(i.Quantidade_Utilizada ?? i.quantidade),
-        Unidade_De_Medida: i.Unidade_De_Medida ?? i.unidade ?? ""
-      }))
-    ));
-
-    // Log dos dados enviados
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
-    }
-
-    const response = await fetch("http://localhost:3001/api/receitas", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-      body: formData,
+    // Log detalhado do cálculo dos ingredientes com desperdício
+    ingredientesSelecionados.forEach((ing, idx) => {
+      const custoCalculado = calcularCustoIngrediente(
+        ing.quantidade,
+        ing.quantidade_total,
+        ing.custo_ingrediente,
+        ing.Indice_de_Desperdicio
+      );
+      console.log(
+        `Ingrediente #${idx + 1}:`,
+        `Nome: ${ing.nome}`,
+        `Qtd usada: ${ing.quantidade}`,
+        `Qtd total: ${ing.quantidade_total}`,
+        `Custo ingrediente: ${ing.custo_ingrediente}`,
+        `Índice de desperdício: ${ing.Indice_de_Desperdicio || 0}%`,
+        `Custo calculado: ${custoCalculado}`
+      );
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ Erro do servidor:", errorData);
-      toast.error(errorData.error || "Erro ao salvar receita");
-      return;
-    }
+    despesas.forEach((desp, idx) => {
+      const custoMinuto = calcularCustoPorMinutoDespesa(desp);
+      console.log(
+        `Despesa #${idx + 1}:`,
+        `Nome: ${desp.Nome_Despesa}`,
+        `Custo mensal: ${desp.Custo_Mensal}`,
+        `Tempo operacional: ${desp.Tempo_Operacional}`,
+        `Custo por minuto: ${custoMinuto}`
+      );
+    });
 
-    const result = await response.json();
-    console.log("✅ Receita salva com sucesso:", result);
-    
-    toast.success("Receita cadastrada com sucesso!");
-    onSave();
-    onClose();
-  } catch (err) {
-    if (err.response) {
-      const errorText = await err.response.text();
-      console.error("❌ Erro ao salvar receita:", errorText);
-    } else {
-      console.error("❌ Erro ao salvar receita:", err.message);
+    const tempo_preparo_min = Number(form.Tempo_Preparo);
+
+    const resultado = calcularCustoTotalReceita({
+      ingredientes: ingredientesSelecionados.map(i => ({
+        ...i,
+        custo_calculado: calcularCustoIngrediente(
+          i.quantidade,
+          i.quantidade_total,
+          i.custo_ingrediente,
+          i.Indice_de_Desperdicio // <-- agora aplicado corretamente!
+        )
+      })),
+      tempo_preparo_min,
+      despesas
+    });
+
+    console.log("==== Resultado final do cálculo ====");
+    console.log("Custo ingredientes:", resultado.custoIngredientes);
+    console.log("Custo operacional:", resultado.custoOperacionalReceita);
+    console.log("Custo total:", resultado.custoTotal);
+
+    const precoFinal = calcularPrecoFinalComLucro(resultado.custoTotal, form.Porcentagem_De_Lucro);
+    console.log("Preço final com lucro:", precoFinal);
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append('Nome_Receita', form.Nome_Receita || "");
+      formData.append('Descricao', form.Descricao || "");
+      formData.append('Tempo_Preparo', form.Tempo_Preparo || 0);
+      formData.append('Custo_Total_Ingredientes', precoFinal); // com desperdício
+      formData.append('Porcentagem_De_Lucro', form.Porcentagem_De_Lucro || 0);
+      formData.append('Categoria', form.Categoria || "");
+      if (form.imagem_URL && form.imagem_URL instanceof File) {
+        formData.append('imagem_URL', form.imagem_URL);
+      }
+      // ADICIONE NA LINHA 214:
+
+      formData.append('ingredientes', JSON.stringify(
+        ingredientesSelecionados.map(i => ({
+          ID_Ingredientes: Number(i.ID_Ingredientes ?? i.id_ingrediente ?? i.id),
+          Quantidade_Utilizada: Number(i.Quantidade_Utilizada ?? i.quantidade),
+          Unidade_De_Medida: i.Unidade_De_Medida ?? i.unidade ?? ""
+        }))
+      ));
+
+      // Log dos dados enviados
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+
+      const response = await fetch("http://localhost:3001/api/receitas", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Erro do servidor:", errorData);
+        toast.error(errorData.error || "Erro ao salvar receita");
+        return;
+      }
+
+      const result = await response.json();
+      console.log("✅ Receita salva com sucesso:", result);
+
+      toast.success("Receita cadastrada com sucesso!");
+      onSave();
+      onClose();
+    } catch (err) {
+      if (err.response) {
+        const errorText = await err.response.text();
+        console.error("❌ Erro ao salvar receita:", errorText);
+      } else {
+        console.error("❌ Erro ao salvar receita:", err.message);
+      }
+      toast.error("Erro ao salvar receita");
     }
-    toast.error("Erro ao salvar receita");
-  }
-};
+  };
 
   const buscarIngredientesDoBanco = async () => {
     try {
@@ -308,11 +308,6 @@ const handleSubmit = async (e) => {
           ),
         Indice_de_Desperdicio: i.Indice_de_Desperdicio ?? 0, // <-- aqui!
       }));
-      console.log("=== Total de ingredientes carregados ===", ingredientesMapeados.length);
-      const fermIngredientes = ingredientesMapeados.filter(i => i.nome.toLowerCase().includes('ferm'));
-      console.log("=== Ingredientes que contém 'Ferm' ===", fermIngredientes);
-      console.log("=== Detalhes do Fermento ===", fermIngredientes[0]);
-      console.log("=== Todos os ingredientes (primeiros 5) ===", ingredientesMapeados.slice(0, 5));
       setIngredientesBanco(ingredientesMapeados); // <- referência fixa
       setIngredientesDisponiveis(ingredientesMapeados); // <- para busca/sugestão
     } catch (err) {
@@ -500,7 +495,7 @@ const handleSubmit = async (e) => {
                       style={{ display: 'none' }}
                     />
                   </div>
-                  
+
                   {/* Tempo de Preparo */}
                   <div className={`${styles.formGroup} mt-4`}>
                     <label>Tempo de Preparo (Min.)</label>
