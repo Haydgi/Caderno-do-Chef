@@ -38,7 +38,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       try {
         const token = localStorage.getItem("token");
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-        const res = await fetch(`${baseUrl}/api/ingredientes`, {
+        const res = await fetch(`${baseUrl}/api/ingredientes?limit=1000`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -706,7 +706,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     onFocus={async () => {
                       try {
                         const token = localStorage.getItem("token");
-                        const res = await fetch("http://localhost:3001/api/ingredientes", {
+                        const res = await fetch("http://localhost:3001/api/ingredientes?limit=1000", {
                           headers: {
                             "Authorization": `Bearer ${token}`,
                           },

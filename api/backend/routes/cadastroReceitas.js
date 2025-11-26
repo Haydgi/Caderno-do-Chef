@@ -199,6 +199,7 @@ router.get('/', async (req, res) => {
 router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.user.ID_Usuario;
+  const userRole = req.user.role;
   const idNum = Number(id);
 
   if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: MSGS.idInvalido });
@@ -207,7 +208,11 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
     const [rows] = await db.query(`SELECT ID_Usuario, imagem_URL FROM receitas WHERE ID_Receita = ?`, [idNum]);
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.receitaNaoEncontrada });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
+    
+    // Proprietário pode excluir qualquer receita; Gerente só pode excluir suas próprias
+    if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
+      return res.status(403).json({ error: MSGS.naoAutorizado });
+    }
 
     if (rows[0].imagem_URL) {
       const caminhoImagem = path.join(__dirname, '../uploads', rows[0].imagem_URL);
@@ -235,6 +240,7 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
 router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.user.ID_Usuario;
+  const userRole = req.user.role;
   const idNum = Number(id);
 
   if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: "ID inválido." });
@@ -291,7 +297,11 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
       const [rows] = await db.query(`SELECT ID_Usuario, imagem_URL FROM receitas WHERE ID_Receita = ?`, [idNum]);
 
       if (rows.length === 0) return res.status(404).json({ error: "Receita não encontrada." });
-      if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: "Não autorizado." });
+      
+      // Proprietário pode editar qualquer receita; Gerente só pode editar suas próprias
+      if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
+        return res.status(403).json({ error: "Não autorizado." });
+      }
 
       let imagem_URL = rows[0].imagem_URL || '';
 

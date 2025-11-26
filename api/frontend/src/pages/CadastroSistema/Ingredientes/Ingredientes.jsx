@@ -22,7 +22,8 @@ function Ingredientes() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [ingredienteSelecionado, setIngredienteSelecionado] = useState(null);
-  const [itensPorPagina, setItensPorPagina] = useState(12); 
+  const [itensPorPagina, setItensPorPagina] = useState(12);
+  const [ordenacao, setOrdenacao] = useState('padrao'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc 
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -96,6 +97,24 @@ function Ingredientes() {
   useEffect(() => {
     fetchIngredientes(termoBusca);
   }, [API_URL, termoBusca]);
+
+  // Função para ordenar ingredientes
+  const ingredientesOrdenados = React.useMemo(() => {
+    const lista = [...ingredientes];
+    
+    switch (ordenacao) {
+      case 'nome-asc':
+        return lista.sort((a, b) => a.nome.localeCompare(b.nome));
+      case 'nome-desc':
+        return lista.sort((a, b) => b.nome.localeCompare(a.nome));
+      case 'preco-asc':
+        return lista.sort((a, b) => (a.preco || 0) - (b.preco || 0));
+      case 'preco-desc':
+        return lista.sort((a, b) => (b.preco || 0) - (a.preco || 0));
+      default:
+        return lista; // mantém ordem original do banco
+    }
+  }, [ingredientes, ordenacao]);
 
   const salvarIngrediente = async (novoIngrediente) => {
     // Faz apenas o POST para criar novo ingrediente
@@ -237,7 +256,9 @@ function Ingredientes() {
   return (
     <ModelPage
       titulo="Ingredientes cadastrados"
-      dados={ingredientes}
+      dados={ingredientesOrdenados}
+      ordenacao={ordenacao}
+      setOrdenacao={setOrdenacao}
       salvarItem={salvarIngrediente}
       removerItem={removerIngrediente}
       abrirModal={() => setMostrarModal(true)}

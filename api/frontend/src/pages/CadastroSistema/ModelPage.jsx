@@ -27,6 +27,9 @@ function ModelPage({
   mobileTabs = [],
   activeMobileTab = 0,
   setActiveMobileTab = () => {},
+  // Props para ordenação
+  ordenacao,
+  setOrdenacao,
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -120,7 +123,7 @@ function ModelPage({
           {/* Título e barra de pesquisa/botão na mesma linha */}
           <div className="d-flex align-items-center justify-content-between mb-3">
             <h2 className={`${styles.title}`}>{titulo}</h2>
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center gap-2">
               {isMobile ? (
                 <button
                   className={`${styles.searchButton}`}
@@ -137,6 +140,63 @@ function ModelPage({
                     value={termoBusca}
                     onChange={(e) => setTermoBusca(e.target.value)}
                   />
+                </div>
+              )}
+              {setOrdenacao && (
+                <div className="dropdown">
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    title="Ordenar"
+                  >
+                    <i className="bi bi-filter"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button 
+                        className={`dropdown-item ${ordenacao === 'padrao' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('padrao')}
+                      >
+                        <i className="bi bi-list-ul me-2"></i>Padrão
+                      </button>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button 
+                        className={`dropdown-item ${ordenacao === 'nome-asc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('nome-asc')}
+                      >
+                        <i className="bi bi-sort-alpha-down me-2"></i>Nome (A-Z)
+                      </button>
+                    </li>
+                    <li>
+                      <button 
+                        className={`dropdown-item ${ordenacao === 'nome-desc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('nome-desc')}
+                      >
+                        <i className="bi bi-sort-alpha-up me-2"></i>Nome (Z-A)
+                      </button>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button 
+                        className={`dropdown-item ${ordenacao === 'preco-asc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('preco-asc')}
+                      >
+                        <i className="bi bi-sort-numeric-down me-2"></i>Menor Preço
+                      </button>
+                    </li>
+                    <li>
+                      <button 
+                        className={`dropdown-item ${ordenacao === 'preco-desc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('preco-desc')}
+                      >
+                        <i className="bi bi-sort-numeric-up me-2"></i>Maior Preço
+                      </button>
+                    </li>
+                  </ul>
                 </div>
               )}
               <button

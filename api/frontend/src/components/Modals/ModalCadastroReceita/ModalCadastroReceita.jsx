@@ -263,7 +263,7 @@ const handleSubmit = async (e) => {
   const buscarIngredientesDoBanco = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/ingredientes", {
+      const response = await fetch("http://localhost:3001/api/ingredientes?limit=1000", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -308,9 +308,15 @@ const handleSubmit = async (e) => {
           ),
         Indice_de_Desperdicio: i.Indice_de_Desperdicio ?? 0, // <-- aqui!
       }));
+      console.log("=== Total de ingredientes carregados ===", ingredientesMapeados.length);
+      const fermIngredientes = ingredientesMapeados.filter(i => i.nome.toLowerCase().includes('ferm'));
+      console.log("=== Ingredientes que contém 'Ferm' ===", fermIngredientes);
+      console.log("=== Detalhes do Fermento ===", fermIngredientes[0]);
+      console.log("=== Todos os ingredientes (primeiros 5) ===", ingredientesMapeados.slice(0, 5));
       setIngredientesBanco(ingredientesMapeados); // <- referência fixa
       setIngredientesDisponiveis(ingredientesMapeados); // <- para busca/sugestão
     } catch (err) {
+      console.error("Erro ao buscar ingredientes:", err);
       toast.error("Erro ao buscar ingredientes");
     }
   };

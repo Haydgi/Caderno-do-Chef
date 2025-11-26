@@ -235,6 +235,11 @@ function Receitas() {
         }
       });
 
+      if (res.status === 403) {
+        Swal.fire('Acesso Negado', 'Apenas Gerentes e Proprietários podem excluir receitas.', 'warning');
+        return;
+      }
+
       if (!res.ok) throw new Error('Erro ao excluir receita');
       setReceitas(prev => prev.filter(r => r.id !== id));
       Swal.fire('Excluído!', 'A receita foi removida.', 'success');
