@@ -23,7 +23,7 @@ export default async function auth(req, res, next) {
       try {
         // Buscar o papel do usuário no banco de dados
         const [usuarios] = await db.query(
-          'SELECT tipo_usuario FROM usuario WHERE ID_Usuario = ?',
+          'SELECT Tipo_Usuario FROM usuario WHERE ID_Usuario = ?',
           [decoded.ID_Usuario]
         );
 
@@ -34,7 +34,7 @@ export default async function auth(req, res, next) {
         // Anexa dados do usuário para uso posterior nas rotas
         req.user = {
           ...decoded,
-          role: usuarios[0].tipo_usuario
+          role: usuarios[0].Tipo_Usuario
         };
         
         return next();

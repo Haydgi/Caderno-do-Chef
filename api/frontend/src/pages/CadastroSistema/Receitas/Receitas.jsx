@@ -21,6 +21,7 @@ function Receitas() {
   const [isUpdating, setIsUpdating] = useState(false); // Flag para evitar múltiplas atualizações
   const [despesas, setDespesas] = useState([]); // Para cálculo do custo operacional
   const [ordenacao, setOrdenacao] = useState('nome-asc'); // Ordenação padrão alfabética
+  const [filtroCategoria, setFiltroCategoria] = useState('todas'); // Filtro de categoria
 
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
   const apiUrl = `${baseUrl}/api/receitas`;
@@ -424,9 +425,34 @@ function Receitas() {
     );
   };
 
-  // Ordenar receitas
+  // Extrair categorias únicas das receitas cadastradas
+  const categorias = React.useMemo(() => {
+    const categoriasUnicas = [...new Set(receitas.map(r => r.Categoria).filter(Boolean))];
+    return categoriasUnicas.sort();
+  }, [receitas]);
+
+  // Calcular preço final da receita (custo ingredientes + custo operacional + lucro)
+  const calcularPrecoFinal = (receita) => {
+    const custoIngredientes = Number(receita.Custo_Total_Ingredientes) || 0;
+    const tempoPreparo = Number(receita.Tempo_Preparo) || 0;
+    const porcentagemLucro = Number(receita.Porcentagem_De_Lucro) || 0;
+    
+    // Custo operacional baseado no tempo de preparo
+    const custoOperacional = calcularCustoOperacionalTotal(tempoPreparo);
+    
+    // Custo total
+    const custoTotal = custoIngredientes + custoOperacional;
+    
+    // Preço final com margem de lucro
+    return custoTotal * (1 + porcentagemLucro / 100);
+  };
+
+  // Filtrar e ordenar receitas
   const receitasOrdenadas = React.useMemo(() => {
-    const lista = [...receitas];
+    // Primeiro filtra por categoria
+    let lista = filtroCategoria === 'todas' 
+      ? [...receitas] 
+      : receitas.filter(r => r.Categoria === filtroCategoria);
 
     switch (ordenacao) {
       case 'nome-asc':
@@ -448,7 +474,7 @@ function Receitas() {
       default:
         return lista;
     }
-  }, [receitas, ordenacao, despesas]);
+  }, [receitas, ordenacao, despesas, filtroCategoria]);
 
   return (
     <>
@@ -460,6 +486,9 @@ function Receitas() {
         centerPagination={true}
         ordenacao={ordenacao}
         setOrdenacao={setOrdenacao}
+        filtroCategoria={filtroCategoria}
+        setFiltroCategoria={setFiltroCategoria}
+        categorias={categorias}
         removerItem={removerReceita}
         abrirModal={() => {
           if (role === 'Funcionário') {

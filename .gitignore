@@ -1,8 +1,8 @@
-# Dependências
+# dependencies
 node_modules/
 vendor/
 
-# Arquivos de ambiente
+# aquino de ambient
 .env.local
 .env.production.local
 
@@ -10,7 +10,7 @@ vendor/
 *.log
 logs/
 
-# Arquivos temporários de teste
+# aquino temporaries de test
 temp/
 **/temp/
 test-*.pdf
@@ -18,11 +18,11 @@ test-*.php
 test-api.js
 **/test-output.*
 
-# Uploads de usuários
+# Uploads de usurious
 uploads/
 **/uploads/
 
-# Arquivos de build
+# aquino de build
 build/
 dist/
 
@@ -30,7 +30,7 @@ dist/
 .cache/
 *.tmp
 
-# Sistema operacional
+# Sistema operation
 .DS_Store
 Thumbs.db
 
@@ -40,5 +40,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# Documentação WARP (não versionar)
+# documentable WARP (não versioner)
 WARP.md

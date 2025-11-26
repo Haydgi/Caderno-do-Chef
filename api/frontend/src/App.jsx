@@ -17,6 +17,7 @@ import ExpiredLink from "./features/Auth/ExpiredLink/ExpiredLink";
 import SuccessfullPasswordChange from "./features/Auth/SuccessfullPasswordChange/SuccessfullPasswordChange";
 import RoleGuard from "./features/Auth/RoleGuard";
 import Usuarios from "./pages/Usuarios/Usuarios";
+import ImportExportButton from "./components/ImportExport/ImportExportButton";
 
 const isTokenValid = () => {
   const t = localStorage.getItem("token");
@@ -64,6 +65,8 @@ function App() {
         theme="colored"
       />
 
+      {isTokenValid() && <ImportExportButton />}
+
       <Routes>
         {/* use isTokenValid() here to decide redirect (do not rely solely on logado state) */}
         <Route
@@ -74,7 +77,7 @@ function App() {
         <Route path="/sign-up" element={<Cadastro />} />
         <Route path="/" element={<Home />} />
         <Route path="/forgot-password-email" element={<EsqueciSenha />} />
-        <Route path="/forgot-password" element={<RedefinirSenha />} />
+        <Route path="/reset-password" element={<RedefinirSenha />} />
         <Route path="/auth" element={<AuthUser />} />
         <Route path="/expired-link" element={<ExpiredLink />} />
         <Route path="/password-changed-successfully" element={<SuccessfullPasswordChange />} />

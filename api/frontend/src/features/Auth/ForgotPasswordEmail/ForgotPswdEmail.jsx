@@ -3,31 +3,54 @@ import "../globalAuth.css";
 import styles from "./ForgotPswdEmail.module.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { toast } from "react-toastify"; // ✅ import toast
+import { toast } from "react-toastify";
+import axios from "axios";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [mostrarErroEmail, setMostrarErroEmail] = useState(false); // controla borda e asterisco
+  const [mostrarErroEmail, setMostrarErroEmail] = useState(false);
+  const [carregando, setCarregando] = useState(false);
 
   const handleVoltarParaTelaInicial = () => {
     navigate('/sign-in');
   };
 
-  const handleCadastro = (e) => {
+  const handleCadastro = async (e) => {
     e.preventDefault();
 
     if (!email.includes("@")) {
-      setMostrarErroEmail(true);          // ativa erro visual no input
-      setMensagem("");                     // não mostra mensagem de sucesso
-      toast.error("Por favor, insira um e-mail válido."); // 🔴 toast de erro
+      setMostrarErroEmail(true);
+      setMensagem("");
+      toast.error("Por favor, insira um e-mail válido.");
       return;
     }
 
-    setMensagem("Verifique seu email. Um link para redefinir sua senha foi enviado.");
-    setMostrarErroEmail(false);            // tudo certo
-    toast.success("Verifique seu e-mail para redefinir a senha."); // 🟢 toast de sucesso
+    setCarregando(true);
+
+    try {
+      const response = await axios.post('http://localhost:3001/api/recuperar-senha', {
+        email: email
+      });
+
+      setMensagem(response.data.mensagem || "Verifique seu email. Um link para redefinir sua senha foi enviado.");
+      setMostrarErroEmail(false);
+      toast.success("Verifique seu e-mail para redefinir a senha.");
+    } catch (error) {
+      console.error('Erro ao solicitar recuperação:', error);
+      
+      if (error.response?.status === 429) {
+        toast.error("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
+      } else {
+        // Por segurança, sempre mostramos mensagem genérica
+        setMensagem("Se o email existir em nossa base, você receberá instruções de recuperação.");
+        toast.info("Verifique seu email se estiver cadastrado.");
+      }
+      setMostrarErroEmail(false);
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const handleEmailChange = (valor) => {
@@ -78,8 +101,12 @@ export default function ForgotPassword() {
             </div>
 
             <div className={styles.buttonContainer}>
-              <button className={`${styles.btnDetails} btnUltraViolet`} type="submit">
-                Enviar
+              <button 
+                className={`${styles.btnDetails} btnUltraViolet`} 
+                type="submit"
+                disabled={carregando}
+              >
+                {carregando ? "Enviando..." : "Enviar"}
               </button>
             </div>
           </form>

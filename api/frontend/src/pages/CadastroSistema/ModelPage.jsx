@@ -33,6 +33,10 @@ function ModelPage({
   // Props para filtro de tipo (usado em Despesas)
   filtroTipo,
   setFiltroTipo,
+  // Props para filtro de categoria (usado em Receitas)
+  filtroCategoria,
+  setFiltroCategoria,
+  categorias = [],
   // Props para alinhamento da paginação
   centerPagination = false,
   // Props para desabilitar botão adicionar
@@ -139,16 +143,21 @@ function ModelPage({
               {setOrdenacao && (
                 <div className="dropdown">
                   <button
-                    className="btn btn-outline-secondary"
+                    className="btn btn-outline-secondary position-relative"
                     type="button"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
-                    title="Ordenar"
+                    title="Ordenar e Filtrar"
                     style={{ margin: '8px' }}
                   >
                     <i className="bi bi-filter"></i>
+                    {filtroCategoria && filtroCategoria !== 'todas' && (
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style={{ fontSize: '0.65rem' }}>
+                        1
+                      </span>
+                    )}
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end">
+                  <ul className="dropdown-menu dropdown-menu-end" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                     {/* Filtro por tipo (apenas para Despesas) */}
                     {setFiltroTipo && (
                       <>
@@ -225,6 +234,30 @@ function ModelPage({
                         <i className="bi bi-sort-numeric-up me-2"></i>Maior Preço
                       </button>
                     </li>
+                    {categorias && categorias.length > 0 && (
+                      <>
+                        <li><hr className="dropdown-divider" /></li>
+                        <li className="dropdown-header">Filtrar por Categoria</li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroCategoria === 'todas' ? 'active' : ''}`}
+                            onClick={() => setFiltroCategoria('todas')}
+                          >
+                            <i className="bi bi-grid-3x3-gap me-2"></i>Todas as Categorias
+                          </button>
+                        </li>
+                        {categorias.map((cat) => (
+                          <li key={cat}>
+                            <button
+                              className={`dropdown-item ${filtroCategoria === cat ? 'active' : ''}`}
+                              onClick={() => setFiltroCategoria(cat)}
+                            >
+                              <i className="bi bi-tag me-2"></i>{cat}
+                            </button>
+                          </li>
+                        ))}
+                      </>
+                    )}
                   </ul>
                 </div>
               )}

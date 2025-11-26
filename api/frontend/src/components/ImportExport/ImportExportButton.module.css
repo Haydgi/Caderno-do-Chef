@@ -1,0 +1,178 @@
+.container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.mainButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.mainButton:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.mainButton:active {
+  transform: scale(0.95);
+}
+
+.mainButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.menu {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 260px;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.menuSection {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.menuSection:last-of-type {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menuItem {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.menuItem:hover {
+  background: #f8f9fa;
+  color: #667eea;
+}
+
+.menuItem i {
+  font-size: 18px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuFooter {
+  padding: 10px 16px;
+  background: #f8f9fa;
+  text-align: center;
+}
+
+.menuFooter small {
+  color: #999;
+  font-size: 11px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .container {
+    top: 15px;
+    left: 15px;
+  }
+
+  .mainButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .menu {
+    min-width: 240px;
+  }
+}
