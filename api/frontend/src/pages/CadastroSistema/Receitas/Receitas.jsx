@@ -423,6 +423,7 @@ function Receitas() {
       dados={receitas}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
+      centerPagination={true}
       removerItem={removerReceita}
       abrirModal={() => {
         if (role === 'Funcionário') {

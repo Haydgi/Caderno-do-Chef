@@ -30,6 +30,8 @@ function ModelPage({
   // Props para ordenação
   ordenacao,
   setOrdenacao,
+  // Props para alinhamento da paginação
+  centerPagination = false,
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -366,7 +368,7 @@ function ModelPage({
                 pageCount={totalPaginas}
                 onPageChange={mudarPagina}
                 forcePage={paginaAtual}
-                containerClassName={styles.pagination}
+                containerClassName={centerPagination ? styles.paginationCentered : styles.pagination}
                 activeClassName={styles.active}
                 pageClassName={styles.pageItem}
                 pageLinkClassName={styles.pageLink}

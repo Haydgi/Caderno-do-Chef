@@ -74,6 +74,23 @@
   z-index: 1000; /* Fica acima de outros elementos */
 }
 
+/* Paginação centralizada para ingredientes e receitas */
+.paginationCentered {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  font-weight: bold;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  z-index: 1000;
+}
+
 /* Paginação responsiva para mobile */
 @media (max-width: 767px) {
   .pagination {

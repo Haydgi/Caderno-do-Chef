@@ -259,6 +259,7 @@ function Ingredientes() {
       dados={ingredientesOrdenados}
       ordenacao={ordenacao}
       setOrdenacao={setOrdenacao}
+      centerPagination={true}
       salvarItem={salvarIngrediente}
       removerItem={removerIngrediente}
       abrirModal={() => setMostrarModal(true)}
