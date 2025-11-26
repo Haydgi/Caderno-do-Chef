@@ -26,45 +26,42 @@ function ModelPage({
   enableMobileTabs = false,
   mobileTabs = [],
   activeMobileTab = 0,
-  setActiveMobileTab = () => {},
+  setActiveMobileTab = () => { },
+  // Props para ordenação
+  ordenacao,
+  setOrdenacao,
+  // Props para filtro de tipo (usado em Despesas)
+  filtroTipo,
+  setFiltroTipo,
+  // Props para alinhamento da paginação
+  centerPagination = false,
+  // Props para desabilitar botão adicionar
+  desabilitarBotaoAdicionar = false,
 }) {
   const [paginaAtual, setPaginaAtual] = useState(0);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const [isMobileTab, setIsMobileTab] = useState(window.innerWidth < 768);
   const floatingSearchRef = useRef(null);
-  const prevTotalPaginas = useRef(0);
 
 
   const totalPaginas = Math.ceil(dados.length / itensPorPagina);
 
   useEffect(() => {
     document.body.classList.add('produtos-page');
+    // Reset para página 1 ao montar o componente (navegar para a página)
+    setPaginaAtual(0);
     return () => {
       document.body.classList.remove('produtos-page');
     };
   }, []);
 
   useEffect(() => {
-    // Só muda a página se realmente há novos dados
-    if (totalPaginas > prevTotalPaginas.current && dados.length > 0) {
-      setPaginaAtual(Math.max(0, totalPaginas - 1));
-    }
-    prevTotalPaginas.current = totalPaginas;
-  }, [dados, totalPaginas]);
-
-  useEffect(() => {
+    // Ajusta página atual se ultrapassar o total de páginas
     if (paginaAtual >= totalPaginas && totalPaginas > 0) {
       setPaginaAtual(totalPaginas - 1);
     }
   }, [paginaAtual, totalPaginas]);
-
-  // Reset página para 0 quando dados mudarem drasticamente
-  useEffect(() => {
-    if (dados.length > 0 && paginaAtual >= Math.ceil(dados.length / itensPorPagina)) {
-      setPaginaAtual(0);
-    }
-  }, [dados.length, itensPorPagina]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -120,7 +117,7 @@ function ModelPage({
           {/* Título e barra de pesquisa/botão na mesma linha */}
           <div className="d-flex align-items-center justify-content-between mb-3">
             <h2 className={`${styles.title}`}>{titulo}</h2>
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center gap-2">
               {isMobile ? (
                 <button
                   className={`${styles.searchButton}`}
@@ -139,12 +136,106 @@ function ModelPage({
                   />
                 </div>
               )}
-              <button
-                className={`${styles.addBtn} btnUltraViolet btn`}
-                onClick={abrirModal}
-              >
-                <i className="bi bi-plus-circle"></i>
-              </button>
+              {setOrdenacao && (
+                <div className="dropdown">
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    title="Ordenar"
+                    style={{ margin: '8px' }}
+                  >
+                    <i className="bi bi-filter"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end">
+                    {/* Filtro por tipo (apenas para Despesas) */}
+                    {setFiltroTipo && (
+                      <>
+                        <li className="dropdown-header">Filtrar por Tipo</li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'todos' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('todos')}
+                          >
+                            <i className="bi bi-list-ul me-2"></i>Todos
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'despesas' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('despesas')}
+                          >
+                            <i className="bi bi-receipt me-2"></i>Apenas Despesas
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            className={`dropdown-item ${filtroTipo === 'impostos' ? 'active' : ''}`}
+                            onClick={() => setFiltroTipo('impostos')}
+                          >
+                            <i className="bi bi-percent me-2"></i>Apenas Impostos
+                          </button>
+                        </li>
+                        <li><hr className="dropdown-divider" /></li>
+                      </>
+                    )}
+
+                    {/* Ordenação */}
+                    <li className="dropdown-header">Ordenar</li>
+                    <li>
+                      <button
+                        className={`dropdown-item ${ordenacao === 'padrao' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('padrao')}
+                      >
+                        <i className="bi bi-clock-history me-2"></i>Último Cadastrado
+                      </button>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button
+                        className={`dropdown-item ${ordenacao === 'nome-asc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('nome-asc')}
+                      >
+                        <i className="bi bi-sort-alpha-down me-2"></i>Nome (A-Z)
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className={`dropdown-item ${ordenacao === 'nome-desc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('nome-desc')}
+                      >
+                        <i className="bi bi-sort-alpha-up me-2"></i>Nome (Z-A)
+                      </button>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <button
+                        className={`dropdown-item ${ordenacao === 'preco-asc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('preco-asc')}
+                      >
+                        <i className="bi bi-sort-numeric-down me-2"></i>Menor Preço
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        className={`dropdown-item ${ordenacao === 'preco-desc' ? 'active' : ''}`}
+                        onClick={() => setOrdenacao('preco-desc')}
+                      >
+                        <i className="bi bi-sort-numeric-up me-2"></i>Maior Preço
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {!desabilitarBotaoAdicionar && (
+                <button
+                  className={`${styles.addBtn} btnUltraViolet btn`}
+                  onClick={abrirModal}
+                >
+                  <i className="bi bi-plus-circle"></i>
+                </button>
+              )}
             </div>
           </div>
 
@@ -194,22 +285,24 @@ function ModelPage({
                     <>
                       {dados.length === 0 ? (
                         <div id="sem-dados" className={`${styles.emptyState}`}>
-                          <p>
+                          <p style={{ fontWeight: 'normal' }}>
                             {termoBusca && termoBusca.trim() !== ""
                               ? "Nenhum item encontrado para sua busca."
                               : "Não há itens cadastrados"}
                           </p>
-                          <button
-                            className={`${styles.btnDetails} btnUltraViolet btn`}
-                            onClick={abrirModal}
-                          >
-                            <p className={styles.btnText}>
-                              <i className="bi bi-plus-circle me-2"></i>
-                              {termoBusca && termoBusca.trim() !== ""
-                                ? "Criar Item"
-                                : "Criar o Primeiro Item"}
-                            </p>
-                          </button>
+                          {!desabilitarBotaoAdicionar && (
+                            <button
+                              className={`${styles.btnDetails} btnUltraViolet btn`}
+                              onClick={abrirModal}
+                            >
+                              <p className={styles.btnText}>
+                                <i className="bi bi-plus-circle me-2"></i>
+                                {termoBusca && termoBusca.trim() !== ""
+                                  ? "Criar Item"
+                                  : "Criar o Primeiro Item"}
+                              </p>
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div className="row">
@@ -237,22 +330,24 @@ function ModelPage({
                         className={`${styles.emptyState}`}
                         style={painelLateral ? { marginRight: '150px' } : {}}
                       >
-                        <p>
+                        <p style={{ fontWeight: 'normal' }}>
                           {termoBusca && termoBusca.trim() !== ""
                             ? "Nenhum item encontrado para sua busca."
                             : "Não há itens cadastrados"}
                         </p>
-                        <button
-                          className={`${styles.btnDetails} btnUltraViolet btn`}
-                          onClick={abrirModal}
-                        >
-                          <p className={styles.btnText}>
-                            <i className="bi bi-plus-circle me-2"></i>
-                            {termoBusca && termoBusca.trim() !== ""
-                              ? "Criar Item"
-                              : "Criar o Primeiro Item"}
-                          </p>
-                        </button>
+                        {!desabilitarBotaoAdicionar && (
+                          <button
+                            className={`${styles.btnDetails} btnUltraViolet btn`}
+                            onClick={abrirModal}
+                          >
+                            <p className={styles.btnText}>
+                              <i className="bi bi-plus-circle me-2"></i>
+                              {termoBusca && termoBusca.trim() !== ""
+                                ? "Criar Item"
+                                : "Criar o Primeiro Item"}
+                            </p>
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="row">
@@ -306,7 +401,7 @@ function ModelPage({
                 pageCount={totalPaginas}
                 onPageChange={mudarPagina}
                 forcePage={paginaAtual}
-                containerClassName={styles.pagination}
+                containerClassName={centerPagination ? styles.paginationCentered : styles.pagination}
                 activeClassName={styles.active}
                 pageClassName={styles.pageItem}
                 pageLinkClassName={styles.pageLink}
@@ -321,7 +416,7 @@ function ModelPage({
           )}
 
           {/* Botão flutuante para mobile */}
-          {isMobile && (
+          {isMobile && !desabilitarBotaoAdicionar && (
             <button
               className={`${styles.floatingAddBtn}`}
               onClick={abrirModal}

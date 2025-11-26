@@ -95,17 +95,13 @@ export default function Navbar({ onLogout }) {
               <MdMenuBook style={{ verticalAlign: "middle", marginRight: 6 }} /> Receitas
             </NavLink>
           </li>
-          <li>
-            {role === 'Funcionário' ? (
-              <span className="disabledLink">
-                <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
-              </span>
-            ) : (
+          {role !== 'Funcionário' && (
+            <li>
               <NavLink to="/relatorios" className="hoverable">
                 <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
               </NavLink>
-            )}
-          </li>
+            </li>
+          )}
           <li>
             <img src={`${import.meta.env.BASE_URL}midia/logo_caderno_do_che2.png`} alt="Logo" />
           </li>
@@ -114,17 +110,13 @@ export default function Navbar({ onLogout }) {
               <MdShoppingCart style={{ verticalAlign: "middle", marginRight: 6 }} /> Ingredientes
             </NavLink>
           </li>
-          <li>
-            {role === 'Funcionário' ? (
-              <span className="disabledLink">
-                <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
-              </span>
-            ) : (
+          {role !== 'Funcionário' && (
+            <li>
               <NavLink to="/despesas" className="hoverable">
                 <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
               </NavLink>
-            )}
-          </li>
+            </li>
+          )}
         </ul>
         {/* Profile/Menu button (desktop) */}
         <div className="position-relative" ref={profileRef}>
@@ -136,12 +128,12 @@ export default function Navbar({ onLogout }) {
               <ul className="list-group list-group-flush">
                 {(role === 'Proprietário' || role === 'Gerente' || role === 'Funcionário') && (
                   <li className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }}
-                      onClick={() => { setProfileOpen(false); navigate('/usuarios'); }}>
+                    onClick={() => { setProfileOpen(false); navigate('/usuarios'); }}>
                     Configurações
                   </li>
                 )}
                 <li className="list-group-item list-group-item-action text-danger" style={{ cursor: 'pointer' }}
-                    onClick={() => { setProfileOpen(false); handleLogout(); }}>
+                  onClick={() => { setProfileOpen(false); handleLogout(); }}>
                   Sair
                 </li>
               </ul>
@@ -170,33 +162,25 @@ export default function Navbar({ onLogout }) {
                 <MdMenuBook style={{ verticalAlign: "middle", marginRight: 6 }} /> Receitas
               </NavLink>
             </li>
-            <li className="nav-item">
-              {role === 'Funcionário' ? (
-                <span className="nav-link disabledLink">
-                  <MdBarChart style={{ verticalAlign: 'middle', marginRight: 6 }} /> Relatórios
-                </span>
-              ) : (
+            {role !== 'Funcionário' && (
+              <li className="nav-item">
                 <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
                   <MdBarChart style={{ verticalAlign: "middle", marginRight: 6 }} /> Relatórios
                 </NavLink>
-              )}
-            </li>
+              </li>
+            )}
             <li className="nav-item">
               <NavLink to="/ingredientes" className="nav-link" onClick={() => setMenuAberto(false)}>
                 <MdShoppingCart style={{ verticalAlign: "middle", marginRight: 6 }} /> Ingredientes
               </NavLink>
             </li>
-            <li className="nav-item">
-              {role === 'Funcionário' ? (
-                <span className="nav-link disabledLink">
-                  <MdAttachMoney style={{ verticalAlign: 'middle', marginRight: 6 }} /> Despesas
-                </span>
-              ) : (
+            {role !== 'Funcionário' && (
+              <li className="nav-item">
                 <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>
                   <MdAttachMoney style={{ verticalAlign: "middle", marginRight: 6 }} /> Despesas
                 </NavLink>
-              )}
-            </li>
+              </li>
+            )}
             {(role === 'Proprietário' || role === 'Gerente' || role === 'Funcionário') && (
               <li className="nav-item">
                 <NavLink to="/usuarios" className="nav-link" onClick={() => setMenuAberto(false)}>

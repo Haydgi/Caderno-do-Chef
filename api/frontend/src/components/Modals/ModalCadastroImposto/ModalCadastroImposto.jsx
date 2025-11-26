@@ -47,7 +47,7 @@ const ModalCadastroImposto = ({ onClose, onSave }) => {
             nome: nome.value,
             categoria,
             frequencia,
-            valor: parseFloat(valor),
+            valor: parseFloat(valor.replace(',', '.')),
         };
 
         try {
@@ -135,10 +135,16 @@ const ModalCadastroImposto = ({ onClose, onSave }) => {
                         <label htmlFor="valor">Valor Pago</label>
                         <input
                             id="valor"
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             value={valor}
-                            onChange={(e) => setValor(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                // Permite apenas números, vírgula e ponto
+                                if (/^[0-9]*[,.]?[0-9]*$/.test(value)) {
+                                    setValor(value);
+                                }
+                            }}
                             placeholder="0,00"
                             required
                         />

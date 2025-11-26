@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $isCli = PHP_SAPI === 'cli';
@@ -36,15 +37,18 @@ function respondError(string $message, int $statusCode = 500): void
 
 function formatDateTimeLabel(?string $value): string
 {
+    $timezone = new DateTimeZone('America/Sao_Paulo');
+
     if (empty($value)) {
-        return date('d/m/Y H:i:s');
+        return (new DateTime('now', $timezone))->format('d/m/Y H:i:s');
     }
 
     try {
         $date = new DateTime($value);
+        $date->setTimezone($timezone);
         return $date->format('d/m/Y H:i:s');
     } catch (Exception $exception) {
-        return date('d/m/Y H:i:s');
+        return (new DateTime('now', $timezone))->format('d/m/Y H:i:s');
     }
 }
 
@@ -56,6 +60,7 @@ function formatDateLabel(?string $value): string
 
     try {
         $date = new DateTime($value);
+        $date->setTimezone(new DateTimeZone('America/Sao_Paulo'));
         return $date->format('d/m/Y');
     } catch (Exception $exception) {
         return 'N/A';

@@ -8,15 +8,15 @@ const router = express.Router();
 
 // Rate limit para proteger tentativas de brute force no login
 const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutos
-  max: 5, // máximo de 5 tentativas por IP nesse período
+  windowMs: 1 * 60 * 1000, // 1 minuto (temporariamente reduzido para testes)
+  max: 10, // máximo de 10 tentativas por IP nesse período (aumentado para testes)
   skipSuccessfulRequests: true, // não contar logins bem-sucedidos no limite
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     // Calcula minutos restantes até o reset
     const reset = req.rateLimit?.resetTime;
-    let minutos = 10; // padrão para a janela configurada
+    let minutos = 1; // padrão para a janela configurada
     if (reset instanceof Date) {
       const diffMs = reset.getTime() - Date.now();
       minutos = Math.max(0, Math.ceil(diffMs / 60000));
@@ -25,8 +25,8 @@ const loginLimiter = rateLimit({
     return res.status(429).json({
       mensagem: `Limite de tentativas de login excedido. Tente novamente em ${minutos} minuto${plural}.`,
       detalhes: {
-        tentativasPermitidas: 5,
-        janelaMinutos: 10,
+        tentativasPermitidas: 10,
+        janelaMinutos: 1,
       },
     });
   },

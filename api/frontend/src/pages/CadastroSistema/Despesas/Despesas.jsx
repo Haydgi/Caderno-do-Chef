@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
@@ -31,12 +31,15 @@ function Despesas() {
   // Estados para tabs mobile
   const [activeMobileTab, setActiveMobileTab] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // Estado de ordenação e filtro
+  const [ordenacao, setOrdenacao] = useState('nome-asc'); // Padrão: ordem alfabética crescente
+  const [filtroTipo, setFiltroTipo] = useState('todos'); // todos, despesas, impostos
 
   // Ajustar itens por página baseado no tamanho da tela
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
       const largura = window.innerWidth;
-      
+
       // Atualiza estado mobile
       setIsMobile(largura < 768);
 
@@ -88,7 +91,7 @@ function Despesas() {
       console.log('Buscando despesas com termo:', termo);
       const timestamp = new Date().getTime();
       const url = `${API_URL}/api/despesas?limit=10000&search=${encodeURIComponent(termo)}&_t=${timestamp}`;
-      
+
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -161,7 +164,7 @@ function Despesas() {
         }
         throw new Error('Erro ao buscar impostos');
       }
-      
+
       const data = await res.json();
       const impostosNormalizados = data.map(item => ({
         ...item,
@@ -173,21 +176,65 @@ function Despesas() {
       }));
       setImpostos(impostosNormalizados);
     } catch (error) {
-  console.error('Erro no fetchImpostos:', error);
-  setImpostos([]);
-  toast.error('Falha ao buscar impostos.');
+      console.error('Erro no fetchImpostos:', error);
+      setImpostos([]);
+      toast.error('Falha ao buscar impostos.');
     }
   };
 
-  // Combina despesas e impostos em uma única lista
-  const todosOsCustos = [...despesas, ...impostos].sort((a, b) => new Date(b.data || b.Data_Atualizacao) - new Date(a.data || a.Data_Atualizacao));
+  // Combina, filtra e ordena despesas e impostos
+  const todosOsCustos = useMemo(() => {
+    // Primeiro, combinar os dados
+    let custos = [...despesas, ...impostos];
+
+    // Filtrar por tipo
+    if (filtroTipo === 'despesas') {
+      custos = despesas;
+    } else if (filtroTipo === 'impostos') {
+      custos = impostos;
+    }
+
+    // Ordenar conforme selecionado
+    switch (ordenacao) {
+      case 'nome-asc':
+        return custos.sort((a, b) => {
+          const nomeA = (a.nome || a.Nome_imposto || '').toLowerCase();
+          const nomeB = (b.nome || b.Nome_imposto || '').toLowerCase();
+          return nomeA.localeCompare(nomeB);
+        });
+      case 'nome-desc':
+        return custos.sort((a, b) => {
+          const nomeA = (a.nome || a.Nome_imposto || '').toLowerCase();
+          const nomeB = (b.nome || b.Nome_imposto || '').toLowerCase();
+          return nomeB.localeCompare(nomeA);
+        });
+      case 'preco-asc':
+        return custos.sort((a, b) => {
+          const valorA = parseFloat(a.valor || a.Valor_imposto || 0);
+          const valorB = parseFloat(b.valor || b.Valor_imposto || 0);
+          return valorA - valorB;
+        });
+      case 'preco-desc':
+        return custos.sort((a, b) => {
+          const valorA = parseFloat(a.valor || a.Valor_imposto || 0);
+          const valorB = parseFloat(b.valor || b.Valor_imposto || 0);
+          return valorB - valorA;
+        });
+      case 'padrao':
+      default:
+        // Último cadastrado (data mais recente primeiro)
+        return custos.sort((a, b) =>
+          new Date(b.data || b.Data_Atualizacao) - new Date(a.data || a.Data_Atualizacao)
+        );
+    }
+  }, [despesas, impostos, filtroTipo, ordenacao]);
 
 
   useEffect(() => {
     const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
     const fetchData = () => {
-        fetchDespesas(termoBusca);
-        fetchImpostos(termoBusca);
+      fetchDespesas(termoBusca);
+      fetchImpostos(termoBusca);
     };
 
     if (isFirefox) {
@@ -458,54 +505,53 @@ function Despesas() {
         style={
           isMobile
             ? {
-                width: 'calc(100% - 20px)',
-                marginBottom: '1rem',
-                marginLeft: '10px',
-                marginRight: '10px',
-              }
+              width: 'calc(100% - 20px)',
+              marginBottom: '1rem',
+              marginLeft: '10px',
+              marginRight: '10px',
+            }
             : {
-                width: '100%',
-                marginBottom: '1.3rem',
-                display: 'flex',
-                justifyContent: 'flex-start',
-                marginLeft: '-75px',
-              }
+              width: '100%',
+              marginBottom: '1.3rem',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              marginLeft: '-75px',
+            }
         }
       >
         <div
-          className={`${styles.cardDespesa} ${styles.cardImposto} ${
-            hoveredDespesaId === imposto.id ? styles.cardDespesaHovered : ''
-          }`}
+          className={`${styles.cardDespesa} ${styles.cardImposto} ${hoveredDespesaId === imposto.id ? styles.cardDespesaHovered : ''
+            }`}
           style={
             isMobile
               ? {
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '100%',
-                  margin: '0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: 'auto',
-                  minHeight: '180px',
-                  padding: '1.6rem',
-                  boxSizing: 'border-box',
-                  fontSize: '0.85rem',
-                }
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '100%',
+                margin: '0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: 'auto',
+                minHeight: '180px',
+                padding: '1.6rem',
+                boxSizing: 'border-box',
+                fontSize: '0.85rem',
+              }
               : {
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '540px',
-                  minWidth: '320px',
-                  margin: '0 auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '205px',
-                  padding: '0.25rem 0.25rem 0.2rem 0.25rem',
-                  boxSizing: 'border-box',
-                  fontSize: '0.75rem',
-                }
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '540px',
+                minWidth: '320px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '205px',
+                padding: '0.25rem 0.25rem 0.2rem 0.25rem',
+                boxSizing: 'border-box',
+                fontSize: '0.75rem',
+              }
           }
           onClick={() => {
             // abre edição do imposto
@@ -576,7 +622,7 @@ function Despesas() {
                   padding: 0,
                   marginLeft: '6px'
                 }}
-                onMouseDown={(e)=>e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
               >
                 ?
               </button>
@@ -634,18 +680,18 @@ function Despesas() {
         style={
           isMobile
             ? {
-                width: 'calc(100% - 20px)',
-                marginBottom: '1rem',
-                marginLeft: '10px',
-                marginRight: '10px',
-              }
+              width: 'calc(100% - 20px)',
+              marginBottom: '1rem',
+              marginLeft: '10px',
+              marginRight: '10px',
+            }
             : {
-                width: '100%',
-                marginBottom: '1.3rem',
-                display: 'flex',
-                justifyContent: 'flex-start',
-                marginLeft: '-75px',
-              }
+              width: '100%',
+              marginBottom: '1.3rem',
+              display: 'flex',
+              justifyContent: 'flex-start',
+              marginLeft: '-75px',
+            }
         }
       >
         <div
@@ -659,33 +705,33 @@ function Despesas() {
           style={
             isMobile
               ? {
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '100%',
-                  margin: '0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: 'auto',
-                  minHeight: '180px',
-                  padding: '1.6rem',
-                  boxSizing: 'border-box',
-                  fontSize: '0.85rem',
-                }
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '100%',
+                margin: '0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: 'auto',
+                minHeight: '180px',
+                padding: '1.6rem',
+                boxSizing: 'border-box',
+                fontSize: '0.85rem',
+              }
               : {
-                  cursor: 'pointer',
-                  width: '100%',
-                  maxWidth: '540px',
-                  minWidth: '320px',
-                  margin: '0 auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '205px',
-                  padding: '0.25rem 0.25rem 0.2rem 0.25rem',
-                  boxSizing: 'border-box',
-                  fontSize: '0.75rem',
-                }
+                cursor: 'pointer',
+                width: '100%',
+                maxWidth: '540px',
+                minWidth: '320px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '205px',
+                padding: '0.25rem 0.25rem 0.2rem 0.25rem',
+                boxSizing: 'border-box',
+                fontSize: '0.75rem',
+              }
           }
         >
           <i
@@ -721,10 +767,10 @@ function Despesas() {
             style={
               isMobile
                 ? {
-                    fontSize: '1.15rem',
-                    position: 'relative',
-                    top: '-15px',
-                  }
+                  fontSize: '1.15rem',
+                  position: 'relative',
+                  top: '-15px',
+                }
                 : { fontSize: '1.15rem' }
             }
           >
@@ -1067,7 +1113,7 @@ function Despesas() {
             </div>
           )}
         </div>
-        
+
         {/* Footer sticky para mobile */}
         {isMobileVersion && (
           <div className="mobile-cost-footer">
@@ -1102,7 +1148,7 @@ function Despesas() {
                 </div>
               </div>
             )}
-            
+
             {/* Resultado final */}
             <div className="text-center">
               <h6
@@ -1195,6 +1241,10 @@ function Despesas() {
       mobileTabs={mobileTabs}
       activeMobileTab={activeMobileTab}
       setActiveMobileTab={setActiveMobileTab}
+      ordenacao={ordenacao}
+      setOrdenacao={setOrdenacao}
+      filtroTipo={filtroTipo}
+      setFiltroTipo={setFiltroTipo}
     />
   );
 }

@@ -65,18 +65,18 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
 
 
- const handleImageChange = (e) => {
-  const arquivo = e.target.files[0];
-  if (arquivo) {
-    // Cria URL temporária para preview
-    const previewUrl = URL.createObjectURL(arquivo);
-    setForm(prev => ({
-      ...prev,
-      imagem_URL: arquivo,
-      imagem_preview: previewUrl,  // armazena a url para preview
-    }));
-  }
-};
+  const handleImageChange = (e) => {
+    const arquivo = e.target.files[0];
+    if (arquivo) {
+      // Cria URL temporária para preview
+      const previewUrl = URL.createObjectURL(arquivo);
+      setForm(prev => ({
+        ...prev,
+        imagem_URL: arquivo,
+        imagem_preview: previewUrl,  // armazena a url para preview
+      }));
+    }
+  };
 
   const handleSelectIngrediente = (ingrediente) => {
     setIngredientesSelecionados((prev) => [
@@ -139,131 +139,131 @@ function ModalCadastroReceita({ onClose, onSave, }) {
     });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  console.log("==== Ingredientes selecionados ====");
-  console.table(ingredientesSelecionados);
-  console.log("==== Despesas carregadas do banco ====");
-  console.table(despesas);
+    console.log("==== Ingredientes selecionados ====");
+    console.table(ingredientesSelecionados);
+    console.log("==== Despesas carregadas do banco ====");
+    console.table(despesas);
 
-  // Log detalhado do cálculo dos ingredientes com desperdício
-  ingredientesSelecionados.forEach((ing, idx) => {
-    const custoCalculado = calcularCustoIngrediente(
-      ing.quantidade,
-      ing.quantidade_total,
-      ing.custo_ingrediente,
-      ing.Indice_de_Desperdicio
-    );
-    console.log(
-      `Ingrediente #${idx + 1}:`,
-      `Nome: ${ing.nome}`,
-      `Qtd usada: ${ing.quantidade}`,
-      `Qtd total: ${ing.quantidade_total}`,
-      `Custo ingrediente: ${ing.custo_ingrediente}`,
-      `Índice de desperdício: ${ing.Indice_de_Desperdicio || 0}%`,
-      `Custo calculado: ${custoCalculado}`
-    );
-  });
-
-  despesas.forEach((desp, idx) => {
-    const custoMinuto = calcularCustoPorMinutoDespesa(desp);
-    console.log(
-      `Despesa #${idx + 1}:`,
-      `Nome: ${desp.Nome_Despesa}`,
-      `Custo mensal: ${desp.Custo_Mensal}`,
-      `Tempo operacional: ${desp.Tempo_Operacional}`,
-      `Custo por minuto: ${custoMinuto}`
-    );
-  });
-
-  const tempo_preparo_min = Number(form.Tempo_Preparo);
-
-  const resultado = calcularCustoTotalReceita({
-    ingredientes: ingredientesSelecionados.map(i => ({
-      ...i,
-      custo_calculado: calcularCustoIngrediente(
-        i.quantidade,
-        i.quantidade_total,
-        i.custo_ingrediente,
-        i.Indice_de_Desperdicio // <-- agora aplicado corretamente!
-      )
-    })),
-    tempo_preparo_min,
-    despesas
-  });
-
-  console.log("==== Resultado final do cálculo ====");
-  console.log("Custo ingredientes:", resultado.custoIngredientes);
-  console.log("Custo operacional:", resultado.custoOperacionalReceita);
-  console.log("Custo total:", resultado.custoTotal);
-
-  const precoFinal = calcularPrecoFinalComLucro(resultado.custoTotal, form.Porcentagem_De_Lucro);
-  console.log("Preço final com lucro:", precoFinal);
-
-  try {
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append('Nome_Receita', form.Nome_Receita || "");
-    formData.append('Descricao', form.Descricao || "");
-    formData.append('Tempo_Preparo', form.Tempo_Preparo || 0);
-    formData.append('Custo_Total_Ingredientes', precoFinal); // com desperdício
-    formData.append('Porcentagem_De_Lucro', form.Porcentagem_De_Lucro || 0);
-    formData.append('Categoria', form.Categoria || "");
-    if (form.imagem_URL && form.imagem_URL instanceof File) {
-      formData.append('imagem_URL', form.imagem_URL);
-    }
-      // ADICIONE NA LINHA 214:
-
-    formData.append('ingredientes', JSON.stringify(
-      ingredientesSelecionados.map(i => ({
-        ID_Ingredientes: Number(i.ID_Ingredientes ?? i.id_ingrediente ?? i.id),
-        Quantidade_Utilizada: Number(i.Quantidade_Utilizada ?? i.quantidade),
-        Unidade_De_Medida: i.Unidade_De_Medida ?? i.unidade ?? ""
-      }))
-    ));
-
-    // Log dos dados enviados
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
-    }
-
-    const response = await fetch("http://localhost:3001/api/receitas", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
-      body: formData,
+    // Log detalhado do cálculo dos ingredientes com desperdício
+    ingredientesSelecionados.forEach((ing, idx) => {
+      const custoCalculado = calcularCustoIngrediente(
+        ing.quantidade,
+        ing.quantidade_total,
+        ing.custo_ingrediente,
+        ing.Indice_de_Desperdicio
+      );
+      console.log(
+        `Ingrediente #${idx + 1}:`,
+        `Nome: ${ing.nome}`,
+        `Qtd usada: ${ing.quantidade}`,
+        `Qtd total: ${ing.quantidade_total}`,
+        `Custo ingrediente: ${ing.custo_ingrediente}`,
+        `Índice de desperdício: ${ing.Indice_de_Desperdicio || 0}%`,
+        `Custo calculado: ${custoCalculado}`
+      );
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ Erro do servidor:", errorData);
-      toast.error(errorData.error || "Erro ao salvar receita");
-      return;
-    }
+    despesas.forEach((desp, idx) => {
+      const custoMinuto = calcularCustoPorMinutoDespesa(desp);
+      console.log(
+        `Despesa #${idx + 1}:`,
+        `Nome: ${desp.Nome_Despesa}`,
+        `Custo mensal: ${desp.Custo_Mensal}`,
+        `Tempo operacional: ${desp.Tempo_Operacional}`,
+        `Custo por minuto: ${custoMinuto}`
+      );
+    });
 
-    const result = await response.json();
-    console.log("✅ Receita salva com sucesso:", result);
-    
-    toast.success("Receita cadastrada com sucesso!");
-    onSave();
-    onClose();
-  } catch (err) {
-    if (err.response) {
-      const errorText = await err.response.text();
-      console.error("❌ Erro ao salvar receita:", errorText);
-    } else {
-      console.error("❌ Erro ao salvar receita:", err.message);
+    const tempo_preparo_min = Number(form.Tempo_Preparo);
+
+    const resultado = calcularCustoTotalReceita({
+      ingredientes: ingredientesSelecionados.map(i => ({
+        ...i,
+        custo_calculado: calcularCustoIngrediente(
+          i.quantidade,
+          i.quantidade_total,
+          i.custo_ingrediente,
+          i.Indice_de_Desperdicio // <-- agora aplicado corretamente!
+        )
+      })),
+      tempo_preparo_min,
+      despesas
+    });
+
+    console.log("==== Resultado final do cálculo ====");
+    console.log("Custo ingredientes:", resultado.custoIngredientes);
+    console.log("Custo operacional:", resultado.custoOperacionalReceita);
+    console.log("Custo total:", resultado.custoTotal);
+
+    const precoFinal = calcularPrecoFinalComLucro(resultado.custoTotal, form.Porcentagem_De_Lucro);
+    console.log("Preço final com lucro:", precoFinal);
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append('Nome_Receita', form.Nome_Receita || "");
+      formData.append('Descricao', form.Descricao || "");
+      formData.append('Tempo_Preparo', form.Tempo_Preparo || 0);
+      formData.append('Custo_Total_Ingredientes', precoFinal); // com desperdício
+      formData.append('Porcentagem_De_Lucro', form.Porcentagem_De_Lucro || 0);
+      formData.append('Categoria', form.Categoria || "");
+      if (form.imagem_URL && form.imagem_URL instanceof File) {
+        formData.append('imagem_URL', form.imagem_URL);
+      }
+      // ADICIONE NA LINHA 214:
+
+      formData.append('ingredientes', JSON.stringify(
+        ingredientesSelecionados.map(i => ({
+          ID_Ingredientes: Number(i.ID_Ingredientes ?? i.id_ingrediente ?? i.id),
+          Quantidade_Utilizada: Number(i.Quantidade_Utilizada ?? i.quantidade),
+          Unidade_De_Medida: i.Unidade_De_Medida ?? i.unidade ?? ""
+        }))
+      ));
+
+      // Log dos dados enviados
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+
+      const response = await fetch("http://localhost:3001/api/receitas", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Erro do servidor:", errorData);
+        toast.error(errorData.error || "Erro ao salvar receita");
+        return;
+      }
+
+      const result = await response.json();
+      console.log("✅ Receita salva com sucesso:", result);
+
+      toast.success("Receita cadastrada com sucesso!");
+      onSave();
+      onClose();
+    } catch (err) {
+      if (err.response) {
+        const errorText = await err.response.text();
+        console.error("❌ Erro ao salvar receita:", errorText);
+      } else {
+        console.error("❌ Erro ao salvar receita:", err.message);
+      }
+      toast.error("Erro ao salvar receita");
     }
-    toast.error("Erro ao salvar receita");
-  }
-};
+  };
 
   const buscarIngredientesDoBanco = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/ingredientes", {
+      const response = await fetch("http://localhost:3001/api/ingredientes?limit=1000", {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -311,6 +311,7 @@ const handleSubmit = async (e) => {
       setIngredientesBanco(ingredientesMapeados); // <- referência fixa
       setIngredientesDisponiveis(ingredientesMapeados); // <- para busca/sugestão
     } catch (err) {
+      console.error("Erro ao buscar ingredientes:", err);
       toast.error("Erro ao buscar ingredientes");
     }
   };
@@ -458,46 +459,117 @@ const handleSubmit = async (e) => {
         </div>
 
         <div className={styles.modalBody}>
-          <div className="row">
+          <div className="row" style={{ columnGap: '12px' }}>
             {/* Coluna Esquerda */}
 
-            <div className="col-6">
-
-              <div className="row">
-
-                <div className="col-6">
-
-                  {/* imagem + input hidden */}
-                  <div className={`${styles.formGroup} align-items-center`}>
-                    <label htmlFor="imagemInput" className={styles.imagePreviewBox}>
-                      {form.imagem_URL ? (
-                        <div
-                          style={{
-                            backgroundImage: `url(${form.imagem_preview})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            width: "100%",
-                            height: "100%",
-                            borderRadius: "10px"
-                          }}
-                        />
-                      ) : (
-                        <GiKnifeFork className={styles.iconeReceitaVazia} />
-                      )}
-                    </label>
-                    <input
-                      id="imagemInput"
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      style={{ display: 'none' }}
-                    />
+            <div className="col-6" style={{ flex: '1' }}>
+              {/* Coluna da imagem */}
+              <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
+                <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
+                <label htmlFor="imagemInput" className={styles.imageUploadContainer}>
+                  {form.imagem_URL ? (
+                    <div className={styles.imagePreview}>
+                      <div
+                        style={{
+                          backgroundImage: `url(${form.imagem_preview})`,
+                          backgroundSize: "contain",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center",
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "10px"
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={styles.emptyImageState}>
+                      <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
+                      <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: '500' }}>Clique para adicionar</p>
+                      <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, PNG ou GIF</span>
+                    </div>
+                  )}
+                </label>
+                <input
+                  id="imagemInput"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+                {form.imagem_URL && (
+                  <div className="d-flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary flex-fill"
+                      onClick={() => document.getElementById('imagemInput').click()}
+                      title="Editar imagem"
+                    >
+                      <i className="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger flex-fill"
+                      onClick={() => {
+                        setForm(prev => ({
+                          ...prev,
+                          imagem_URL: "",
+                          imagem_preview: ""
+                        }));
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                        toast.info('Imagem removida');
+                      }}
+                      title="Remover imagem"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
                   </div>
-                  
-                  {/* Tempo de Preparo */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Tempo de Preparo (Min.)</label>
+                )}
+              </div>
+
+              {/* Nome da Receita */}
+              <div className={styles.formGroup} style={{ marginTop: '35px' }}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Nome da Receita
+                </label>
+                <input
+                  name="Nome_Receita"
+                  autoComplete="off"
+                  className={`form-control ${camposInvalidos.Nome_Receita ? styles.erroInput : ""}`}
+                  value={form.Nome_Receita}
+                  onChange={handleChange}
+                  placeholder="Ex: Bolo de Chocolate"
+                />
+              </div>
+
+              {/* Categoria */}
+              <div className={`${styles.formGroup} mt-2`}>
+                <label>
+                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                  Categoria
+                </label>
+                <select
+                  name="Categoria"
+                  className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
+                  value={form.Categoria}
+                  onChange={handleChange}
+                >
+                  <option value="">Selecione...</option>
+                  {categorias.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Linha com Tempo de Preparo e Porcentagem de Lucro */}
+              <div className="row mt-2">
+                <div className="col-6">
+                  <div className={styles.formGroup}>
+                    <label>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Tempo de Preparo (Min.)
+                    </label>
                     <input
                       name="Tempo_Preparo"
                       autoComplete="off"
@@ -509,41 +581,12 @@ const handleSubmit = async (e) => {
                     />
                   </div>
                 </div>
-
                 <div className="col-6">
-
-                  {/* NOME */}
                   <div className={styles.formGroup}>
-                    <label>Nome Da Receita</label>
-                    <input
-                      name="Nome_Receita"
-                      autoComplete="off"
-                      className={`form-control ${camposInvalidos.Nome_Receita ? styles.erroInput : ""}`}
-                      value={form.Nome_Receita}
-                      onChange={handleChange}
-                      placeholder="Ex: Bolo de Chocolate"
-                    />
-                  </div>
-
-                  {/* Categoria */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Categoria</label>
-                    <select
-                      name="Categoria"
-                      className={`form-control ${camposInvalidos.categoria ? styles.erroInput : ""}`}
-                      value={form.Categoria}
-                      onChange={handleChange}
-                    >
-                      <option value="">Selecione...</option>
-                      {categorias.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Porcentagem */}
-                  <div className={`${styles.formGroup} mt-4`}>
-                    <label>Porcentagem de Lucro (%)</label>
+                    <label style={{ fontSize: '0.9rem' }}>
+                      <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                      Porcentagem de Lucro (%)
+                    </label>
                     <input
                       name="Porcentagem_De_Lucro"
                       autoComplete="off"
@@ -557,26 +600,29 @@ const handleSubmit = async (e) => {
                 </div>
               </div>
 
-              <div className={`${styles.formGroup} mt-3`}>
-                <label>Descrição</label>
+              <div className={`${styles.formGroup} mt-2`}>
+                <label className="mb-2 d-flex justify-content-center" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Modo de Preparo</label>
                 <textarea
                   name="Descricao"
                   className="form-control"
                   value={form.Descricao}
                   onChange={handleChange}
-                  rows={7}
-                  placeholder="Descreva a receita..."
+                  rows={4}
+                  placeholder="Descreva aqui o modo de preparo (opcional)..."
                   maxLength={245}
                 />
               </div>
             </div>
 
             {/* Coluna Direita */}
-            <div className="col-6">
+            <div className="col-6" style={{ flex: '1' }}>
               <div>
 
                 <div className={`${styles.formGroup} ${styles.suggestionsContainer}`}>
-                  <label>Buscar Ingrediente</label>
+                  <label className="mb-1">
+                    <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                    Buscar Ingrediente
+                  </label>
                   <input
                     type="text"
                     className="form-control"
@@ -599,7 +645,9 @@ const handleSubmit = async (e) => {
                 </div>
 
 
-                <label className="mt-4">Ingredientes da Receita</label>
+                <div className="d-flex justify-content-center">
+                  <label className="mt-2 mb-2" style={{ fontFamily: 'Birthstone, cursive', fontSize: '1.8rem' }}>Ingredientes da Receita</label>
+                </div>
                 <div className={styles.ingredientesBox}>
                   <div className={`${styles.tabelaCabecalho}`}>
                     <span className={`${styles.nomeIngrediente}`}>Nome</span>
@@ -633,7 +681,7 @@ const handleSubmit = async (e) => {
                   ))}
                 </div>
 
-                <div className="mt-3">
+                <div style={{ marginTop: '40px' }}>
                   <div className="row">
                     <div className="col-6">
                       <div className="mb-2">
