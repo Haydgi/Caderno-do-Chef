@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { MdCloudUpload, MdCloudDownload, MdClose } from 'react-icons/md';
+import { useLocation } from 'react-router-dom';
+import { MdCloudUpload, MdCloudDownload, MdClose, MdPictureAsPdf } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import styles from './ImportExportButton.module.css';
@@ -9,13 +10,11 @@ export default function ImportExportButton() {
   const [importando, setImportando] = useState(false);
   const menuRef = useRef(null);
   const fileInputRef = useRef(null);
+  const location = useLocation();
 
   const role = localStorage.getItem('role');
-
-  // Apenas Proprietário pode ver este botão
-  if (role !== 'Proprietário') {
-    return null;
-  }
+  // Apenas Proprietário e somente na página de relatórios
+  const permitido = role === 'Proprietário' && location.pathname === '/relatorios';
 
   // Fechar menu ao clicar fora
   useEffect(() => {
@@ -39,8 +38,9 @@ export default function ImportExportButton() {
       toast.info(`Gerando arquivo ${formato.toUpperCase()}...`);
       
       const token = localStorage.getItem('token');
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const response = await axios.get(
-        `http://localhost:3001/api/exportar-dados?formato=${formato}`,
+        `${baseUrl}/api/exportar-dados?formato=${formato}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob'
@@ -68,6 +68,48 @@ export default function ImportExportButton() {
     }
   };
 
+  const handleExportarPDFIngredientes = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = Number(localStorage.getItem('userId'));
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+      // Buscar lista de ingredientes do usuário
+      const listaResp = await axios.get(`${baseUrl}/api/ingredientes?usuario=${userId}&limit=10000`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const ingredientes = [...new Set((listaResp.data || []).map(ing => ing.Nome_Ingrediente))];
+      if (ingredientes.length === 0) {
+        toast.info('Nenhum ingrediente para exportar.');
+        return;
+      }
+
+      // Requisitar geração de PDF
+      const pdfResp = await axios.post(`${baseUrl}/api/export-dashboard`, {
+        ingredientes,
+        userId
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([pdfResp.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `relatorio_ingredientes_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setMenuAberto(false);
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+    }
+  };
+
   const handleImportar = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -80,8 +122,9 @@ export default function ImportExportButton() {
 
     try {
       const token = localStorage.getItem('token');
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const response = await axios.post(
-        'http://localhost:3001/api/importar-dados',
+        `${baseUrl}/api/importar-dados`,
         formData,
         {
           headers: {
@@ -107,6 +150,8 @@ export default function ImportExportButton() {
   };
 
   return (
+    // Renderiza apenas se permitido, mantendo hooks sempre executados
+    !permitido ? null : (
     <div className={styles.container} ref={menuRef}>
       <button
         className={styles.mainButton}
@@ -152,6 +197,13 @@ export default function ImportExportButton() {
               <i className="bi bi-file-earmark-text"></i>
               Exportar CSV
             </button>
+            <button
+              className={styles.menuItem}
+              onClick={handleExportarPDFIngredientes}
+            >
+              <MdPictureAsPdf size={18} />
+              Exportar PDF
+            </button>
           </div>
 
           <div className={styles.menuSection}>
@@ -178,5 +230,6 @@ export default function ImportExportButton() {
         </div>
       )}
     </div>
+    )
   );
 }

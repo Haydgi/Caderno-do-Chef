@@ -124,7 +124,7 @@ export default function Navbar({ onLogout }) {
             <FaUserCog style={{ fontSize: "1.8em", color: 'var(--sunset)', marginTop: 9 }} />
           </button>
           {profileOpen && (
-            <div className="card shadow" style={{ position: 'absolute', right: 0, top: '110%', minWidth: 220, zIndex: 1000 }}>
+            <div className="card shadow fadeMenu" style={{ position: 'absolute', right: 0, top: '110%', minWidth: 220, zIndex: 1000 }}>
               <ul className="list-group list-group-flush">
                 {(role === 'Proprietário' || role === 'Gerente' || role === 'Funcionário') && (
                   <li className="list-group-item list-group-item-action" style={{ cursor: 'pointer' }}
