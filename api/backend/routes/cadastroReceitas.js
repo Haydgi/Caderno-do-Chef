@@ -183,9 +183,15 @@ router.get('/', async (req, res) => {
 
     const [rows] = await db.query(query, params);
 
+    const BASE_URL = `${req.protocol}://${req.get("host")}/uploads/`;
+
     const receitasComPreco = rows.map(receita => ({
       ...receita,
-      Preco_Venda: +(receita.Custo_Total_Ingredientes * (1 + receita.Porcentagem_De_Lucro / 100)).toFixed(2)
+      imagem_URL: receita.imagem_URL ? BASE_URL + receita.imagem_URL : null,
+      Preco_Venda: +(
+        receita.Custo_Total_Ingredientes *
+        (1 + receita.Porcentagem_De_Lucro / 100)
+      ).toFixed(2)
     }));
 
     return res.status(200).json(receitasComPreco);

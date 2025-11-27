@@ -374,7 +374,7 @@ function Receitas() {
                   style={{
                     width: "150px",
                     height: "120px",
-                    backgroundImage: `url(${baseUrl}/uploads/${urlImagem})`,
+                    backgroundImage: `url(${urlImagem.startsWith('http') ? urlImagem : baseUrl + '/uploads/' + urlImagem})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     margin: "0 auto",

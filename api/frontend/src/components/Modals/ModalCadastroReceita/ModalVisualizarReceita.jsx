@@ -79,7 +79,7 @@ function ModalVisualizarReceita({ onClose, receita }) {
                 const token = localStorage.getItem("token");
                 const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
                 const idReceita = receita.ID_Receita || receita.id;
-                
+
                 const response = await fetch(`${baseUrl}/api/receita-detalhada/${idReceita}`, {
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -183,34 +183,29 @@ function ModalVisualizarReceita({ onClose, receita }) {
                             {/* Campo de Imagem */}
                             <div className={`${styles.formGroup} ${styles.imageFormGroup}`}>
                                 <label className="mb-2 d-flex justify-content-center">Imagem da Receita</label>
-                                <div className={styles.imageUploadContainer} style={{ cursor: 'default' }}>
+                                <div className={styles.imageUploadContainer} style={{ cursor: "default" }}>
                                     {form.imagem ? (
-                                        <div style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <img
-                                                src={form.imagem}
-                                                alt="Imagem da receita"
+                                        <div className={styles.imagePreview}>
+                                            <div
                                                 style={{
-                                                    maxWidth: '100%',
-                                                    maxHeight: '100%',
-                                                    objectFit: 'contain',
+                                                    backgroundImage: `url(${form.imagem})`,
+                                                    backgroundSize: "contain",
+                                                    backgroundRepeat: "no-repeat",
+                                                    backgroundPosition: "center",
+                                                    width: "100%",
+                                                    height: "100%",
                                                     borderRadius: "10px"
                                                 }}
                                             />
                                         </div>
                                     ) : (
                                         <div className={styles.emptyImageState}>
-                                            <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
-                                            <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: 'normal' }}>Sem imagem</p>
+                                            <i className="bi bi-image" style={{ fontSize: "2.5rem", color: "var(--ultra-violet)", opacity: 0.5 }}></i>
+                                            <p style={{ margin: "8px 0 2px", fontSize: "0.85rem", color: "var(--ultra-violet)" }}>Sem imagem</p>
                                         </div>
                                     )}
                                 </div>
+
                             </div>
 
                             {/* Nome da Receita */}
