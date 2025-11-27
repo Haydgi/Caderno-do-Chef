@@ -311,7 +311,8 @@ function Receitas() {
             } else {
               // Para outros usuários, busca detalhes completos
               try {
-                const res = await fetch(`${baseUrl}/api/receita-detalhada/${receita.ID_Receita}`, {
+                // Usa o endpoint detalhado que inclui unidades dos ingredientes
+                const res = await fetch(`${baseUrl}/api/receitas/${receita.ID_Receita}`, {
                   headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
                   }
