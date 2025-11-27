@@ -210,14 +210,14 @@ function Despesas() {
         });
       case 'preco-asc':
         return custos.sort((a, b) => {
-          const valorA = parseFloat(a.valor || a.Valor_imposto || 0);
-          const valorB = parseFloat(b.valor || b.Valor_imposto || 0);
+          const valorA = parseFloat(a.custoMensal || a.Custo_Mensal || a.valor || a.Valor_imposto || 0);
+          const valorB = parseFloat(b.custoMensal || b.Custo_Mensal || b.valor || b.Valor_imposto || 0);
           return valorA - valorB;
         });
       case 'preco-desc':
         return custos.sort((a, b) => {
-          const valorA = parseFloat(a.valor || a.Valor_imposto || 0);
-          const valorB = parseFloat(b.valor || b.Valor_imposto || 0);
+          const valorA = parseFloat(a.custoMensal || a.Custo_Mensal || a.valor || a.Valor_imposto || 0);
+          const valorB = parseFloat(b.custoMensal || b.Custo_Mensal || b.valor || b.Valor_imposto || 0);
           return valorB - valorA;
         });
       case 'padrao':

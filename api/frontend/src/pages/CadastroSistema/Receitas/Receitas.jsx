@@ -140,6 +140,12 @@ function Receitas() {
     return custoOperacionalPorMinuto * Number(tempoPreparo);
   };
 
+  // Função para calcular preço final de uma receita (usado na ordenação)
+  const calcularPrecoFinal = (receita) => {
+    // O valor salvo no banco (Custo_Total_Ingredientes) já é o preço final com margem
+    return Number(receita.Custo_Total_Ingredientes ?? 0);
+  };
+
   // Função wrapper para onSave que evita múltiplas execuções
   const handleSaveReceita = async () => {
     if (!isUpdating) {
