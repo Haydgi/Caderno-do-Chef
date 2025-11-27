@@ -1,84 +1,88 @@
 import express from 'express';
-import { exec } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import db from '../database/connection.js';
+import PDFDocument from 'pdfkit-table';
 
 const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const MAX_BUFFER_SIZE = 10 * 1024 * 1024; // 10 MB
+
+// Helper: format date
+function formatDate(dateIso) {
+  if (!dateIso) return '-';
+  try {
+    const d = new Date(dateIso);
+    return d.toLocaleDateString('pt-BR');
+  } catch (_) {
+    return dateIso;
+  }
+}
 
 router.post('/export-dashboard', async (req, res) => {
   try {
-    const { ingredientes, userId } = req.body;
+    const { ingredientes, userId } = req.body; // userId opcional agora, usado só como fallback
 
     if (!Array.isArray(ingredientes) || ingredientes.length === 0) {
       return res.status(400).json({ error: 'Nenhum ingrediente selecionado' });
     }
+    // Relatório deve incluir dados do sistema inteiro, independente do usuário.
 
-    if (!userId) {
-      return res.status(400).json({ error: 'Usuário não informado' });
-    }
-
-    console.log('PDF Export requested for ingredients:', ingredientes);
-    console.log('User ID:', userId);
-
+    // Build sections similar to previous implementation
     const sections = [];
-
     for (const rawName of ingredientes) {
       const nome = typeof rawName === 'string' ? rawName.trim() : '';
-
-      if (!nome) {
-        continue;
-      }
-
+      if (!nome) continue;
       try {
-        const [ingredientRows] = await db.execute(
-          `SELECT ID_Ingredientes 
-           FROM ingredientes 
-           WHERE Nome_Ingrediente = ? AND ID_Usuario = ?`,
-          [nome, userId]
+        // Primeira tentativa: buscar ingrediente globalmente
+        let [ingredientRows] = await db.execute(
+          `SELECT * FROM ingredientes WHERE LOWER(TRIM(Nome_Ingrediente)) = LOWER(TRIM(?)) LIMIT 1`,
+          [nome]
         );
-
+        // Fallback: se não encontrou global e veio userId, tenta por usuário
+        if (ingredientRows.length === 0 && userId) {
+          [ingredientRows] = await db.execute(
+            `SELECT * FROM ingredientes WHERE LOWER(TRIM(Nome_Ingrediente)) = LOWER(TRIM(?)) AND ID_Usuario = ? LIMIT 1`,
+            [nome, userId]
+          );
+        }
         if (ingredientRows.length === 0) {
-          sections.push({
-            nome,
-            historico: [],
-            message: 'Ingrediente não encontrado para este usuário.'
-          });
+          sections.push({ nome, historico: [], message: 'Ingrediente não encontrado.' });
           continue;
         }
-
-        const idIngrediente = ingredientRows[0].ID_Ingredientes;
-
-        const [historicoRows] = await db.execute(
-          `SELECT 
-             h.Preco AS costPerUnit,
-             h.Taxa_Desperdicio AS wasteRate,
-             h.Data_Alteracoes AS createdAt
-           FROM historico_alteracoes h
-           WHERE h.ID_Ingrediente = ? AND h.ID_Usuario = ?
-           ORDER BY h.Data_Alteracoes ASC`,
-          [idIngrediente, userId]
+        const ingRow = ingredientRows[0];
+        const idIngrediente = ingRow.ID_Ingredientes;
+        // Detecta unidade de medida considerando variações de coluna
+        const unidadeMedida = (
+          ingRow.Unidade_De_Medida ??
+          ingRow.unidade_de_medida ??
+          ingRow.Unidade_Medida ??
+          ingRow.unidade_medida ??
+          ingRow.Unidade ??
+          ingRow.unidade ??
+          ingRow.UnidadeMedida ??
+          ingRow.unidadeMedida ??
+          ingRow.Tipo_Medida ??
+          ingRow.tipo_medida ??
+          ingRow.Medida ??
+          ingRow.medida ??
+          '-'
         );
-
+        const [historicoRows] = await db.execute(
+          `SELECT h.Preco AS costPerUnit, h.Taxa_Desperdicio AS wasteRate, h.Data_Alteracoes AS createdAt
+           FROM historico_alteracoes h
+           WHERE h.ID_Ingrediente = ?
+           ORDER BY h.Data_Alteracoes ASC`,
+          [idIngrediente]
+        );
         sections.push({
           nome,
-          historico: historicoRows.map((row) => ({
-            createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : null,
+            unidade: unidadeMedida,
+            historico: historicoRows.map(row => ({
+            createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : row.createdAt,
             costPerUnit: row.costPerUnit !== null ? Number(row.costPerUnit) : null,
-            wasteRate: row.wasteRate !== null ? Number(row.wasteRate) : null
+            // wasteRate removido do relatório conforme pedido
           }))
         });
-      } catch (dbError) {
-        console.error(`Erro ao consultar dados para ${nome}:`, dbError);
-        sections.push({
-          nome,
-          historico: [],
-          message: 'Erro ao buscar dados deste ingrediente.'
-        });
+      } catch (e) {
+        console.error('Erro ao processar ingrediente', nome, e);
+        sections.push({ nome, historico: [], message: 'Erro interno ao processar ingrediente.' });
       }
     }
 
@@ -86,54 +90,74 @@ router.post('/export-dashboard', async (req, res) => {
       return res.status(400).json({ error: 'Nenhum ingrediente válido para exportar.' });
     }
 
-    const tempDir = path.resolve(__dirname, '../../temp');
+  // Create PDF
+  const doc = new PDFDocument({ margin: 40 });
+    const filename = `relatorio_ingredientes_${new Date().toISOString().split('T')[0]}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+  // Pipe before writing content
+  doc.pipe(res);
 
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
+    // Stream errors
+    doc.on('error', (err) => {
+      console.error('Erro no PDF stream:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Falha ao gerar PDF' });
+      }
+    });
+
+  doc.fontSize(18).fillColor('#4B0082').text('Relatório de Ingredientes', { align: 'center' });
+    doc.moveDown(0.5);
+    // Linha com Total (esquerda) e Data (direita)
+    doc.fontSize(10).fillColor('black');
+  const summaryLeft = `Total de ingredientes: ${sections.length}`;
+  const summaryRight = `Gerado em: ${formatDate(new Date().toISOString())}`;
+  const y = doc.y;
+  const leftX = doc.page.margins.left;
+  const rightX = doc.page.width - doc.page.margins.right - doc.widthOfString(summaryRight);
+  doc.text(summaryLeft, leftX, y);
+  doc.text(summaryRight, rightX, y);
+  doc.moveDown();
+  // Reset cursor to left margin so following content starts aligned left
+  doc.x = doc.page.margins.left;
+
+    for (let idx = 0; idx < sections.length; idx++) {
+      const section = sections[idx];
+      doc.fontSize(14).fillColor('#4B0082').text(section.nome);
+      if (section.message && section.historico.length === 0) {
+        doc.fontSize(10).fillColor('red').text(section.message);
+      }
+      if (section.historico.length === 0) {
+        doc.moveDown();
+        continue;
+      }
+
+      // Render table with pdfkit-table
+      const rows = section.historico.length > 0
+        ? section.historico.map(row => [
+            formatDate(row.createdAt),
+            row.costPerUnit !== null ? row.costPerUnit.toFixed(2) : '-',
+            section.unidade || '-'
+          ])
+        : [['-', '-', section.unidade || '-']];
+
+      const table = {
+        headers: ['Data', 'Custo (R$)', 'Unidade'],
+        rows
+      };
+      await doc.table(table, {
+        x: doc.page.margins.left,
+        width: doc.page.width - doc.page.margins.left - doc.page.margins.right
+      });
+
+      if (idx < sections.length - 1) {
+        doc.moveDown();
+      }
     }
 
-    const payload = {
-      generatedAt: new Date().toISOString(),
-      sections
-    };
-
-    const payloadPath = path.resolve(tempDir, `payload_${Date.now()}.json`);
-    fs.writeFileSync(payloadPath, JSON.stringify(payload), 'utf8');
-
-    const phpScriptPath = path.resolve(__dirname, '../../phpapi/export-dashboard.php');
-    console.log(`Executing PHP export script with payload: ${payloadPath}`);
-
-    exec(`php "${phpScriptPath}" "${payloadPath}"`, { encoding: 'binary', maxBuffer: MAX_BUFFER_SIZE }, (error, stdout, stderr) => {
-      if (fs.existsSync(payloadPath)) {
-        fs.unlinkSync(payloadPath);
-      }
-
-      if (error) {
-        console.error('PHP execution error:', error);
-        const message = stderr && stderr.trim() ? stderr.trim() : error.message;
-        return res.status(500).json({ error: `Erro ao gerar PDF: ${message}` });
-      }
-
-      if (stderr && stderr.trim()) {
-        console.error('PHP stderr:', stderr);
-        return res.status(500).json({ error: `Erro na geração do PDF: ${stderr.trim()}` });
-      }
-
-      if (!stdout || stdout.length < 100) {
-        console.error('Empty or small PDF output. Length:', stdout ? stdout.length : 0);
-        return res.status(500).json({ error: 'PDF output is empty or invalid' });
-      }
-
-      console.log('PDF generated successfully. Size:', stdout.length, 'bytes');
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="relatorio_ingredientes_${new Date().toISOString().split('T')[0]}.pdf"`);
-      res.setHeader('Content-Length', Buffer.byteLength(stdout, 'binary'));
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-
-      return res.end(Buffer.from(stdout, 'binary'));
-    });
+  doc.end();
   } catch (err) {
     console.error('Export error:', err);
     return res.status(500).json({ error: 'Erro interno: ' + err.message });

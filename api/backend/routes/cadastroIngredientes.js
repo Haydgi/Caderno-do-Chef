@@ -168,15 +168,15 @@ router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.ingredienteNaoEncontrado });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
+    // Removida a restrição de propriedade: qualquer usuário com papel permitido pode editar
 
     // Busca último histórico
     const [ultimoHistorico] = await db.query(
       `SELECT Preco, Taxa_Desperdicio
        FROM historico_alteracoes
-       WHERE ID_Ingrediente = ? AND ID_Usuario = ?
+       WHERE ID_Ingrediente = ?
        ORDER BY Data_Alteracoes DESC LIMIT 1`,
-      [idNum, ID_Usuario]
+      [idNum]
     );
 
     const precoAtual = parseFloat(custo);
@@ -215,13 +215,14 @@ router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
       );
 
       // Atualiza o último preço
+      // Atualiza o último registro de preço do ingrediente (independente do usuário)
       await db.query(
         `UPDATE preco
          SET Custo_Unitario = ?, Unidade_Medida = ?, ID_Historico = ?
-         WHERE ID_Ingrediente = ? AND ID_Usuario = ?
+         WHERE ID_Ingrediente = ?
          ORDER BY ID_Historico DESC
          LIMIT 1`,
-        [custo, unidadeDeMedida, historicoResult.insertId, idNum, ID_Usuario]
+        [custo, unidadeDeMedida, historicoResult.insertId, idNum]
       );
     }
 
@@ -252,7 +253,7 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.ingredienteNaoEncontrado });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
+    // Removida a restrição de propriedade: gerente ou proprietário pode excluir qualquer ingrediente
 
     await db.query(`DELETE FROM preco WHERE ID_Ingrediente = ?`, [idNum]);
     await db.query(`DELETE FROM historico_alteracoes WHERE ID_Ingrediente = ?`, [idNum]);
