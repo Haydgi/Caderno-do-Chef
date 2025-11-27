@@ -60,7 +60,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       { 
         ID_Usuario: usuario.ID_Usuario, 
         email: usuario.Email,
-        role: usuario.Tipo_Usuario  // ← CORRIGIDO: Tipo_Usuario com maiúscula
+        role: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim()
       },
       process.env.SECRET_JWT,
       { expiresIn: '1h' }
@@ -76,8 +76,8 @@ router.post("/login", loginLimiter, async (req, res) => {
         id: usuario.ID_Usuario,
         nome: usuario.Nome_Usuario,
         email: usuario.Email,
-        role: usuario.Tipo_Usuario, // ex.: Proprietário | Gerente | Funcionário
-        tipo_usuario: usuario.Tipo_Usuario // compatibilidade com consumidores que preferem este nome
+        role: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim(), // ex.: Proprietário | Gerente | Funcionário
+        tipo_usuario: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim() // compatibilidade
       }
     });
 
