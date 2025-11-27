@@ -57,7 +57,11 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     // Gerar token JWT
     const token = jwt.sign(
-      { ID_Usuario: usuario.ID_Usuario, email: usuario.Email },
+      { 
+        ID_Usuario: usuario.ID_Usuario, 
+        email: usuario.Email,
+        role: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim()
+      },
       process.env.SECRET_JWT,
       { expiresIn: '1h' }
     );
@@ -72,8 +76,8 @@ router.post("/login", loginLimiter, async (req, res) => {
         id: usuario.ID_Usuario,
         nome: usuario.Nome_Usuario,
         email: usuario.Email,
-        role: usuario.tipo_usuario, // ex.: Proprietário | Gerente | Funcionário
-        tipo_usuario: usuario.tipo_usuario // compatibilidade com consumidores que preferem este nome
+        role: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim(), // ex.: Proprietário | Gerente | Funcionário
+        tipo_usuario: (usuario.tipo_usuario || usuario.Tipo_Usuario || '').trim() // compatibilidade
       }
     });
 

@@ -25,6 +25,8 @@ import LucroPorReceita from "./routes/LucroPorReceita.js";
 import receitaDetalhadaRouter from './routes/receitaDetalhada.js';
 import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js';
 import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js";
+import recuperarSenhaRoutes from "./routes/recuperarSenha.js";
+import importExportRoutes from "./routes/importExport.js";
 import { proprietarioOuGerente, apenasProprietario } from "./middleware/permissions.js"; 
 
 
@@ -86,6 +88,7 @@ import auth from './middleware/auth.js';
 // ==========================
 app.use("/api", cadastroRoutes); // cadastro de usuário
 app.use("/api", loginRoutes);    // login
+app.use("/api", recuperarSenhaRoutes); // recuperação de senha
 
 // Healthcheck público explícito
 app.get('/api/test-connection', (req, res) => {
@@ -124,6 +127,9 @@ app.use('/api/ingredientes', auth, proprietarioOuGerente, UnderusedController);
 app.use('/api/historico-ingredientes', auth, proprietarioOuGerente, historicoIngredientesRoutes);
 // Exportação de relatórios (apenas Proprietário)
 app.use('/api', auth, apenasProprietario, pdfExportRoute);
+
+// Importação e Exportação de dados (apenas Proprietário)
+app.use('/api', auth, apenasProprietario, importExportRoutes);
 
 // Observação: se alguma dessas rotas de relatórios deva ser pública,
 // remova o `auth` apenas nessa linha específica.

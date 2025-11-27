@@ -23,7 +23,8 @@ function Ingredientes() {
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [ingredienteSelecionado, setIngredienteSelecionado] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(12);
-  const [ordenacao, setOrdenacao] = useState('nome-asc'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc 
+  const [ordenacao, setOrdenacao] = useState('nome-asc'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc
+  const [filtroCategoria, setFiltroCategoria] = useState('todas'); // Filtro de categoria
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -98,9 +99,18 @@ function Ingredientes() {
     fetchIngredientes(termoBusca);
   }, [API_URL, termoBusca]);
 
+  // Extrair categorias únicas dos ingredientes cadastrados
+  const categorias = React.useMemo(() => {
+    const categoriasUnicas = [...new Set(ingredientes.map(i => i.categoria).filter(Boolean))];
+    return categoriasUnicas.sort();
+  }, [ingredientes]);
+
   // Função para ordenar ingredientes
   const ingredientesOrdenados = React.useMemo(() => {
-    const lista = [...ingredientes];
+    // Primeiro filtra por categoria
+    let lista = filtroCategoria === 'todas'
+      ? [...ingredientes]
+      : ingredientes.filter(i => i.categoria === filtroCategoria);
 
     switch (ordenacao) {
       case 'nome-asc':
@@ -114,7 +124,7 @@ function Ingredientes() {
       default:
         return lista; // mantém ordem original do banco
     }
-  }, [ingredientes, ordenacao]);
+  }, [ingredientes, ordenacao, filtroCategoria]);
 
   const salvarIngrediente = async (novoIngrediente) => {
     // Faz apenas o POST para criar novo ingrediente
@@ -259,6 +269,9 @@ function Ingredientes() {
       dados={ingredientesOrdenados}
       ordenacao={ordenacao}
       setOrdenacao={setOrdenacao}
+      filtroCategoria={filtroCategoria}
+      setFiltroCategoria={setFiltroCategoria}
+      categorias={categorias}
       centerPagination={true}
       salvarItem={salvarIngrediente}
       removerItem={removerIngrediente}
