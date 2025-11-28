@@ -1,6 +1,6 @@
 import express from 'express';
 import db from '../database/connection.js';
-import { atualizaReceitasPorDespesa, limparCacheDespesas } from './atualizaReceitas.js';
+import { atualizaReceitasPorDespesa, limparCacheDespesas, atualizaReceitasTodasDespesas } from './atualizaReceitas.js';
 import { gerenteOuAcima } from '../middleware/permissions.js';
 
 const router = express.Router();
@@ -98,54 +98,52 @@ router.post('/', gerenteOuAcima, async (req, res) => {
 
 // GET - Listar nomes dos impostos para autocomplete (Gerente ou acima)
 router.get('/nomes', gerenteOuAcima, async (req, res) => {
-  const ID_Usuario = req.user.ID_Usuario;
-    try {
-        const [nomes] = await db.query(
-            'SELECT DISTINCT Nome_Imposto FROM impostos WHERE ID_Usuario = ? ORDER BY Nome_Imposto ASC',
-            [ID_Usuario]
-        );
-        res.status(200).json(nomes.map(i => i.Nome_Imposto));
-    } catch (error) {
-        console.error('Erro ao buscar nomes de impostos:', error);
-        res.status(500).json({ error: MSGS.erroBuscar });
-    }
+  // Gerente ou Proprietário podem ver todos os nomes de impostos (globais)
+  try {
+    const [nomes] = await db.query(
+      'SELECT DISTINCT Nome_Imposto FROM impostos ORDER BY Nome_Imposto ASC'
+    );
+    res.status(200).json(nomes.map(i => i.Nome_Imposto));
+  } catch (error) {
+    console.error('Erro ao buscar nomes de impostos:', error);
+    res.status(500).json({ error: MSGS.erroBuscar });
+  }
 });
 
 // GET - Listar todos os impostos do usuário (Gerente ou acima)
 router.get('/', gerenteOuAcima, async (req, res) => {
-  const ID_Usuario = req.user.ID_Usuario;
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const offset = (page - 1) * limit;
+  // Gerente ou Proprietário podem visualizar todos os impostos (globais)
+  const { page = 1, limit = 10, search = '' } = req.query;
+  const offset = (page - 1) * limit;
 
-    try {
-        let sql = `
-            SELECT ID_Imposto, Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio, Data_Atualizacao
-            FROM impostos
-            WHERE ID_Usuario = ?
-        `;
-        const params = [ID_Usuario];
+  try {
+    let sql = `
+      SELECT ID_Imposto, Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio, Data_Atualizacao
+      FROM impostos
+      WHERE 1=1
+    `;
+    const params = [];
 
-        if (search.trim()) {
-            sql += ` AND Nome_Imposto LIKE ?`;
-            params.push(`%${search.trim()}%`);
-        }
-
-        sql += ` ORDER BY Data_Atualizacao DESC LIMIT ? OFFSET ?`;
-        params.push(Number(limit), Number(offset));
-
-        const [rows] = await db.query(sql, params);
-        res.status(200).json(rows);
-    } catch (error) {
-        console.error('Erro ao buscar impostos:', error);
-        res.status(500).json({ error: MSGS.erroBuscar });
+    if (search.trim()) {
+      sql += ` AND Nome_Imposto LIKE ?`;
+      params.push(`%${search.trim()}%`);
     }
+
+    sql += ` ORDER BY Data_Atualizacao DESC LIMIT ? OFFSET ?`;
+    params.push(Number(limit), Number(offset));
+
+    const [rows] = await db.query(sql, params);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('Erro ao buscar impostos:', error);
+    res.status(500).json({ error: MSGS.erroBuscar });
+  }
 });
 
 // PUT - Atualizar imposto (Gerente ou acima)
 router.put('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
   const { Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio } = req.body;
-  const ID_Usuario = req.user.ID_Usuario;
 
   if (!id || isNaN(Number(id))) {
     return res.status(400).json({ error: MSGS.idInvalido });
@@ -154,13 +152,10 @@ router.put('/:id', gerenteOuAcima, async (req, res) => {
   const connection = await db.getConnection();
 
   try {
-    // Confirma existência e pertencimento
-    const [rows] = await connection.query('SELECT ID_Imposto, ID_Usuario FROM impostos WHERE ID_Imposto = ?', [id]);
+    // Confirma existência
+    const [rows] = await connection.query('SELECT ID_Imposto FROM impostos WHERE ID_Imposto = ?', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
-    }
-    if (rows[0].ID_Usuario !== ID_Usuario) {
-      return res.status(403).json({ error: MSGS.naoAutorizado });
     }
 
     await connection.beginTransaction();
@@ -220,9 +215,8 @@ router.put('/:id', gerenteOuAcima, async (req, res) => {
 
     await connection.commit();
 
-    // Limpa cache e recalcula receitas/despesas impactadas
-    limparCacheDespesas(ID_Usuario);
-    await atualizaReceitasPorDespesa(ID_Usuario);
+  // Recalcula receitas globalmente pois impostos afetam o custo operacional geral
+  await atualizaReceitasTodasDespesas();
 
     // Recupera registro atualizado para retornar
     const [atualizado] = await db.query(
@@ -250,7 +244,6 @@ router.put('/:id', gerenteOuAcima, async (req, res) => {
 // DELETE - Remover imposto (Gerente ou acima)
 router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
-  const ID_Usuario = req.user.ID_Usuario;
 
   if (!id || isNaN(Number(id))) {
     return res.status(400).json({ error: MSGS.idInvalido });
@@ -259,13 +252,10 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
   const connection = await db.getConnection();
 
   try {
-    // Verifica existência e propriedade
-    const [rows] = await connection.query('SELECT ID_Imposto, ID_Usuario FROM impostos WHERE ID_Imposto = ?', [id]);
+    // Verifica existência
+    const [rows] = await connection.query('SELECT ID_Imposto FROM impostos WHERE ID_Imposto = ?', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
-    }
-    if (rows[0].ID_Usuario !== ID_Usuario) {
-      return res.status(403).json({ error: MSGS.naoAutorizado });
     }
 
     await connection.beginTransaction();
@@ -276,9 +266,8 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
 
     await connection.commit();
 
-    // Limpa cache e recalcula receitas/despesas impactadas
-    limparCacheDespesas(ID_Usuario);
-    await atualizaReceitasPorDespesa(ID_Usuario);
+  // Recalcula todas as receitas pois impacto é global
+  await atualizaReceitasTodasDespesas();
 
     res.status(200).json({ message: 'Imposto excluído com sucesso' });
   } catch (error) {

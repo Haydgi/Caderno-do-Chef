@@ -27,6 +27,7 @@ import { atualizaReceitasPorIngrediente } from './routes/atualizaReceitas.js';
 import gerenciamentoUsuariosRoutes from "./routes/gerenciamentoUsuarios.js";
 import recuperarSenhaRoutes from "./routes/recuperarSenha.js";
 import importExportRoutes from "./routes/importExport.js";
+import backupRoutes from './routes/backup.js';
 import { proprietarioOuGerente, apenasProprietario } from "./middleware/permissions.js"; 
 
 
@@ -130,6 +131,8 @@ app.use('/api', auth, apenasProprietario, pdfExportRoute);
 
 // Importação e Exportação de dados (apenas Proprietário)
 app.use('/api', auth, apenasProprietario, importExportRoutes);
+// Backup completo (Proprietário ou Gerente) - export/import sem usuários
+app.use('/api/backup', auth, proprietarioOuGerente, backupRoutes);
 
 // Observação: se alguma dessas rotas de relatórios deva ser pública,
 // remova o `auth` apenas nessa linha específica.
