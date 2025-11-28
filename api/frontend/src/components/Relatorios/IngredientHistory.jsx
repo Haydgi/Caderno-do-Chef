@@ -137,7 +137,7 @@ const IngredientHistory = ({ usuarioId }) => {
   return (
     <div className={`${styles['chart-card']} ${styles['full-width']}`}>
       <div className={styles['chart-header']}>
-        <h3 className={styles['chart-title']}>Custo Histórico do Ingrediente</h3>
+        <h3 className={styles['chart-title']}>Histórico de Custo do Ingrediente</h3>
         <select
           value={selectedIngredient}
           onChange={(e) => setSelectedIngredient(e.target.value)}

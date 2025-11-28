@@ -602,7 +602,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         <div className={styles.emptyImageState}>
                           <i className="bi bi-image" style={{ fontSize: '2.5rem', color: 'var(--ultra-violet)', opacity: 0.5 }}></i>
                           <p style={{ margin: '8px 0 2px', fontSize: '0.85rem', color: 'var(--ultra-violet)', fontWeight: '500' }}>Clique para adicionar</p>
-                          <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, PNG ou GIF</span>
+                          <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, JPEG ou PNG (até 5MB)</span>
                         </div>
                       );
                     }

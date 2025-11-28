@@ -25,7 +25,7 @@ const TimeChart = ({ userId }) => {
 
   return (
     <div className={`${styles['chart-card']} ${styles['full-width']}`}>
-      <h3 className={styles['chart-title']}>Tempo Médio por Categoria</h3>
+      <h3 className={styles['chart-title']}>Tempo Médio por Categoria de Receita</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <XAxis
