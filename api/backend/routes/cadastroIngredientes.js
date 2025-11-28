@@ -5,7 +5,7 @@ import { calculaPrecoReceitaCompleto } from './atualizaReceitas.js';
 
 const router = express.Router();
 const upload = multer(); // Para multipart/form-data
-import { funcionarioOuAcima, gerenteOuAcima } from "../middleware/permissions.js";
+import { funcionarioOuAcima, gerenteOuAcima, Roles } from "../middleware/permissions.js";
 
 const MSGS = {
   camposFaltando: 'Campos obrigatórios faltando',
@@ -77,19 +77,25 @@ router.post('/', funcionarioOuAcima, upload.none(), async (req, res) => {
 
 // GET - Listar ingredientes com paginação e busca (protegida)
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10, search = '' } = req.query;
+  const { page = 1, limit = 10, search = '', obsoleteOnly = '0' } = req.query;
   const offset = (page - 1) * limit;
 
   try {
     let sql = `
-      SELECT ID_Ingredientes, Nome_Ingrediente, Unidade_De_Medida, Custo_Ingrediente, Indice_de_Desperdicio, Categoria, Data_Ingrediente
-      FROM ingredientes
+      SELECT i.ID_Ingredientes, i.Nome_Ingrediente, i.Unidade_De_Medida, i.Custo_Ingrediente, i.Indice_de_Desperdicio, i.Categoria, i.Data_Ingrediente
+      FROM ingredientes i
       WHERE 1=1`;
     const params = [];
 
     if (search.trim()) {
-      sql += ` AND Nome_Ingrediente LIKE ?`;
+      sql += ` AND i.Nome_Ingrediente LIKE ?`;
       params.push(`%${search.trim()}%`);
+    }
+
+    if (obsoleteOnly === '1' || obsoleteOnly === 'true') {
+      sql += ` AND NOT EXISTS (
+        SELECT 1 FROM ingredientes_receita ir WHERE ir.ID_Ingredientes = i.ID_Ingredientes
+      )`;
     }
 
     sql += ` ORDER BY Data_Ingrediente DESC LIMIT ? OFFSET ?`;
@@ -168,15 +174,15 @@ router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.ingredienteNaoEncontrado });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
+    // Removida a restrição de propriedade: qualquer usuário com papel permitido pode editar
 
     // Busca último histórico
     const [ultimoHistorico] = await db.query(
       `SELECT Preco, Taxa_Desperdicio
        FROM historico_alteracoes
-       WHERE ID_Ingrediente = ? AND ID_Usuario = ?
+       WHERE ID_Ingrediente = ?
        ORDER BY Data_Alteracoes DESC LIMIT 1`,
-      [idNum, ID_Usuario]
+      [idNum]
     );
 
     const precoAtual = parseFloat(custo);
@@ -215,13 +221,14 @@ router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
       );
 
       // Atualiza o último preço
+      // Atualiza o último registro de preço do ingrediente (independente do usuário)
       await db.query(
         `UPDATE preco
          SET Custo_Unitario = ?, Unidade_Medida = ?, ID_Historico = ?
-         WHERE ID_Ingrediente = ? AND ID_Usuario = ?
+         WHERE ID_Ingrediente = ?
          ORDER BY ID_Historico DESC
          LIMIT 1`,
-        [custo, unidadeDeMedida, historicoResult.insertId, idNum, ID_Usuario]
+        [custo, unidadeDeMedida, historicoResult.insertId, idNum]
       );
     }
 
@@ -238,9 +245,31 @@ router.put('/:id', funcionarioOuAcima, upload.none(), async (req, res) => {
 
 // DELETE - Excluir ingrediente e dependências
 // Somente gerente ou acima podem excluir
-router.delete('/:id', gerenteOuAcima, async (req, res) => {
+// Lista receitas que utilizam o ingrediente
+router.get('/:id/relacoes', async (req, res) => {
+  const { id } = req.params;
+  const idNum = Number(id);
+  if (isNaN(idNum)) return res.status(400).json({ error: MSGS.idInvalido });
+
+  try {
+    const [relacoes] = await db.query(
+      `SELECT r.ID_Receita, r.Nome_Receita, r.ID_Usuario, r.Porcentagem_De_Lucro, r.Tempo_Preparo
+       FROM ingredientes_receita ir
+       JOIN receitas r ON r.ID_Receita = ir.ID_Receita
+       WHERE ir.ID_Ingredientes = ?`,
+      [idNum]
+    );
+    res.status(200).json({ receitas: relacoes, total: relacoes.length });
+  } catch (error) {
+    console.error('Erro ao buscar relações do ingrediente:', error);
+    res.status(500).json({ error: 'Erro ao buscar relações do ingrediente' });
+  }
+});
+
+router.delete('/:id', funcionarioOuAcima, async (req, res) => {
   const { id } = req.params;
   const ID_Usuario = req.user.ID_Usuario;
+  const role = req.user.role;
 
   const idNum = Number(id);
   if (isNaN(idNum)) return res.status(400).json({ error: MSGS.idInvalido });
@@ -252,11 +281,45 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
     );
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.ingredienteNaoEncontrado });
-    if (rows[0].ID_Usuario !== ID_Usuario) return res.status(403).json({ error: MSGS.naoAutorizado });
 
+    // Busca receitas que usam o ingrediente
+    const [relacoes] = await db.query(
+      `SELECT r.ID_Receita, r.Nome_Receita, r.ID_Usuario
+       FROM ingredientes_receita ir
+       JOIN receitas r ON r.ID_Receita = ir.ID_Receita
+       WHERE ir.ID_Ingredientes = ?`,
+      [idNum]
+    );
+
+    if (role === Roles.FUNCIONARIO && relacoes.length > 0) {
+      return res.status(403).json({
+        error: 'Ingrediente em uso por receitas. Funcionário só pode excluir ingredientes obsoletos (sem receitas).',
+        receitas: relacoes,
+        total: relacoes.length
+      });
+    }
+
+    // Remove relações com receitas
+    await db.query(`DELETE FROM ingredientes_receita WHERE ID_Ingredientes = ?`, [idNum]);
+
+    // Remove dados associados
     await db.query(`DELETE FROM preco WHERE ID_Ingrediente = ?`, [idNum]);
     await db.query(`DELETE FROM historico_alteracoes WHERE ID_Ingrediente = ?`, [idNum]);
     await db.query(`DELETE FROM ingredientes WHERE ID_Ingredientes = ?`, [idNum]);
+
+    // Recalcula custo das receitas afetadas após remoção do ingrediente
+    for (const r of relacoes) {
+      try {
+        await calculaPrecoReceitaCompleto(
+          r.ID_Receita,
+          r.ID_Usuario,
+          r.Porcentagem_De_Lucro || 0,
+          r.Tempo_Preparo || 0
+        );
+      } catch (e) {
+        console.warn('Falha ao recalcular receita', r.ID_Receita, e.message);
+      }
+    }
 
     res.status(200).json({ message: 'Ingrediente excluído com sucesso' });
   } catch (error) {

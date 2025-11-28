@@ -122,8 +122,8 @@ export async function calculaPrecoReceitaCompleto(ID_Receita, ID_Usuario, porcen
           GROUP BY ID_Ingrediente
         ) p2 ON p1.ID = p2.MaxID
       ) p ON p.ID_Ingrediente = i.ID_Ingredientes
-      WHERE ir.ID_Receita = ? AND i.ID_Usuario = ?`,
-      [ID_Receita, ID_Usuario]
+      WHERE ir.ID_Receita = ?`,
+      [ID_Receita]
     );
 
     if (!ingredientes.length) {

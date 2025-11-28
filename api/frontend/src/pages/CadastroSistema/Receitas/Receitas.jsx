@@ -141,6 +141,12 @@ function Receitas() {
     return custoOperacionalPorMinuto * Number(tempoPreparo);
   };
 
+  // Função para calcular preço final de uma receita (usado na ordenação)
+  const calcularPrecoFinal = (receita) => {
+    // O valor salvo no banco (Custo_Total_Ingredientes) já é o preço final com margem
+    return Number(receita.Custo_Total_Ingredientes ?? 0);
+  };
+
   // Função wrapper para onSave que evita múltiplas execuções
   const handleSaveReceita = async () => {
     if (!isUpdating) {
@@ -305,7 +311,8 @@ function Receitas() {
             } else {
               // Para outros usuários, busca detalhes completos
               try {
-                const res = await fetch(`${baseUrl}/api/receita-detalhada/${receita.ID_Receita}`, {
+                // Usa o endpoint detalhado que inclui unidades dos ingredientes
+                const res = await fetch(`${baseUrl}/api/receitas/${receita.ID_Receita}`, {
                   headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
                   }
@@ -375,7 +382,7 @@ function Receitas() {
                   style={{
                     width: "150px",
                     height: "120px",
-                    backgroundImage: `url(${baseUrl}/uploads/${urlImagem})`,
+                    backgroundImage: `url(${urlImagem.startsWith('http') ? urlImagem : baseUrl + '/uploads/' + urlImagem})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     margin: "0 auto",
@@ -456,21 +463,9 @@ function Receitas() {
     return categoriasUnicas.sort();
   }, [receitas]);
 
-  // Calcular preço final da receita (custo ingredientes + custo operacional + lucro)
-  const calcularPrecoFinal = (receita) => {
-    const custoIngredientes = Number(receita.Custo_Total_Ingredientes) || 0;
-    const tempoPreparo = Number(receita.Tempo_Preparo) || 0;
-    const porcentagemLucro = Number(receita.Porcentagem_De_Lucro) || 0;
-    
-    // Custo operacional baseado no tempo de preparo
-    const custoOperacional = calcularCustoOperacionalTotal(tempoPreparo);
-    
-    // Custo total
-    const custoTotal = custoIngredientes + custoOperacional;
-    
-    // Preço final com margem de lucro
-    return custoTotal * (1 + porcentagemLucro / 100);
-  };
+  // Nota: Já existe uma função calcularPrecoFinal acima usada na ordenação
+  // que assume que Custo_Total_Ingredientes já representa o preço final com margem.
+  // Mantemos apenas uma definição para evitar duplicidade.
 
   // Filtrar e ordenar receitas
   const receitasOrdenadas = React.useMemo(() => {

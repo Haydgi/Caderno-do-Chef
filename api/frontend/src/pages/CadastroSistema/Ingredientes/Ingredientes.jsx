@@ -25,6 +25,7 @@ function Ingredientes() {
   const [itensPorPagina, setItensPorPagina] = useState(12);
   const [ordenacao, setOrdenacao] = useState('nome-asc'); // padrao, nome-asc, nome-desc, preco-asc, preco-desc
   const [filtroCategoria, setFiltroCategoria] = useState('todas'); // Filtro de categoria
+  const [apenasObsoletos, setApenasObsoletos] = useState(false);
 
   useEffect(() => {
     const ajustarItensPorTamanho = () => {
@@ -67,13 +68,18 @@ function Ingredientes() {
     if (!token) return;
 
     try {
+      const ts = Date.now();
       const res = await fetch(
-        `${API_URL}/api/ingredientes?limit=10000&search=${encodeURIComponent(termo)}`,
+        `${API_URL}/api/ingredientes?limit=10000&search=${encodeURIComponent(termo)}&obsoleteOnly=${apenasObsoletos ? '1' : '0'}&_t=${ts}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store'
         }
       );
       if (!res.ok) throw new Error('Erro ao buscar ingredientes');
@@ -97,7 +103,7 @@ function Ingredientes() {
 
   useEffect(() => {
     fetchIngredientes(termoBusca);
-  }, [API_URL, termoBusca]);
+  }, [API_URL, termoBusca, apenasObsoletos]);
 
   // Extrair categorias únicas dos ingredientes cadastrados
   const categorias = React.useMemo(() => {
@@ -151,26 +157,10 @@ function Ingredientes() {
     }
   };
 
-  const atualizarIngrediente = async (ingredienteAtualizado) => {
-    const token = getToken();
-    if (!token) return;
-
+  // Após editar no modal, apenas recarrega a lista para evitar duplicar a requisição PUT
+  const atualizarIngrediente = async () => {
     try {
-      console.log('Enviando para atualização:', ingredienteAtualizado);
-      const res = await fetch(`${API_URL}/api/ingredientes/${ingredienteAtualizado.ID_Ingredientes}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ingredienteAtualizado)
-      });
-
-      const atualizado = await res.json();
-
-      // Recarrega todos os ingredientes após editar
       await fetchIngredientes();
-
       setMostrarModalEditar(false);
       setIngredienteSelecionado(null);
       toast.success('Ingrediente atualizado com sucesso!');
@@ -190,9 +180,21 @@ function Ingredientes() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!res.ok) throw new Error('Erro ao remover ingrediente');
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        if (data?.receitas?.length) {
+          // Mostra erro específico
+          toast.error(`Ingrediente em uso por ${data.receitas.length} receita(s).`);
+        } else if (data?.error) {
+          toast.error(data.error);
+        } else {
+          toast.error('Erro ao remover ingrediente.');
+        }
+        return;
+      }
 
-      setIngredientes(prev => prev.filter(i => i.id !== id));
+      // Recarrega da API para evitar itens "fantasmas" em cache
+      await fetchIngredientes(termoBusca);
       toast.success('Ingrediente removido com sucesso!');
     } catch (err) {
       toast.error('Erro ao remover ingrediente.');
@@ -220,26 +222,53 @@ function Ingredientes() {
             onClick={(e) => {
               e.stopPropagation();
 
-              // SweetAlert para confirmação
-              Swal.fire({
-                title: 'Tem certeza?',
-                text: 'Você deseja excluir este ingrediente?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sim, excluir',
-                cancelButtonText: 'Cancelar',
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  removerIngrediente(ingrediente.id);
-                  Swal.fire(
-                    'Excluído!',
-                    'O ingrediente foi removido com sucesso.',
-                    'success'
-                  );
+              // Buscar receitas que usam o ingrediente e mostrar na confirmação
+              (async () => {
+                try {
+                  const resRel = await fetch(`${API_URL}/api/ingredientes/${ingrediente.id}/relacoes`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                  });
+                  const dataRel = await resRel.json();
+                  const receitas = dataRel?.receitas || [];
+                  const listaReceitas = receitas.length
+                    ? `<ul style='text-align:left;'>${receitas.map(r => `<li>${r.Nome_Receita}</li>`).join('')}</ul>`
+                    : '<p style="text-align:left;">Nenhuma receita utiliza este ingrediente.</p>';
+                  const mensagem = `Ao excluir, este ingrediente será removido do cálculo das receitas listadas abaixo.`;
+
+                  const html = `${mensagem}${listaReceitas}`;
+
+                  const result = await Swal.fire({
+                    title: 'Confirmar exclusão',
+                    html,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, excluir',
+                    cancelButtonText: 'Cancelar',
+                    width: 600,
+                  });
+
+                  if (result.isConfirmed) {
+                    await removerIngrediente(ingrediente.id);
+                  }
+                } catch (e) {
+                  // fallback para confirmação simples
+                  const result = await Swal.fire({
+                    title: 'Tem certeza?',
+                    text: 'Você deseja excluir este ingrediente?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, excluir',
+                    cancelButtonText: 'Cancelar',
+                  });
+                  if (result.isConfirmed) {
+                    await removerIngrediente(ingrediente.id);
+                  }
                 }
-              });
+              })();
             }}
           >
             <FaTrash />
@@ -298,6 +327,20 @@ function Ingredientes() {
       itensPorPagina={itensPorPagina}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
+      extrasDropdown={
+        <>
+          <li><hr className="dropdown-divider" /></li>
+          <li className="dropdown-header">Outros filtros</li>
+          <li>
+            <button
+              className={`dropdown-item ${apenasObsoletos ? 'active' : ''}`}
+              onClick={() => setApenasObsoletos(!apenasObsoletos)}
+            >
+              <i className="bi bi-dash-circle me-2"></i>Somente obsoletos (sem receitas)
+            </button>
+          </li>
+        </>
+      }
     />
   );
 }

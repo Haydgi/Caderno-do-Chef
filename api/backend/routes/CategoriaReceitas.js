@@ -15,12 +15,16 @@ router.get('/categorias', async (req, res) => {
     const query = `
       SELECT Categoria AS name, COUNT(*) AS value
       FROM receitas
-      WHERE ID_Usuario = ?
+      WHERE ID_Usuario = ? AND Categoria IS NOT NULL AND Categoria <> ''
       GROUP BY Categoria
     `;
 
     const [results] = await db.query(query, [idUsuario]);
-    res.json(results);
+    // Se não houver resultados, retorna array vazio com 200 para evitar erro no gráfico
+    if (!Array.isArray(results) || results.length === 0) {
+      return res.status(200).json([]);
+    }
+    res.status(200).json(results);
   } catch (error) {
     console.error('Erro ao buscar categorias de receitas:', error);
     res.status(500).json({ error: 'Erro ao buscar dados' });

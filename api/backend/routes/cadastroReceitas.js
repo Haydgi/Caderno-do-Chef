@@ -183,15 +183,66 @@ router.get('/', async (req, res) => {
 
     const [rows] = await db.query(query, params);
 
+    const BASE_URL = `${req.protocol}://${req.get("host")}/uploads/`;
+
     const receitasComPreco = rows.map(receita => ({
       ...receita,
-      Preco_Venda: +(receita.Custo_Total_Ingredientes * (1 + receita.Porcentagem_De_Lucro / 100)).toFixed(2)
+      imagem_URL: receita.imagem_URL ? BASE_URL + receita.imagem_URL : null,
+      Preco_Venda: +(
+        receita.Custo_Total_Ingredientes *
+        (1 + receita.Porcentagem_De_Lucro / 100)
+      ).toFixed(2)
     }));
 
     return res.status(200).json(receitasComPreco);
   } catch (error) {
     console.error('Erro ao buscar receitas:', error);
     return res.status(500).json({ error: 'Erro ao buscar receitas', details: error.message });
+  }
+});
+
+// GET /:id - Buscar detalhes da receita incluindo ingredientes com unidade
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  const idNum = Number(id);
+  if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: MSGS.idInvalido });
+
+  try {
+    const [rows] = await db.query(
+      `SELECT ID_Receita, ID_Usuario, Nome_Receita, Descricao, Tempo_Preparo,
+              Custo_Total_Ingredientes, Porcentagem_De_Lucro, Categoria, imagem_URL, Data_Receita
+       FROM receitas WHERE ID_Receita = ?`,
+      [idNum]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: MSGS.receitaNaoEncontrada });
+
+    const receita = rows[0];
+
+    const [ingredientes] = await db.query(
+      `SELECT ir.ID_Ingredientes, ir.Quantidade_Utilizada, ir.Unidade_De_Medida,
+              i.Nome_Ingrediente, i.Unidade_De_Medida AS Unidade_Cadastro
+       FROM ingredientes_receita ir
+       JOIN ingredientes i ON i.ID_Ingredientes = ir.ID_Ingredientes
+       WHERE ir.ID_Receita = ?`,
+      [idNum]
+    );
+
+    const BASE_URL = `${req.protocol}://${req.get('host')}/uploads/`;
+    const imagemUrl = receita.imagem_URL ? BASE_URL + receita.imagem_URL : null;
+
+    return res.status(200).json({
+      ...receita,
+      imagem_URL: imagemUrl,
+      ingredientes: ingredientes.map(i => ({
+        ID_Ingredientes: i.ID_Ingredientes,
+        Nome_Ingrediente: i.Nome_Ingrediente,
+        Quantidade_Utilizada: i.Quantidade_Utilizada,
+        Unidade_De_Medida: i.Unidade_De_Medida || i.Unidade_Cadastro
+      }))
+    });
+  } catch (error) {
+    console.error('Erro ao buscar detalhes da receita:', error);
+    return res.status(500).json({ error: 'Erro ao buscar detalhes da receita', details: error.message });
   }
 });
 
@@ -209,10 +260,7 @@ router.delete('/:id', gerenteOuAcima, async (req, res) => {
 
     if (rows.length === 0) return res.status(404).json({ error: MSGS.receitaNaoEncontrada });
     
-    // Proprietário pode excluir qualquer receita; Gerente só pode excluir suas próprias
-    if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
-      return res.status(403).json({ error: MSGS.naoAutorizado });
-    }
+    // Proprietário e Gerente podem excluir qualquer receita (sem restrição por criador)
 
     if (rows[0].imagem_URL) {
       const caminhoImagem = path.join(__dirname, '../uploads', rows[0].imagem_URL);
@@ -298,10 +346,7 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
 
       if (rows.length === 0) return res.status(404).json({ error: "Receita não encontrada." });
       
-      // Proprietário pode editar qualquer receita; Gerente só pode editar suas próprias
-      if (userRole !== 'Proprietário' && rows[0].ID_Usuario !== ID_Usuario) {
-        return res.status(403).json({ error: "Não autorizado." });
-      }
+      // Proprietário e Gerente podem editar qualquer receita (sem restrição por criador)
 
       let imagem_URL = rows[0].imagem_URL || '';
 

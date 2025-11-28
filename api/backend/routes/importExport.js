@@ -26,7 +26,7 @@ router.get('/exportar-dados', async (req, res) => {
     const [receitas] = await db.query('SELECT * FROM receitas');
     const [ingredientes] = await db.query('SELECT * FROM ingredientes');
     const [despesas] = await db.query('SELECT * FROM despesas');
-    const [usuarios] = await db.query('SELECT ID_Usuario, Nome_Usuario, Email, Telefone, Tipo_Usuario FROM usuario');
+  const [usuarios] = await db.query('SELECT ID_Usuario, Nome_Usuario, Email, Telefone, tipo_usuario FROM usuario');
 
     if (formato === 'csv') {
       // Exportar como CSV (apenas uma tabela por vez - receitas)

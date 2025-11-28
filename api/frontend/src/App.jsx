@@ -18,6 +18,7 @@ import SuccessfullPasswordChange from "./features/Auth/SuccessfullPasswordChange
 import RoleGuard from "./features/Auth/RoleGuard";
 import Usuarios from "./pages/Usuarios/Usuarios";
 import ImportExportButton from "./components/ImportExport/ImportExportButton";
+import { maybeShowBiweeklyBackupPrompt } from "./utils/backupPrompt";
 
 const isTokenValid = () => {
   const t = localStorage.getItem("token");
@@ -49,6 +50,15 @@ function App() {
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
   }, []);
+
+  // Ao entrar no sistema (token válido), mostrar sugestão de backup a cada 2 semanas para Proprietário
+  useEffect(() => {
+    if (isTokenValid()) {
+      // Pequeno atraso para não competir com outras toasts ao entrar
+      const t = setTimeout(() => { maybeShowBiweeklyBackupPrompt(); }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [location.pathname]);
 
   const logout = () => {
     localStorage.removeItem("token");

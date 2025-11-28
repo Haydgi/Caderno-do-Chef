@@ -348,7 +348,12 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
   useEffect(() => {
     const total = ingredientesSelecionados.reduce((soma, ing) => {
-      return soma + calcularCustoIngrediente(ing.quantidade, ing.quantidade_total, ing.custo_ingrediente);
+      return soma + calcularCustoIngrediente(
+        ing.quantidade,
+        ing.quantidade_total,
+        ing.custo_ingrediente,
+        ing.Indice_de_Desperdicio ?? 0
+      );
     }, 0);
     setCustoTotalIngredientes(total);
     setForm(prev => ({ ...prev, Custo_Total_Ingredientes: total }));
@@ -640,8 +645,20 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                     <ul className={styles.suggestionsList}>
                       {ingredientesDisponiveis
                         .filter(i => i.nome.toLowerCase().includes(ingredienteBusca.toLowerCase()))
+                        // Oculta itens já adicionados na lista da receita
+                        .filter(i => !ingredientesSelecionados.some(sel => Number(sel.id_ingrediente ?? sel.ID_Ingredientes ?? sel.id) === Number(i.ID_Ingredientes)))
                         .map(i => (
-                          <li key={i.ID_Ingredientes} onClick={() => handleSelectIngrediente(i)}>
+                          <li
+                            key={i.ID_Ingredientes}
+                            onClick={() => {
+                              // Evita adicionar duplicado
+                              const jaSelecionado = ingredientesSelecionados.some(
+                                sel => Number(sel.id_ingrediente ?? sel.ID_Ingredientes ?? sel.id) === Number(i.ID_Ingredientes)
+                              );
+                              if (jaSelecionado) return;
+                              handleSelectIngrediente(i);
+                            }}
+                          >
                             {i.nome} <span className="text-muted">({i.unidade})</span>
                           </li>
                         ))}

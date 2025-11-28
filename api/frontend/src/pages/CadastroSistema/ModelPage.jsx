@@ -37,6 +37,8 @@ function ModelPage({
   filtroCategoria,
   setFiltroCategoria,
   categorias = [],
+  // Render extra dropdown items (custom filters)
+  extrasDropdown = null,
   // Props para alinhamento da paginação
   centerPagination = false,
   // Props para desabilitar botão adicionar
@@ -258,6 +260,8 @@ function ModelPage({
                         ))}
                       </>
                     )}
+                    {/* Extra custom filters (injected by page) */}
+                    {extrasDropdown}
                   </ul>
                 </div>
               )}

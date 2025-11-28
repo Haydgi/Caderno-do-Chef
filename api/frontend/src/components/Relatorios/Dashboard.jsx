@@ -123,24 +123,7 @@ const Dashboard = () => {
         <UnderusedIngredients userId={userId} ingredients={ingredientList} />
       </div>
 
-      {/* Botão flutuante Exportar PDF */}
-      <button
-        className={styles.fabExport}
-        onClick={() => setShowExportModal(true)}
-        title="Exportar PDF"
-      >
-        <MdPictureAsPdf size={24} style={{ marginRight: 8 }} />
-        Exportar
-      </button>
-
-      {/* Modal de Exportação */}
-      {showExportModal && (
-        <ModalExportDashboard
-          onClose={() => setShowExportModal(false)}
-          ingredientList={ingredientList}
-          onExport={handleExportPDF}
-        />
-      )}
+      {/* Export PDF via ImportExport dropdown (migrado) */}
     </div>
   );
 };

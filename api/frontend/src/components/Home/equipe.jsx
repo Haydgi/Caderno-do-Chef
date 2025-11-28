@@ -133,7 +133,7 @@ const Equipe = (props) => {
                       Haydgi Resende
                     </span>
                     <span className="equipe-text21 thq-body-small">
-                      Desenvolvedor Front-end
+                      Desenvolvedor Fullstack
                     </span>
                     <div className="link-container">
                       <a
