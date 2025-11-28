@@ -33,7 +33,7 @@ const CategoriesChart = ({ userId }) => {
 
   return (
     <div className={`${styles['chart-card']} ${styles.compact}`}>
-      <h3 className={styles['chart-title']}>Distribuição por Categoria</h3>
+      <h4 className={styles['chart-title']}>Distribuição de Receitas por Categoria</h4>
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
           <Pie
