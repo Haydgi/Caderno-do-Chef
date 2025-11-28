@@ -34,7 +34,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
   const [custoTotalIngredientes, setCustoTotalIngredientes] = useState(0);
   const [despesas, setDespesas] = useState([]);
   const categorias = [
-    "Carnes", "Aves", "Peixes e Frutos do Mar", "Massas", "Arroz e Grãos",
+    "Carnes", "Peixes e Frutos do Mar", "Massas", "Grãos",
     "Doces", "Sobremesas", "Bolos e Tortas", "Pães e Biscoitos", "Sopas e Caldos",
     "Molhos e Pastas", "Bebidas", "Vegano", "Vegetariano", "Sem Glúten", "Sem Lactose"
   ];
