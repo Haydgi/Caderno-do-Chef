@@ -106,7 +106,6 @@ app.get('/api/test-connection', (req, res) => {
 // Cadastros e operações de negócio
 app.use('/api', auth, testRoute); // demais endpoints de teste protegidos
 app.use('/api/ingredientes', auth, ingredientesRoutes);
-app.use('/api/receitas', auth, cadastroReceitas);
 app.use('/api/despesas', auth, cadastroDespesas);
 app.use('/api/impostos', auth, impostosRoutes);
 
@@ -116,11 +115,14 @@ app.use('/api', auth, gerenciamentoUsuariosRoutes);
 // Rota de receita detalhada (todos os usuários autenticados podem visualizar)
 app.use('/api/receita-detalhada', auth, receitaDetalhadaRouter);
 
-// Relatórios e métricas (apenas Proprietário e Gerente)
+// Relatórios e métricas (apenas Proprietário e Gerente) - MUST come BEFORE cadastroReceitas
 app.use('/api/receitas', auth, proprietarioOuGerente, LucroPorReceita);
 app.use('/api/receitas', auth, proprietarioOuGerente, Tempomedio);
 app.use('/api/receitas', auth, proprietarioOuGerente, ContaReceita);
 app.use('/api/receitas', auth, proprietarioOuGerente, CategoriaReceitas);
+
+// Cadastro de receitas (generic routes with :id params) - MUST come AFTER specific routes
+app.use('/api/receitas', auth, cadastroReceitas);
 app.use('/api/ingredientes/indice', auth, proprietarioOuGerente, IndiceDesperdicio);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, DesperdicioMedio);
 app.use('/api/ingredientes', auth, proprietarioOuGerente, ContaIngredientes);

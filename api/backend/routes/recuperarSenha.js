@@ -7,6 +7,10 @@ import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
+// Cache em memória para tokens de recuperação (substitui colunas no banco)
+// Estrutura: { token: { email, expiracao } }
+const resetTokens = new Map();
+
 // Rate limit para solicitação de recuperação (prevenir spam)
 const recuperacaoLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
@@ -43,15 +47,16 @@ router.post('/recuperar-senha', recuperacaoLimiter, async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     const tokenExpiracao = new Date(Date.now() + 3600000); // 1 hora
 
-    // Se o usuário existe no sistema, salvar token no banco
+    // Se o usuário existe no sistema, salvar token em memória
     if (usuarios.length > 0) {
       const usuario = usuarios[0];
       
-      // Salvar token no banco de dados
-      await db.query(
-        'UPDATE usuario SET reset_token = ?, reset_token_expiracao = ? WHERE ID_Usuario = ?',
-        [token, tokenExpiracao, usuario.ID_Usuario]
-      );
+      // Salvar token em memória (cache)
+      resetTokens.set(token, {
+        email: usuario.Email,
+        expiracao: tokenExpiracao,
+        userId: usuario.ID_Usuario
+      });
     }
 
     // Enviar email para qualquer endereço (esteja ou não cadastrado)
@@ -67,12 +72,9 @@ router.post('/recuperar-senha', recuperacaoLimiter, async (req, res) => {
       console.error('Detalhes do erro:', emailError.message);
       console.error('Stack:', emailError.stack);
       
-      // Limpar token se o email falhar e o usuário existir
+      // Limpar token do cache se o email falhar e o usuário existir
       if (usuarios.length > 0) {
-        await db.query(
-          'UPDATE usuario SET reset_token = NULL, reset_token_expiracao = NULL WHERE ID_Usuario = ?',
-          [usuarios[0].ID_Usuario]
-        );
+        resetTokens.delete(token);
       }
       
       return res.status(500).json({
@@ -112,15 +114,33 @@ router.post('/resetar-senha', async (req, res) => {
   }
 
   try {
-    // Buscar usuário com token válido
+    // Buscar token no cache em memória
+    const tokenData = resetTokens.get(token);
+
+    if (!tokenData) {
+      return res.status(400).json({
+        mensagem: 'Token inválido ou expirado.',
+      });
+    }
+
+    // Verificar se o token expirou
+    if (new Date() > tokenData.expiracao) {
+      resetTokens.delete(token); // Limpar token expirado
+      return res.status(400).json({
+        mensagem: 'Token inválido ou expirado.',
+      });
+    }
+
+    // Buscar usuário pelo email armazenado no token
     const [usuarios] = await db.query(
-      'SELECT ID_Usuario, Email FROM usuario WHERE reset_token = ? AND reset_token_expiracao > NOW()',
-      [token]
+      'SELECT ID_Usuario, Email FROM usuario WHERE Email = ?',
+      [tokenData.email]
     );
 
     if (usuarios.length === 0) {
+      resetTokens.delete(token);
       return res.status(400).json({
-        mensagem: 'Token inválido ou expirado.',
+        mensagem: 'Usuário não encontrado.',
       });
     }
 
@@ -129,11 +149,14 @@ router.post('/resetar-senha', async (req, res) => {
     // Criptografar nova senha
     const senhaCriptografada = await bcrypt.hash(novaSenha, 10);
 
-    // Atualizar senha e limpar token
+    // Atualizar senha (sem limpar colunas que não existem)
     await db.query(
-      'UPDATE usuario SET Senha = ?, reset_token = NULL, reset_token_expiracao = NULL WHERE ID_Usuario = ?',
+      'UPDATE usuario SET Senha = ? WHERE ID_Usuario = ?',
       [senhaCriptografada, usuario.ID_Usuario]
     );
+
+    // Limpar token do cache
+    resetTokens.delete(token);
 
     return res.status(200).json({
       mensagem: 'Senha redefinida com sucesso! Você já pode fazer login.',
@@ -154,12 +177,19 @@ router.get('/validar-token/:token', async (req, res) => {
   const { token } = req.params;
 
   try {
-    const [usuarios] = await db.query(
-      'SELECT ID_Usuario FROM usuario WHERE reset_token = ? AND reset_token_expiracao > NOW()',
-      [token]
-    );
+    // Verificar token no cache
+    const tokenData = resetTokens.get(token);
 
-    if (usuarios.length === 0) {
+    if (!tokenData) {
+      return res.status(400).json({
+        valido: false,
+        mensagem: 'Token inválido ou expirado.',
+      });
+    }
+
+    // Verificar se expirou
+    if (new Date() > tokenData.expiracao) {
+      resetTokens.delete(token);
       return res.status(400).json({
         valido: false,
         mensagem: 'Token inválido ou expirado.',

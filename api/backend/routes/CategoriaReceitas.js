@@ -5,9 +5,13 @@ import db from '../database/connection.js';
 const router = express.Router();
 
 router.get('/categorias', async (req, res) => {
+  console.log('🔍 CategoriaReceitas - req.query:', req.query);
+  console.log('🔍 CategoriaReceitas - req.user:', req.user);
+  
   const idUsuario = req.query.usuario;
 
   if (!idUsuario) {
+    console.log('❌ ID do usuário ausente na query string');
     return res.status(400).json({ error: 'ID do usuário é obrigatório' });
   }
 

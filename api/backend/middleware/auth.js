@@ -4,9 +4,11 @@ import db from '../database/connection.js';
 // Middleware de autenticação por JWT
 // Exige header: Authorization: Bearer <token>
 export default async function auth(req, res, next) {
+  console.log(`🔒 Auth middleware - ${req.method} ${req.path}`);
   try {
     const authHeader = req.headers['authorization'] || req.headers['Authorization'];
     if (!authHeader) {
+      console.log('❌ No authorization header found');
       return res.status(401).json({ mensagem: 'Não autorizado: token ausente.' });
     }
 
@@ -17,8 +19,11 @@ export default async function auth(req, res, next) {
 
     jwt.verify(token, process.env.SECRET_JWT, async (err, decoded) => {
       if (err) {
+        console.log('❌ JWT verification failed:', err.message);
         return res.status(401).json({ mensagem: 'Não autorizado: token inválido ou expirado.' });
       }
+      
+      console.log('🔐 Token decoded:', { ID_Usuario: decoded.ID_Usuario, email: decoded.email, role: decoded.role });
       
       try {
         // Buscar o papel do usuário no banco de dados
@@ -36,6 +41,8 @@ export default async function auth(req, res, next) {
           ...decoded,
           role: usuarios[0].tipo_usuario
         };
+        
+        console.log('✅ Auth successful - req.user:', { ID_Usuario: req.user.ID_Usuario, role: req.user.role });
         
         return next();
       } catch (dbError) {

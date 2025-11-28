@@ -12,7 +12,9 @@ export function apenasProprietario(req, res, next) {
 
 // Proprietário ou Gerente
 export function proprietarioOuGerente(req, res, next) {
+  console.log('🔑 Permission check - proprietarioOuGerente:', req.user?.role);
   if (req.user.role !== 'Proprietário' && req.user.role !== 'Gerente') {
+    console.log('❌ Access denied - role:', req.user.role);
     return res.status(403).json({ 
       mensagem: "Acesso negado. Apenas proprietários e gerentes podem acessar este recurso." 
     });
