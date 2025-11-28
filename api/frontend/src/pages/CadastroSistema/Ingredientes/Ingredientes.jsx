@@ -68,13 +68,18 @@ function Ingredientes() {
     if (!token) return;
 
     try {
+      const ts = Date.now();
       const res = await fetch(
-        `${API_URL}/api/ingredientes?limit=10000&search=${encodeURIComponent(termo)}&obsoleteOnly=${apenasObsoletos ? '1' : '0'}`,
+        `${API_URL}/api/ingredientes?limit=10000&search=${encodeURIComponent(termo)}&obsoleteOnly=${apenasObsoletos ? '1' : '0'}&_t=${ts}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store'
         }
       );
       if (!res.ok) throw new Error('Erro ao buscar ingredientes');
@@ -152,26 +157,10 @@ function Ingredientes() {
     }
   };
 
-  const atualizarIngrediente = async (ingredienteAtualizado) => {
-    const token = getToken();
-    if (!token) return;
-
+  // Após editar no modal, apenas recarrega a lista para evitar duplicar a requisição PUT
+  const atualizarIngrediente = async () => {
     try {
-      console.log('Enviando para atualização:', ingredienteAtualizado);
-      const res = await fetch(`${API_URL}/api/ingredientes/${ingredienteAtualizado.ID_Ingredientes}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(ingredienteAtualizado)
-      });
-
-      const atualizado = await res.json();
-
-      // Recarrega todos os ingredientes após editar
       await fetchIngredientes();
-
       setMostrarModalEditar(false);
       setIngredienteSelecionado(null);
       toast.success('Ingrediente atualizado com sucesso!');
@@ -204,7 +193,8 @@ function Ingredientes() {
         return;
       }
 
-      setIngredientes(prev => prev.filter(i => i.id !== id));
+      // Recarrega da API para evitar itens "fantasmas" em cache
+      await fetchIngredientes(termoBusca);
       toast.success('Ingrediente removido com sucesso!');
     } catch (err) {
       toast.error('Erro ao remover ingrediente.');

@@ -99,36 +99,32 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
     };
 
     try {
-  const response = await fetch(`http://localhost:3001/api/ingredientes/${ingrediente.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token,
-    },
-    body: JSON.stringify(ingredienteFormatado),
-  });
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/ingredientes/${ingrediente.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+        },
+        body: JSON.stringify(ingredienteFormatado),
+      });
 
-  const data = await response.json();
+      const data = await response.json();
 
-  if (!response.ok || data.error || data.success === false) {
-    throw new Error(data.message || "Erro ao atualizar o ingrediente.");
-  }
+      if (!response.ok || data.error || data.success === false) {
+        throw new Error(data.message || "Erro ao atualizar o ingrediente.");
+      }
 
-  if (onSave) {
-  await onSave({
-  ...data,
-  ID_Ingredientes: ingrediente.id, // Garante que o ID esteja presente no retorno
-});
+      // Apenas sinaliza para o pai atualizar a lista; não enviar payload de volta para evitar PUT duplicado
+      if (onSave) {
+        await onSave();
+      }
 
-}
-
-
-  //toast.success("Ingrediente atualizado com sucesso!");
-  handleClose();
-} catch (error) {
-  console.error(error);
-  
-}
+      handleClose();
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao atualizar o ingrediente.');
+    }
 
   };
 

@@ -348,7 +348,12 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
   useEffect(() => {
     const total = ingredientesSelecionados.reduce((soma, ing) => {
-      return soma + calcularCustoIngrediente(ing.quantidade, ing.quantidade_total, ing.custo_ingrediente);
+      return soma + calcularCustoIngrediente(
+        ing.quantidade,
+        ing.quantidade_total,
+        ing.custo_ingrediente,
+        ing.Indice_de_Desperdicio ?? 0
+      );
     }, 0);
     setCustoTotalIngredientes(total);
     setForm(prev => ({ ...prev, Custo_Total_Ingredientes: total }));
