@@ -49,6 +49,14 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     const usuario = results[0];
 
+    // DEBUG: Ver o que vem do banco
+    console.log('🔍 DEBUG Login - Dados do usuário:', {
+      ID: usuario.ID_Usuario,
+      Email: usuario.Email,
+      tipo_usuario: usuario.tipo_usuario,
+      camposDisponiveis: Object.keys(usuario)
+    });
+
     // Comparação da senha com bcrypt (senha fornecida x hash salvo no banco)
     const senhaCorreta = await bcrypt.compare(senha, usuario.Senha);
     if (!senhaCorreta) {
@@ -60,7 +68,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       { 
         ID_Usuario: usuario.ID_Usuario, 
         email: usuario.Email,
-        role: usuario.Tipo_Usuario  // ← CORRIGIDO: Tipo_Usuario com maiúscula
+        role: usuario.tipo_usuario  // ← Campo do banco: tipo_usuario (minúsculo)
       },
       process.env.SECRET_JWT,
       { expiresIn: '1h' }
@@ -76,8 +84,8 @@ router.post("/login", loginLimiter, async (req, res) => {
         id: usuario.ID_Usuario,
         nome: usuario.Nome_Usuario,
         email: usuario.Email,
-        role: usuario.Tipo_Usuario, // ex.: Proprietário | Gerente | Funcionário
-        tipo_usuario: usuario.Tipo_Usuario // compatibilidade com consumidores que preferem este nome
+        role: usuario.tipo_usuario, // ex.: Proprietário | Gerente | Funcionário
+        tipo_usuario: usuario.tipo_usuario // compatibilidade com consumidores que preferem este nome
       }
     });
 
