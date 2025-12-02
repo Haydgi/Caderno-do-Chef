@@ -1,10 +1,11 @@
 // backend/routes/recipes.js
 import express from 'express';
 import db from '../database/connection.js';
+import { proprietarioOuGerente } from '../middleware/permissions.js';
 
 const router = express.Router();
 
-router.get('/Tempomedio', async (req, res) => {
+router.get('/Tempomedio', proprietarioOuGerente, async (req, res) => {
   const idUsuario = req.query.usuario;
 
   if (!idUsuario) {

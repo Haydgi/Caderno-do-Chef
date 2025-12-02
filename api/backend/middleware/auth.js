@@ -12,9 +12,18 @@ export default async function auth(req, res, next) {
       return res.status(401).json({ mensagem: 'Não autorizado: token ausente.' });
     }
 
-    const [scheme, token] = authHeader.split(' ');
-    if (scheme !== 'Bearer' || !token) {
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2) {
       return res.status(401).json({ mensagem: 'Não autorizado: formato de Authorization inválido.' });
+    }
+
+    const [scheme, token] = parts;
+    if (!/^Bearer$/i.test(scheme) || !token) {
+      return res.status(401).json({ mensagem: 'Não autorizado: formato de Authorization inválido.' });
+    }
+
+    if (token.length > 500) {
+      return res.status(401).json({ mensagem: 'Não autorizado: token inválido.' });
     }
 
     jwt.verify(token, process.env.SECRET_JWT, async (err, decoded) => {

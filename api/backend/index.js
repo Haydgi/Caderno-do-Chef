@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import helmet from "helmet";
+import compression from "compression";
 
 
 // Rotas
@@ -34,6 +36,15 @@ import { proprietarioOuGerente, apenasProprietario } from "./middleware/permissi
 
 
 dotenv.config();
+
+// Validação de variáveis de ambiente críticas
+const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'SECRET_JWT'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+  console.error('❌ Variáveis de ambiente faltando:', missingEnvVars.join(', '));
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -47,6 +58,15 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('✌️ Diretório uploads criado:', uploadsDir);
 }
 
+// Headers de segurança
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false // Desabilitar CSP para permitir assets externos se necessário
+}));
+
+// Compressão de respostas HTTP
+app.use(compression());
+
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://localhost:5174"],
@@ -55,9 +75,9 @@ app.use(
   })
 );
 
-app.use(express.json());
-// Suporte a application/x-www-form-urlencoded (usado por alguns formulários no frontend)
-app.use(express.urlencoded({ extended: true }));
+// Limite de tamanho do body para prevenir ataques de payload gigante
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
 // Servir imagens com headers de cache otimizados
@@ -83,6 +103,16 @@ import pdfExportRoute from './routes/pdfExport.js';
 
 // Middleware de autenticação (JWT) para rotas protegidas
 import auth from './middleware/auth.js';
+
+// Utilitários de erro e logging
+import { errorHandler, notFoundHandler } from './utils/errors.js';
+import { requestLogger } from './utils/logger.js';
+
+// ==========================
+// Middlewares globais
+// ==========================
+// Logger de requisições (deve vir antes das rotas)
+app.use(requestLogger);
 
 // ==========================
 // Rotas públicas
@@ -115,11 +145,11 @@ app.use('/api', auth, gerenciamentoUsuariosRoutes);
 // Rota de receita detalhada (todos os usuários autenticados podem visualizar)
 app.use('/api/receita-detalhada', auth, receitaDetalhadaRouter);
 
-// Relatórios e métricas (apenas Proprietário e Gerente) - MUST come BEFORE cadastroReceitas
-app.use('/api/receitas', auth, proprietarioOuGerente, LucroPorReceita);
-app.use('/api/receitas', auth, proprietarioOuGerente, Tempomedio);
-app.use('/api/receitas', auth, proprietarioOuGerente, ContaReceita);
-app.use('/api/receitas', auth, proprietarioOuGerente, CategoriaReceitas);
+// Relatórios e métricas (permissões aplicadas internamente em cada rota)
+app.use('/api/receitas', auth, LucroPorReceita);
+app.use('/api/receitas', auth, Tempomedio);
+app.use('/api/receitas', auth, ContaReceita);
+app.use('/api/receitas', auth, CategoriaReceitas);
 
 // Cadastro de receitas (generic routes with :id params) - MUST come AFTER specific routes
 app.use('/api/receitas', auth, cadastroReceitas);
@@ -136,10 +166,34 @@ app.use('/api', auth, apenasProprietario, importExportRoutes);
 // Backup completo (Proprietário ou Gerente) - export/import sem usuários
 app.use('/api/backup', auth, proprietarioOuGerente, backupRoutes);
 
-// Observação: se alguma dessas rotas de relatórios deva ser pública,
-// remova o `auth` apenas nessa linha específica.
+// ==========================
+// Middlewares de erro (devem vir por último)
+// ==========================
+// Rota 404 para endpoints não encontrados
+app.use(notFoundHandler);
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-  console.log("Uploads servidos de:", path.join(__dirname, "uploads"));
+// Middleware global de tratamento de erros
+app.use(errorHandler);
+
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`📁 Uploads servidos de: ${path.join(__dirname, "uploads")}`);
+  console.log(`🔒 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM recebido. Fechando servidor gracefully...');
+  server.close(() => {
+    console.log('Servidor fechado');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('\nSIGINT recebido. Fechando servidor gracefully...');
+  server.close(() => {
+    console.log('Servidor fechado');
+    process.exit(0);
+  });
 });

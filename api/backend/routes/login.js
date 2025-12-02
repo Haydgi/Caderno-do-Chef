@@ -1,8 +1,10 @@
 import express from "express";
-import db from "../database/connection.js"; // seu pool mysql2/promise
+import db from "../database/connection.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
+import { validate } from '../utils/validators.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -33,33 +35,36 @@ const loginLimiter = rateLimit({
 });
 
 router.post("/login", loginLimiter, async (req, res) => {
-  const { email, senha } = req.body;
-
-  if (!email || !senha) {
-    return res.status(400).json({ mensagem: "Email e senha são obrigatórios." });
-  }
-
   try {
+    const { email, senha } = req.body;
+
+    // Validação usando sistema centralizado
+    const validation = validate({
+      email: 'required|string|email|max:255',
+      senha: 'required|string|min:6|max:100'
+    }, { email, senha });
+
+    if (!validation.isValid) {
+      return res.status(400).json({
+        mensagem: 'Erro de validação',
+        errors: validation.errors
+      });
+    }
+
     // Query usando await e destructuring do resultado
     const [results] = await db.query("SELECT * FROM usuario WHERE Email = ?", [email]);
 
     if (results.length === 0) {
+      logger.warn('Tentativa de login com email não encontrado', { email });
       return res.status(401).json({ mensagem: "Email ou senha incorretos." });
     }
 
     const usuario = results[0];
 
-    // DEBUG: Ver o que vem do banco
-    console.log('🔍 DEBUG Login - Dados do usuário:', {
-      ID: usuario.ID_Usuario,
-      Email: usuario.Email,
-      tipo_usuario: usuario.tipo_usuario,
-      camposDisponiveis: Object.keys(usuario)
-    });
-
-    // Comparação da senha com bcrypt (senha fornecida x hash salvo no banco)
+    // Comparação da senha com bcrypt
     const senhaCorreta = await bcrypt.compare(senha, usuario.Senha);
     if (!senhaCorreta) {
+      logger.warn('Tentativa de login com senha incorreta', { userId: usuario.ID_Usuario });
       return res.status(401).json({ mensagem: "Email ou senha incorretos." });
     }
 
@@ -68,30 +73,36 @@ router.post("/login", loginLimiter, async (req, res) => {
       { 
         ID_Usuario: usuario.ID_Usuario, 
         email: usuario.Email,
-        role: usuario.tipo_usuario  // ← Campo do banco: tipo_usuario (minúsculo)
+        role: usuario.tipo_usuario
       },
       process.env.SECRET_JWT,
-      { expiresIn: '1h' }
+      { expiresIn: '8h' }
     );
 
-    // Evitar logar token/payload em produção
+    logger.success('Login realizado com sucesso', { 
+      userId: usuario.ID_Usuario, 
+      email: usuario.Email 
+    });
 
-    // Retornar sucesso com token e dados do usuário (inclui papel/tipo_usuario)
+    // Retornar sucesso com token e dados do usuário (formato compatível com frontend)
     return res.status(200).json({
-      mensagem: "Login realizado com sucesso!",
+      mensagem: 'Login realizado com sucesso!',
       token,
       usuario: {
         id: usuario.ID_Usuario,
         nome: usuario.Nome_Usuario,
         email: usuario.Email,
-        role: usuario.tipo_usuario, // ex.: Proprietário | Gerente | Funcionário
-        tipo_usuario: usuario.tipo_usuario // compatibilidade com consumidores que preferem este nome
+        role: usuario.tipo_usuario,
+        tipo_usuario: usuario.tipo_usuario
       }
     });
 
   } catch (err) {
-    console.error("Erro ao consultar o banco de dados:", err);
-    return res.status(500).json({ mensagem: "Erro no servidor." });
+    logger.error('Erro ao processar login', { error: err.message, stack: err.stack });
+    return res.status(500).json({ 
+      mensagem: 'Erro ao processar login',
+      ...(process.env.NODE_ENV !== 'production' && { error: err.message })
+    });
   }
 });
 

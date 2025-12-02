@@ -1,9 +1,10 @@
 import express from 'express';
 import db from "../database/connection.js";
+import { proprietarioOuGerente } from '../middleware/permissions.js';
 
 const router = express.Router();
 
-router.get('/lucros', async (req, res) => {
+router.get('/lucros', proprietarioOuGerente, async (req, res) => {
   const idUsuario = req.query.usuario;
 
   if (!idUsuario) {

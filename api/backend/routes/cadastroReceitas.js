@@ -316,127 +316,16 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
     );
     const imagemAtual = existingRow ? (existingRow.imagem_URL || '') : '';
 
-<<<<<<< HEAD
-    // Parse ingredientes se vier como string (caso de multipart/form-data)
-    if (typeof ingredientes === "string") {
-      try {
-        ingredientes = JSON.parse(ingredientes);
-        console.log("Ingredientes (depois do parse):", ingredientes);
-      } catch (error) {
-        console.error("Erro ao fazer parse de ingredientes:", error.message);
-        return res.status(400).json({ error: "JSON malformado nos ingredientes." });
-      }
-    }
-
-    // Valide o array após o parse
-    if (!Array.isArray(ingredientes) || ingredientes.length === 0) {
-      return res.status(400).json({ error: "Nenhum ingrediente recebido para atualizar." });
-    }
-
-    // Validações (Descrição não é obrigatória)
-    if (!Nome_Receita || Tempo_Preparo === undefined ||
-      Custo_Total_Ingredientes === undefined || Porcentagem_De_Lucro === undefined) {
-      return res.status(400).json({ error: "Campos obrigatórios faltando." });
-    }
-
-    Tempo_Preparo = parseInt(Tempo_Preparo);
-    Custo_Total_Ingredientes = parseFloat(Custo_Total_Ingredientes);
-    Porcentagem_De_Lucro = parseFloat(Porcentagem_De_Lucro);
-
-    if (isNaN(Tempo_Preparo) || Tempo_Preparo <= 0) return res.status(400).json({ error: "Tempo inválido." });
-    if (isNaN(Custo_Total_Ingredientes) || Custo_Total_Ingredientes < 0) return res.status(400).json({ error: "Custo inválido." });
-    if (isNaN(Porcentagem_De_Lucro) || Porcentagem_De_Lucro < 0) return res.status(400).json({ error: "Porcentagem inválida." });
-
-    try {
-      const [rows] = await db.query(`SELECT ID_Usuario, imagem_URL FROM receitas WHERE ID_Receita = ?`, [idNum]);
-
-      if (rows.length === 0) return res.status(404).json({ error: "Receita não encontrada." });
-      
-      // Proprietário e Gerente podem editar qualquer receita (sem restrição por criador)
-
-
-      let imagem_URL = rows[0].imagem_URL || '';
-
-      // Se for para remover a imagem (sem upload novo)
-      if (req.body.remover_imagem === 'true' && !req.file) {
-        if (imagem_URL) {
-          const caminhoImagemAntiga = path.join(__dirname, '../uploads', imagem_URL);
-          try {
-            await fs.unlink(caminhoImagemAntiga);
-          } catch (err) {
-            console.warn('Falha ao excluir imagem antiga:', err.message);
-          }
-        }
-        imagem_URL = null;
-      } else if (req.file) {
-        if (imagem_URL) {
-          const caminhoImagemAntiga = path.join(__dirname, '../uploads', imagem_URL);
-          try {
-            await fs.unlink(caminhoImagemAntiga);
-          } catch (err) {
-            console.warn('Falha ao excluir imagem antiga:', err.message);
-          }
-        }
-        imagem_URL = req.file.filename;
-      }
-
-      // Atualiza dados da receita
-      const [result] = await db.query(`
-        UPDATE receitas SET 
-          Nome_Receita = ?, 
-          Descricao = ?, 
-          Tempo_Preparo = ?, 
-          Custo_Total_Ingredientes = ?, 
-          Porcentagem_De_Lucro = ?, 
-          Categoria = ?, 
-          imagem_URL = ?
-        WHERE ID_Receita = ?
-      `, [
-        Nome_Receita,
-        Descricao,
-        Tempo_Preparo,
-        Custo_Total_Ingredientes,
-        Porcentagem_De_Lucro,
-        Categoria || null,
-        imagem_URL,
-        idNum
-      ]);
-
-      // Atualiza ingredientes associados:
-      if (Array.isArray(ingredientes)) {
-        // Apaga os antigos
-        await db.query('DELETE FROM ingredientes_receita WHERE ID_Receita = ?', [idNum]);
-
-        if (ingredientes.length > 0) {
-          const valores = ingredientes.map(i => [
-            idNum,
-            i.ID_Ingredientes,
-            parseFloat(i.quantidade || i.Quantidade_Utilizada),
-            i.Unidade_De_Medida || null
-          ]);
-          console.log("Valores para INSERT:", valores);
-
-          try {
-            await db.query(
-              'INSERT INTO ingredientes_receita (ID_Receita, ID_Ingredientes, Quantidade_Utilizada, Unidade_De_Medida) VALUES ?',
-              [valores]
-            );
-          } catch (err) {
-            console.error("Erro ao inserir ingredientes:", err.message);
-            return res.status(500).json({ error: "Erro ao inserir ingredientes.", sql: err.message });
-          }
-=======
     // Se vier flag para remover imagem, apaga arquivo físico se existir
     if (body.remover_imagem === 'true' || body.remover_imagem === true) {
       if (imagemAtual) {
         const caminhoArquivo = path.join(__dirname, '../uploads', imagemAtual);
         try {
-          await fs.promises.access(caminhoArquivo);
-          await fs.promises.unlink(caminhoArquivo);
+          await fs.access(caminhoArquivo);
+          await fs.unlink(caminhoArquivo);
           console.log('Arquivo de imagem removido do disco:', caminhoArquivo);
         } catch (err) {
           console.warn('Não foi possível remover arquivo (talvez já inexistente):', caminhoArquivo, err.message);
->>>>>>> a10b1a9ff21f35c73b117d21a070c50a41309f67
         }
       }
     }
@@ -451,7 +340,7 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
       // se havia imagem antiga e foi substituída, remova o arquivo antigo
       if (imagemAtual) {
         const antigo = path.join(__dirname, '../uploads', imagemAtual);
-        fs.promises.unlink(antigo).catch(() => {});
+        fs.unlink(antigo).catch(() => {});
       }
     } else if (body.remover_imagem === 'true' || body.remover_imagem === true) {
       imagemParaSalvar = '';
