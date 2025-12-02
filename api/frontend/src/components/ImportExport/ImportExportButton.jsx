@@ -17,7 +17,7 @@ export default function ImportExportButton() {
 
   const role = localStorage.getItem('role');
   // Proprietário nas páginas de relatórios e usuários
-  const permitido = role === 'Proprietário' && (location.pathname === '/relatorios');
+  const permitido = role === 'Proprietário' && (location.pathname === '/relatorios' || location.pathname === '/usuarios');
 
   // Fechar menu ao clicar fora
   useEffect(() => {
