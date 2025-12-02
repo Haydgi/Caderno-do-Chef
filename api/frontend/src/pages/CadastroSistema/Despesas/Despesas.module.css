@@ -1,23 +1,159 @@
+/* Evita corte da palavra Imposto no label do card */
+.cardDespesa .fw-bold.mb-1 {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  white-space: normal;
+}
+.detalhamentoCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  word-break: break-word;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.detalhamentoCard span {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+@media (max-width: 800px) {
+  .detalhamentoCard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem 0;
+  }
+}
+/* Card de detalhamento de despesas responsivo */
+.detalhamentoCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  word-break: break-word;
+}
+
+@media (max-width: 576px) {
+  .detalhamentoCard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+/* Responsividade para breakdown de custos */
+.breakdownContainer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (max-width: 576px) {
+  .breakdownContainer {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+}
+/* Painel de impostos com scroll vertical se necessário */
+.impostos-cards-panel {
+  /* lower impostos panel height so it lines up better with the surrounding cards */
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 8px;
+  /* Para evitar scroll horizontal */
+  overflow-x: hidden;
+}
+
+/* Global quiet scrollbar: thin, low-contrast and more visible on hover */
+:global(.quiet-scrollbar) {
+  /* make the quiet scrollbar purple to match the theme for this page */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--ultra-violet, #6c4f99) transparent;
+}
+
+:global(.quiet-scrollbar::-webkit-scrollbar) {
+  width: 6px;
+  height: 6px;
+}
+
+:global(.quiet-scrollbar::-webkit-scrollbar-track) {
+  background: transparent;
+}
+
+:global(.quiet-scrollbar::-webkit-scrollbar-thumb) {
+  /* purple thumb for a subtle theme match */
+  background: var(--ultra-violet, #6c4f99);
+  border-radius: 8px;
+  transition: background .12s ease;
+}
+
+:global(.quiet-scrollbar:hover::-webkit-scrollbar-thumb) {
+  background: rgba(0,0,0,0.18);
+}
+
+/* Scrollbar customizada para o painel de impostos */
+.impostos-cards-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.impostos-cards-panel::-webkit-scrollbar-thumb {
+  background: var(--ultra-violet, #6c4f99);
+  border-radius: 8px;
+}
+
+/* purple scrollbar for the grid container on narrower screens (horizontal scroll) */
+.despesasContainer::-webkit-scrollbar {
+  height: 8px;
+}
+.despesasContainer::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+}
+.despesasContainer::-webkit-scrollbar-thumb {
+  background: var(--ultra-violet, #6c4f99);
+  border-radius: 8px;
+}
+.despesasContainer::-webkit-scrollbar-thumb:hover {
+  background: rgba(108,79,153,0.95);
+}
+.impostos-cards-panel::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
 .cardDespesa {
   background-color: var(--ultra-violet); /* Fundo roxo */
   color: var(--white-smoke); /* Texto branco */
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 12px 10px; /* confortável para o conteúdo */
   text-align: center;
   position: relative;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
   width: 100%;
   margin: 0 auto;
-  min-height: 180px;
+  min-height: 90px; /* altura mínima para não cortar conteúdo */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .cardDespesa:hover {
-  transform: scale(1.05); /* Leve aumento no hover */
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); /* Sombra mais intensa */
+  transform: scale(1.03); /* leve aumento no hover */
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 /* Classe para simular o hover do card via estado */
@@ -29,13 +165,18 @@
 .cardTitle {
   font-size: 1.2rem;
   font-weight: bold;
-
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: auto;
 }
 
 .cardValue {
   font-size: 1rem;
   color: var(--floral-white);
   margin-bottom: 10px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: auto;
 }
 
 .cardAction {
@@ -69,25 +210,26 @@
 /* Container dos cards de despesas */
 .despesasContainer {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  width: 90%;
-  max-width: 1000px;
-  margin: 0 auto;
+  /* reduzir largura horizontal dos cards: colunas mais estreitas */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto; /* centraliza o grid */
   position: relative;
   z-index: 1;
+  overflow-x: auto;
 }
 
 /* Responsividade */
 @media (max-width: 1100px) {
   .despesasContainer {
-    grid-template-columns: repeat(3, 1fr);
+    /* keep responsive format for medium screens */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 }
-
 @media (max-width: 800px) {
   .despesasContainer {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
   .cardDespesa {
     max-width: 100%;
@@ -96,9 +238,9 @@
 
 @media (max-width: 576px) {
   .cardDespesa {
-    padding: 15px;
-    min-height: 160px;
-    margin-top: 10px !important;
+    padding: 8px 5px;
+    min-height: 70px; /* altura mínima para não cortar conteúdo no mobile */
+    margin-top: 8px !important;
   }
 
   .Trash {

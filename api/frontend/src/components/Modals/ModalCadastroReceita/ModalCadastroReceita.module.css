@@ -23,6 +23,8 @@
   color: var(--rich-black);
   width: 900px;
   max-height: 95vh;
+  display: flex; /* stack header/body/footer */
+  flex-direction: column;
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
@@ -75,9 +77,15 @@
 
 .modalBody {
   padding: 10px 0;
+  /* make modal body scrollable when content exceeds available height */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* subtract header/footer + internal paddings from viewport height */
+  max-height: calc(95vh - 200px);
 }
 
 .modalFooter {
+  flex-shrink: 0; /* keep footer visible and out of the scroll area */
   display: flex;
   justify-content: flex-end;
   gap: 15px;

@@ -37,8 +37,6 @@ function ModelPage({
   filtroCategoria,
   setFiltroCategoria,
   categorias = [],
-  // Render extra dropdown items (custom filters)
-  extrasDropdown = null,
   // Props para alinhamento da paginação
   centerPagination = false,
   // Props para desabilitar botão adicionar
@@ -159,7 +157,7 @@ function ModelPage({
                       </span>
                     )}
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  <ul className="dropdown-menu dropdown-menu-end" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                     {/* Filtro por tipo (apenas para Despesas) */}
                     {setFiltroTipo && (
                       <>
@@ -260,8 +258,6 @@ function ModelPage({
                         ))}
                       </>
                     )}
-                    {/* Extra custom filters (injected by page) */}
-                    {extrasDropdown}
                   </ul>
                 </div>
               )}
@@ -361,6 +357,7 @@ function ModelPage({
                 <>
                   {/* Coluna esquerda - Cards */}
                   <div className={painelLateral ? "col-md-6" : "col-12"}>
+                      <div className={painelLateral ? 'quiet-scrollbar' : ''} style={painelLateral ? { maxHeight: '64vh', overflowY: 'auto', paddingRight: '12px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '-8px' } : {}}>
                     {dados.length === 0 ? (
                       <div
                         id="sem-dados"
@@ -391,6 +388,7 @@ function ModelPage({
                         {dadosExibidos.map(renderCard)}
                       </div>
                     )}
+                    </div>
                   </div>
 
                   {/* Linha divisória vertical quando há painel lateral */}
@@ -400,7 +398,7 @@ function ModelPage({
                         style={{
                           position: 'absolute',
                           right: '0px',
-                          height: '75vh',
+                          height: '64vh',
                           width: '2px',
                           backgroundColor: '#67477A',
                           opacity: 0.4,
@@ -414,11 +412,16 @@ function ModelPage({
                   {painelLateral && (
                     <div className="col-md-5 position-relative">
                       <div
-                        className="position-absolute"
+                        className="position-absolute d-flex"
                         style={{
-                          left: '180px',
-                          top: '0',
-                          width: 'calc(100% - 80px)'
+                          left: '0',
+                          right: '0',
+                          top: '-14px',
+                          width: '100%',
+                          justifyContent: 'center',
+                          boxSizing: 'border-box',
+                          paddingLeft: '8px',
+                          paddingRight: '8px'
                         }}
                       >
                         {painelLateral}

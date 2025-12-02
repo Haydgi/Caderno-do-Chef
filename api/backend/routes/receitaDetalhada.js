@@ -45,6 +45,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     const receita = receitaRows[0];
 
+    // Monta URL completa da imagem se existir
+    let imagem_URL = receita.imagem_URL || null;
+    if (imagem_URL) {
+      const baseUrl = `${req.protocol}://${req.get("host")}/uploads/`;
+      imagem_URL = baseUrl + imagem_URL;
+    }
+
     // Buscar ingredientes associados à receita
     const [ingredientesRows] = await db.query(
       `SELECT ir.ID_Ingredientes, ir.Quantidade_Utilizada, ir.Unidade_De_Medida, 
@@ -55,9 +62,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
       [idNum]
     );
 
-    // Enviar receita com ingredientes
+    // Enviar receita com ingredientes e URL completa da imagem
     return res.status(200).json({
       ...receita,
+      imagem_URL,
       ingredientes: ingredientesRows
     });
   } catch (error) {

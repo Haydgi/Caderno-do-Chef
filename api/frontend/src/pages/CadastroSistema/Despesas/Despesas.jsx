@@ -541,8 +541,8 @@ function Despesas() {
               : {
                 cursor: 'pointer',
                 width: '100%',
-                maxWidth: '540px',
-                minWidth: '320px',
+                maxWidth: '420px',
+                minWidth: '220px',
                 margin: '0 auto',
                 display: 'flex',
                 flexDirection: 'column',
@@ -721,8 +721,8 @@ function Despesas() {
               : {
                 cursor: 'pointer',
                 width: '100%',
-                maxWidth: '540px',
-                minWidth: '320px',
+                maxWidth: '420px',
+                minWidth: '220px',
                 margin: '0 auto',
                 display: 'flex',
                 flexDirection: 'column',
@@ -872,25 +872,51 @@ function Despesas() {
             border: 2px solid rgba(255, 255, 255, 0.1);
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--tangerine);
+            /* keep hover in purple (slightly darker) instead of orange */
+            background: rgba(108,79,153,0.95);
+          }
+
+          /* mobile cost content scrollbar styling */
+          .mobile-cost-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          .mobile-cost-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+          }
+          .mobile-cost-content::-webkit-scrollbar-thumb {
+            background: var(--ultra-violet);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.06);
+          }
+          .mobile-cost-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(108,79,153,0.95);
           }
           
           /* Estilos específicos para mobile */
           .mobile-cost-panel {
             position: relative;
             width: 470px;
-            height: 590px;
-            margin: -5px auto 0 auto; /* Subir 45px total (20px + 25px) e centralizar */
-            max-width: calc(100vw - 2rem); /* Responsivo */
+            /* deixa responsivo e limita pelo viewport para evitar cartões gigantes em mobile */
+            max-width: calc(100vw - 2rem);
             display: flex;
             flex-direction: column;
+            height: auto;
+            max-height: 60vh; /* manter mesmo comportamento de altura do desktop */
+            margin: -5px auto 0 auto;
           }
-          
+
           .mobile-cost-content {
-            height: 450px; /* Ajustado para acomodar footer maior */
+            /* conteúdo interna com scroll quando necessário — evita painel demasiado alto */
             overflow-y: auto;
-            padding: 16px;
-            padding-bottom: 0;
+            padding: 12px 16px 0 16px;
+            flex: 1 1 auto;
+            min-height: 100px;
+            /* usar o mesmo limite que a versão desktop para manter consistência
+              aqui diminuímos o máximo interno para que a lista role como no desktop */
+            max-height: calc(60vh - 120px); /* deixa espaço para footer e header */
+            -webkit-overflow-scrolling: touch;
           }
           
           .mobile-cost-footer {
@@ -910,17 +936,20 @@ function Despesas() {
         className={isMobileVersion ? "mobile-cost-panel" : "card shadow-lg border-0"}
         style={isMobileVersion ? {
           background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
-          borderRadius: '20px',
+          borderRadius: '16px',
           overflow: 'hidden',
           margin: '0 1rem',
+          width: '100%',
         } : {
           position: 'relative',
           background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
-          minHeight: '500px',
-          borderRadius: '20px',
-          right: '50px',
+          minHeight: '220px',
+          maxHeight: '64vh',
+          borderRadius: '12px',
           overflow: 'hidden',
-          width: '700px',
+          width: '100%',
+          maxWidth: '520px',
+          boxSizing: 'border-box'
         }}
       >
         {!isMobileVersion && (
@@ -943,7 +972,7 @@ function Despesas() {
           </div>
         )}
 
-        <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white"} style={isMobileVersion ? { padding: '1rem' } : { padding: '2rem' }}>
+        <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
           {/* Seção de detalhamento */}
           <div className={isMobileVersion ? "mb-2" : "mb-4"}>
             <h6
@@ -962,10 +991,11 @@ function Despesas() {
             <div
               className="custom-scrollbar"
               style={isMobileVersion ? {
-                height: '370px',
-                overflowY: 'auto',
-                paddingRight: '10px'
-              } : {
+                  /* comportamento igual ao desktop: lista limitada e com scroll interno */
+                  maxHeight: 'calc(60vh - 200px)',
+                  overflowY: 'auto',
+                  paddingRight: '10px'
+                } : {
                 maxHeight: '200px',
                 overflowY: 'auto',
                 paddingRight: '10px'

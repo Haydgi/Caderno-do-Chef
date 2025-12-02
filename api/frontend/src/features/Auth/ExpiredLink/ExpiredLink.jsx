@@ -1,16 +1,18 @@
 import styles from "./ExpiredLink.module.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function LinkExpirado() {
   const navigate = useNavigate();
+  const [reenviando, setReenviando] = useState(false);
 
   const handleVoltar = () => {
     navigate("/sign-in");
   };
 
   const handleReenviar = () => {
-    toast.success("Um novo link foi enviado para o seu e-mail!");
+    navigate("/forgot-password-email");
   };
 
   return (

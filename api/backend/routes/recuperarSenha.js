@@ -45,7 +45,7 @@ router.post('/recuperar-senha', recuperacaoLimiter, async (req, res) => {
 
     // Gerar token único e seguro
     const token = crypto.randomBytes(32).toString('hex');
-    const tokenExpiracao = new Date(Date.now() + 3600000); // 1 hora
+    const tokenExpiracao = new Date(Date.now() + 60000); // 1 minuto
 
     // Se o usuário existe no sistema, salvar token em memória
     if (usuarios.length > 0) {
@@ -57,6 +57,9 @@ router.post('/recuperar-senha', recuperacaoLimiter, async (req, res) => {
         expiracao: tokenExpiracao,
         userId: usuario.ID_Usuario
       });
+      
+      console.log(`✅ Token gerado para ${usuario.Email}:`, token);
+      console.log(`📝 Tokens ativos no cache:`, resetTokens.size);
     }
 
     // Enviar email para qualquer endereço (esteja ou não cadastrado)
@@ -176,11 +179,15 @@ router.post('/resetar-senha', async (req, res) => {
 router.get('/validar-token/:token', async (req, res) => {
   const { token } = req.params;
 
+  console.log(`🔍 Validando token:`, token);
+  console.log(`📝 Tokens no cache:`, resetTokens.size);
+
   try {
     // Verificar token no cache
     const tokenData = resetTokens.get(token);
 
     if (!tokenData) {
+      console.log(`❌ Token não encontrado no cache`);
       return res.status(400).json({
         valido: false,
         mensagem: 'Token inválido ou expirado.',
@@ -189,6 +196,7 @@ router.get('/validar-token/:token', async (req, res) => {
 
     // Verificar se expirou
     if (new Date() > tokenData.expiracao) {
+      console.log(`⏰ Token expirado`);
       resetTokens.delete(token);
       return res.status(400).json({
         valido: false,
@@ -196,6 +204,7 @@ router.get('/validar-token/:token', async (req, res) => {
       });
     }
 
+    console.log(`✅ Token válido para:`, tokenData.email);
     return res.status(200).json({
       valido: true,
       mensagem: 'Token válido.',

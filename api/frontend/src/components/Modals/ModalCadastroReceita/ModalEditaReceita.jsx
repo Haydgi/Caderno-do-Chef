@@ -545,7 +545,15 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
               {/* Coluna da imagem */}
               <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
                 <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
-                <label htmlFor="imagemInputEdit" className={styles.imageUploadContainer}>
+                <label
+                  htmlFor="imagemInputEdit"
+                  className={styles.imageUploadContainer}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    const input = document.getElementById('imagemInputEdit');
+                    if (input) input.click();
+                  }}
+                >
                   {(() => {
                     console.log('🔍 Debug Modal Preview:', {
                       'form.imagem': form.imagem,
@@ -574,8 +582,12 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         </div>
                       );
                     } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
-                      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                      const imageUrl = `${baseUrl}/uploads/${form.imagem}`;
+                      // Se já for uma URL completa, usa direto; senão monta
+                      let imageUrl = form.imagem;
+                      if (!/^https?:\/\//.test(imageUrl)) {
+                        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                        imageUrl = `${baseUrl}/uploads/${imageUrl}`;
+                      }
                       console.log('✅ Mostrando imagem existente:', imageUrl);
                       return (
                         <div className={styles.imagePreview}>

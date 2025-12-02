@@ -451,6 +451,7 @@ function Receitas() {
                 <div>Preço: R$ {custoComMargem.toFixed(2)}</div>
               </div>
             </div>
+            {/* Ações: (removidas) - clique no card continua abrindo visualização/edição conforme papel */}
           </div>
         </div>
       </div>

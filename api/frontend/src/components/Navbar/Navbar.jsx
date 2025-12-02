@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { MdMenu, MdMenuBook, MdBarChart, MdShoppingCart, MdAttachMoney } from "react-icons/md";
+import { MdMenu, MdMenuBook, MdBarChart, MdShoppingCart, MdAttachMoney, MdCloudUpload } from 'react-icons/md';
 import { FaUserCog } from "react-icons/fa";
 
 /* Small helper (keeps same logic used elsewhere) */
@@ -110,6 +110,13 @@ export default function Navbar({ onLogout }) {
               <MdShoppingCart style={{ verticalAlign: "middle", marginRight: 6 }} /> Ingredientes
             </NavLink>
           </li>
+          {role === 'Proprietário' && (
+            <li>
+              <NavLink to="/relatorios" className="hoverable" title="Exportar/Importar Dados">
+                <MdCloudUpload style={{ verticalAlign: "middle", marginRight: 6 }} /> Dados
+              </NavLink>
+            </li>
+          )}
           {role !== 'Funcionário' && (
             <li>
               <NavLink to="/despesas" className="hoverable">
@@ -174,6 +181,13 @@ export default function Navbar({ onLogout }) {
                 <MdShoppingCart style={{ verticalAlign: "middle", marginRight: 6 }} /> Ingredientes
               </NavLink>
             </li>
+            {role === 'Proprietário' && (
+              <li className="nav-item">
+                <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
+                  <MdCloudUpload style={{ verticalAlign: "middle", marginRight: 6 }} /> Exportar/Importar
+                </NavLink>
+              </li>
+            )}
             {role !== 'Funcionário' && (
               <li className="nav-item">
                 <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>

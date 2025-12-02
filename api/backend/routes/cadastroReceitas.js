@@ -4,7 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
-import { gerenteOuAcima } from '../middleware/permissions.js';
+import { gerenteOuAcima, funcionarioOuAcima } from '../middleware/permissions.js';
 
 // Para funcionar com ESModules
 const __filename = fileURLToPath(import.meta.url);
@@ -155,7 +155,8 @@ router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) =
 });
 
 // GET /?search= - Buscar receitas do usuário com filtro de pesquisa
-router.get('/', async (req, res) => {
+// Permitimos o acesso a funcionários (apenas leitura) — middleware garante papel mínimo
+router.get('/', funcionarioOuAcima, async (req, res) => {
   const search = req.query.search ? `%${req.query.search.toLowerCase()}%` : null;
 
   try {
@@ -202,7 +203,8 @@ router.get('/', async (req, res) => {
 });
 
 // GET /:id - Buscar detalhes da receita incluindo ingredientes com unidade
-router.get('/:id', async (req, res) => {
+// Permitimos que Funcionários visualizem detalhes — leitura somente
+router.get('/:id', funcionarioOuAcima, async (req, res) => {
   const { id } = req.params;
   const idNum = Number(id);
   if (isNaN(idNum) || idNum <= 0) return res.status(400).json({ error: MSGS.idInvalido });
@@ -348,9 +350,21 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
       
       // Proprietário e Gerente podem editar qualquer receita (sem restrição por criador)
 
+
       let imagem_URL = rows[0].imagem_URL || '';
 
-      if (req.file) {
+      // Se for para remover a imagem (sem upload novo)
+      if (req.body.remover_imagem === 'true' && !req.file) {
+        if (imagem_URL) {
+          const caminhoImagemAntiga = path.join(__dirname, '../uploads', imagem_URL);
+          try {
+            await fs.unlink(caminhoImagemAntiga);
+          } catch (err) {
+            console.warn('Falha ao excluir imagem antiga:', err.message);
+          }
+        }
+        imagem_URL = null;
+      } else if (req.file) {
         if (imagem_URL) {
           const caminhoImagemAntiga = path.join(__dirname, '../uploads', imagem_URL);
           try {
