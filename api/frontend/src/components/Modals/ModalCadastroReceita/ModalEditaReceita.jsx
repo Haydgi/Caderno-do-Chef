@@ -574,9 +574,11 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                         </div>
                       );
                     } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
+                      // Corrige quando o backend já envia a URL completa (ex: https://host/uploads/arquivo.jpg)
                       const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                      const imageUrl = `${baseUrl}/uploads/${form.imagem}`;
-                      console.log('✅ Mostrando imagem existente:', imageUrl);
+                      const raw = form.imagem.trim();
+                      const imageUrl = raw.startsWith('http') ? raw : `${baseUrl}/uploads/${raw}`;
+                      console.log('✅ Mostrando imagem existente (resolvida):', imageUrl);
                       return (
                         <div className={styles.imagePreview}>
                           <div
@@ -588,10 +590,6 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                               width: "100%",
                               height: "100%",
                               borderRadius: "10px"
-                            }}
-                            onError={(e) => {
-                              console.log('❌ Erro ao carregar imagem no modal:', imageUrl);
-                              e.target.style.display = 'none';
                             }}
                           />
                         </div>

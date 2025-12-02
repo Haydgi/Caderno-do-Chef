@@ -10,7 +10,9 @@ export default function LinkExpirado() {
   };
 
   const handleReenviar = () => {
-    toast.success("Um novo link foi enviado para o seu e-mail!");
+    // Vai para a tela de recuperação onde o usuário pode reenviar o e-mail.
+    // Ajuste '/forgot-password-email' conforme a rota real do seu ForgotPswdEmail.jsx
+    navigate('/forgot-password-email');
   };
 
   return (
