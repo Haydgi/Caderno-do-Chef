@@ -12,7 +12,9 @@ export default function LinkExpirado() {
   };
 
   const handleReenviar = () => {
-    navigate("/forgot-password-email");
+    // Vai para a tela de recuperação onde o usuário pode reenviar o e-mail.
+    // Ajuste '/forgot-password-email' conforme a rota real do seu ForgotPswdEmail.jsx
+    navigate('/forgot-password-email');
   };
 
   return (
