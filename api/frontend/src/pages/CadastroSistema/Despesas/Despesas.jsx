@@ -11,7 +11,8 @@ import ModalSelecaoTipoDespesa from '../../../components/Modals/ModalSelecaoTipo
 import styles from './Despesas.module.css';
 import { FaMoneyBillWave, FaTrash, FaRegClock, FaHandHoldingUsd } from 'react-icons/fa';
 import { MdOutlineCalendarMonth } from 'react-icons/md';
-import { BiMoneyWithdraw } from "react-icons/bi";
+import { BiMoneyWithdraw, BiRepeat } from "react-icons/bi";
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -26,8 +27,8 @@ function Despesas() {
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
   // Estado para sincronizar hover entre cards e painel
-  const [hoveredDespesaId, setHoveredDespesaId] = useState(null);
-  const [itensPorPagina, setItensPorPagina] = useState(6);
+  // Usar chave composta para evitar colisão de IDs entre despesas e impostos
+  const [hoveredKey, setHoveredKey] = useState(null);
   // Estados para tabs mobile
   const [activeMobileTab, setActiveMobileTab] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -35,47 +36,17 @@ function Despesas() {
   const [ordenacao, setOrdenacao] = useState('nome-asc'); // Padrão: ordem alfabética crescente
   const [filtroTipo, setFiltroTipo] = useState('todos'); // todos, despesas, impostos
 
-  // Ajustar itens por página baseado no tamanho da tela
+  // Ajustar estado mobile baseado no tamanho da tela
   useEffect(() => {
-    const ajustarItensPorTamanho = () => {
+    const ajustarIsMobile = () => {
       const largura = window.innerWidth;
-
-      // Atualiza estado mobile
       setIsMobile(largura < 768);
-
-      // Para despesas, ajustamos para mobile com 2 itens por página
-      if (largura < 768) {
-        setItensPorPagina(2); // 2 itens por página em mobile
-      } else if (largura < 992) {
-        setItensPorPagina(4);
-      } else {
-        setItensPorPagina(6);
-      }
     };
 
-    ajustarItensPorTamanho();
-    window.addEventListener('resize', ajustarItensPorTamanho);
+    ajustarIsMobile();
+    window.addEventListener('resize', ajustarIsMobile);
 
-    return () => window.removeEventListener('resize', ajustarItensPorTamanho);
-  }, []);
-
-  useEffect(() => {
-    const ajustarItensPorTamanho = () => {
-      const largura = window.innerWidth;
-      if (largura < 577) {
-        setItensPorPagina(2);
-      } else if (largura < 761) {
-        setItensPorPagina(2);
-      } else if (largura < 992) {
-        setItensPorPagina(3);
-      } else {
-        setItensPorPagina(3);
-      }
-    };
-
-    ajustarItensPorTamanho();
-    window.addEventListener('resize', ajustarItensPorTamanho);
-    return () => window.removeEventListener('resize', ajustarItensPorTamanho);
+    return () => window.removeEventListener('resize', ajustarIsMobile);
   }, []);
 
   const getToken = () => localStorage.getItem('token');
@@ -229,6 +200,18 @@ function Despesas() {
     }
   }, [despesas, impostos, filtroTipo, ordenacao]);
 
+  // Hook para scroll infinito com 20 itens por vez
+  const { displayedItems, hasMore, scrollContainerRef, loadMore } = useInfiniteScroll(todosOsCustos, 20);
+  const [highlightedKey, setHighlightedKey] = useState(null);
+  const cardRefs = React.useRef({});
+  const setCardRef = (key) => (el) => { if (el) cardRefs.current[key] = el; };
+
+  const ensureVisible = async (key) => {
+    // Não force carregamento nem remonte a lista ao passar o mouse no painel.
+    // Apenas role até o card se ele já estiver renderizado.
+    const el = cardRefs.current[key];
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   useEffect(() => {
     const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
@@ -320,24 +303,18 @@ function Despesas() {
     const { value: dados } = await Swal.fire({
       title: 'Editar Imposto',
       showCancelButton: true,
-      confirmButtonText: 'Salvar', // -- trocado para "Salvar"
+      confirmButtonText: 'Salvar',
       cancelButtonText: 'Cancelar',
       focusConfirm: false,
       buttonsStyling: false,
       customClass: {
         popup: styles.swalPopup,
         content: styles.swalContent,
-        // usa a classe verde para o botão de confirmação
         confirmButton: `${styles.swalConfirm} ${styles.swalConfirmGreen}`,
         cancelButton: styles.swalCancel
       },
-      // se quiser manter as animações propostas antes (opcional):
-      showClass: {
-        popup: styles.swalPopupEnter
-      },
-      hideClass: {
-        popup: styles.swalPopupExit
-      },
+      showClass: { popup: styles.swalPopupEnter },
+      hideClass: { popup: styles.swalPopupExit },
       html: `
         <div class="card" style="border-radius:12px; overflow:hidden; box-shadow:none;">
           <div class="card-body p-3" style="background:transparent;">
@@ -514,51 +491,27 @@ function Despesas() {
               width: '100%',
               marginBottom: '1.3rem',
               display: 'flex',
-              justifyContent: 'flex-start',
-              marginLeft: '-75px',
+              justifyContent: 'center',
+              marginLeft: '0px',
             }
         }
       >
         <div
-          className={`${styles.cardDespesa} ${styles.cardImposto} ${hoveredDespesaId === imposto.id ? styles.cardDespesaHovered : ''
-            }`}
-          style={
-            isMobile
-              ? {
-                cursor: 'pointer',
-                width: '100%',
-                maxWidth: '100%',
-                margin: '0',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                height: 'auto',
-                minHeight: '180px',
-                padding: '1.6rem',
-                boxSizing: 'border-box',
-                fontSize: '0.85rem',
-              }
-              : {
-                cursor: 'pointer',
-                width: '100%',
-                maxWidth: '420px',
-                minWidth: '220px',
-                margin: '0 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                height: '205px',
-                padding: '0.25rem 0.25rem 0.2rem 0.25rem',
-                boxSizing: 'border-box',
-                fontSize: '0.75rem',
-              }
-          }
+          className={`${styles.cardDespesa} ${hoveredKey === `imposto-${imposto.id}` ? styles.cardDespesaHovered : ''}`}
+          style={{
+            cursor: 'pointer',
+            width: '85%',
+            margin: '0 auto',
+            /* roxo mais escuro apenas para imposto */
+            background: ' rgba(79, 58, 111, 1)',
+            border: '1px solid rgba(108,79,153,0.35)'
+          }}
           onClick={() => {
             // abre edição do imposto
             editarImposto(imposto);
           }}
-          onMouseEnter={() => setHoveredDespesaId(imposto.id)}
-          onMouseLeave={() => setHoveredDespesaId(null)}
+          onMouseEnter={() => setHoveredKey(`imposto-${imposto.id}`)}
+          onMouseLeave={() => setHoveredKey(null)}
         >
           <i
             className={styles.Trash}
@@ -592,7 +545,6 @@ function Despesas() {
             <h3 className="fw-bold mb-2 mt-2" style={{ fontSize: '1.15rem', textAlign: 'center', margin: 0 }}>
               {imposto.nome}
             </h3>
-
             {imposto.nome === 'DAS' && (
               <button
                 type="button"
@@ -628,15 +580,17 @@ function Despesas() {
               </button>
             )}
           </div>
+          {/* Seção de informações principais */}
           <div className="mb-2" style={{ background: 'rgba(255, 255, 255, 0.1)', borderRadius: '10px', padding: '0.5rem' }}>
             <div className="row g-2">
               <div className="col-6 d-flex flex-column justify-content-center">
                 <div className="text-center">
-                  <div className="d-flex align-items-center justify-content-center">
-                    <FaHandHoldingUsd className="me-1" style={{ fontSize: '1.5rem', color: 'var(--tangerine)' }} />
-                    <span className="text-white fw-bold" style={{ fontSize: '1.1rem' }}>
-                      {imposto.Frequencia.charAt(0).toUpperCase() + imposto.Frequencia.slice(1)}
-                    </span>
+                  <div className="d-flex align-items-center justify-content-center mb-1">
+                    <BiRepeat className="me-1" style={{ fontSize: '1.3rem', color: 'var(--tangerine)' }} />
+                    <small className="text-white-50" style={{ fontSize: '0.9rem' }}>Frequência</small>
+                  </div>
+                  <div className="fw-bold text-white" style={{ fontSize: '1rem' }}>
+                    {imposto.Frequencia.charAt(0).toUpperCase() + imposto.Frequencia.slice(1)}
                   </div>
                 </div>
               </div>
@@ -653,12 +607,42 @@ function Despesas() {
               </div>
             </div>
           </div>
+          {/* Breakdown de custos + Custo operacional juntos (igual ao card de despesas) */}
           <div className="d-flex align-items-center justify-content-between" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px', padding: '0.5rem', marginTop: '0.2rem' }}>
-            <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
-              <FaHandHoldingUsd style={{ marginRight: '6px', color: 'var(--tangerine)' }} /> Imposto
+            <div style={{ flex: 1 }}>
+              <div className="text-center mb-1">
+                <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
+              </div>
+              <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
+                <div className="text-center" style={{ flex: 1 }}>
+                  <small className="text-white-50">Por dia:</small>
+                  <div className="text-white fw-semibold">
+                    R$ {(Number(imposto.custoMensal) / 30).toFixed(2)}
+                  </div>
+                </div>
+                <div className="text-center" style={{ flex: 1 }}>
+                  <small className="text-white-50">Por hora:</small>
+                  <div className="text-white fw-semibold">
+                    R$ {((Number(imposto.custoMensal) / 30) / Number(imposto.tempoOperacional || 24)).toFixed(2)}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="fw-bold" style={{ fontSize: '1.1rem', color: '#FFD700', marginLeft: '10px' }}>
-              R$ {custoOperacionalPorMinuto.toFixed(3)}/min
+            <div style={{
+              background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2))',
+              borderRadius: '8px',
+              padding: '0.5rem 0.7rem',
+              border: '1px solid rgba(255, 215, 0, 0.3)',
+              marginLeft: '0.7rem',
+              minWidth: '120px',
+              textAlign: 'center'
+            }}>
+              <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
+                <FaHandHoldingUsd style={{ marginRight: '6px', color: 'var(--tangerine)' }} /> Imposto
+              </div>
+              <div className="fw-bold" style={{ fontSize: '1.1rem', color: '#FFD700' }}>
+                R$ {custoOperacionalPorMinuto.toFixed(3)}/min
+              </div>
             </div>
           </div>
         </div>
@@ -689,50 +673,31 @@ function Despesas() {
               width: '100%',
               marginBottom: '1.3rem',
               display: 'flex',
-              justifyContent: 'flex-start',
-              marginLeft: '-75px',
+              justifyContent: 'center',
+              marginLeft: '0px',
             }
         }
       >
         <div
-          className={`${styles.cardDespesa} ${hoveredDespesaId === despesa.id ? styles.cardDespesaHovered : ''}`}
+          className={`${styles.cardDespesa} ${hoveredKey === `despesa-${despesa.id}` ? styles.cardDespesaHovered : ''}`}
           onClick={() => {
             setItemSelecionado(despesa);
             setMostrarModalEditar(true);
           }}
-          onMouseEnter={() => setHoveredDespesaId(despesa.id)}
-          onMouseLeave={() => setHoveredDespesaId((prev) => (prev === despesa.id ? null : prev))}
-          style={
-            isMobile
-              ? {
-                cursor: 'pointer',
-                width: '100%',
-                maxWidth: '100%',
-                margin: '0',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                height: 'auto',
-                minHeight: '180px',
-                padding: '1.6rem',
-                boxSizing: 'border-box',
-                fontSize: '0.85rem',
-              }
-              : {
-                cursor: 'pointer',
-                width: '100%',
-                maxWidth: '420px',
-                minWidth: '220px',
-                margin: '0 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                height: '205px',
-                padding: '0.25rem 0.25rem 0.2rem 0.25rem',
-                boxSizing: 'border-box',
-                fontSize: '0.75rem',
-              }
-          }
+          onMouseEnter={() => {
+            setHoveredKey(`despesa-${despesa.id}`);
+            setHighlightedKey(`despesa-${despesa.id}`);
+          }}
+          onMouseLeave={() => {
+            if (hoveredKey === `despesa-${despesa.id}`) setHoveredKey(null);
+            setHighlightedKey(null);
+          }}
+          style={{
+            cursor: 'pointer',
+            width: '85%',
+            margin: '0 auto'
+          }}
+          ref={setCardRef(`despesa-${despesa.id}`)}
         >
           <i
             className={styles.Trash}
@@ -854,7 +819,7 @@ function Despesas() {
   }, 0);
 
   // Componente do painel lateral - versão responsiva
-  const PainelCustoOperacional = ({ isMobileVersion = false }) => (
+  const PainelCustoOperacional = React.memo(({ isMobileVersion = false, itens = [] }) => (
     <>
       {/* Estilo customizado para scrollbar */}
       <style>
@@ -972,7 +937,7 @@ function Despesas() {
           </div>
         )}
 
-        <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
+  <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
           {/* Seção de detalhamento */}
           <div className={isMobileVersion ? "mb-2" : "mb-4"}>
             <h6
@@ -991,7 +956,6 @@ function Despesas() {
             <div
               className="custom-scrollbar"
               style={isMobileVersion ? {
-                  /* comportamento igual ao desktop: lista limitada e com scroll interno */
                   maxHeight: 'calc(60vh - 200px)',
                   overflowY: 'auto',
                   paddingRight: '10px'
@@ -1001,21 +965,29 @@ function Despesas() {
                 paddingRight: '10px'
               }}
             >
-              {todosOsCustos.map((item) => {
+              {itens.map((item) => {
                 const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
+                const key = `${item.tipo || 'despesa'}-${item.id}`;
                 return (
                   <div
-                    key={item.id}
+                    key={key}
                     className="d-flex justify-content-between align-items-center mb-3 p-2 rounded"
                     style={{
-                      background: hoveredDespesaId === item.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      transform: hoveredDespesaId === item.id ? 'translateX(5px)' : 'translateX(0px)',
+                      background: hoveredKey === key ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.1)',
+                      transform: hoveredKey === key ? 'translateX(5px)' : 'translateX(0px)',
                       backdropFilter: 'blur(5px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       transition: 'all 0.2s ease'
                     }}
-                    onMouseEnter={() => setHoveredDespesaId(item.id)}
-                    onMouseLeave={() => setHoveredDespesaId((prev) => (prev === item.id ? null : prev))}
+                    onMouseEnter={() => {
+                      setHoveredKey(key);
+                      setHighlightedKey(key);
+                      ensureVisible(key);
+                    }}
+                    onMouseLeave={() => {
+                      if (hoveredKey === key) setHoveredKey(null);
+                      setHighlightedKey(null);
+                    }}
                   >
                     <span
                       className="text-truncate fw-medium d-flex align-items-center"
@@ -1059,7 +1031,7 @@ function Despesas() {
           </div>
 
           {/* Seção de soma - apenas no desktop */}
-          {todosOsCustos.length > 1 && !isMobileVersion && (
+          {itens.length > 1 && !isMobileVersion && (
             <div
               className="mb-4 p-3 rounded"
               style={{
@@ -1081,7 +1053,7 @@ function Despesas() {
                     fontFamily: 'monospace'
                   }}
                 >
-                  {todosOsCustos.map((item) => {
+                  {itens.map((item) => {
                     const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
                     return custoMinuto.toFixed(4);
                   }).join(' + ')} =
@@ -1128,18 +1100,7 @@ function Despesas() {
                 R$ {custoOperacionalTotal.toFixed(3)}/min
               </h3>
 
-              {/* Informação adicional */}
-              <div
-                className="mt-3 pt-3"
-                style={{
-                  borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.8)'
-                }}
-              >
-                <i className="bi bi-info-circle me-1"></i>
-                Atualizado em tempo real
-              </div>
+              {/* Informação adicional removida */}
             </div>
           )}
         </div>
@@ -1211,7 +1172,7 @@ function Despesas() {
         )}
       </div>
     </>
-  );
+  ));
 
   // Configuração das tabs mobile
   const mobileTabs = [
@@ -1225,10 +1186,24 @@ function Despesas() {
     }
   ];
 
+  const painelLateralEl = useMemo(() => (
+    <PainelCustoOperacional isMobileVersion={isMobile && activeMobileTab === 1} itens={todosOsCustos} />
+  ), [isMobile, activeMobileTab, todosOsCustos]);
+
   return (
+    <>
+      {hasMore && (
+        <>
+          <style>{`@keyframes floatDown{0%{transform:translateY(0)}100%{transform:translateY(8px)}}`}</style>
+          <div style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',alignItems:'center',gap:'8px',color:'rgba(255,255,255,0.8)'}}>
+            <i className="bi bi-arrow-down" style={{ fontSize: '1.4rem', animation: 'floatDown 1.2s ease-in-out infinite alternate' }}></i>
+            <span style={{ fontSize: '0.9rem' }}>Role para carregar mais itens</span>
+          </div>
+        </>
+      )}
     <ModelPage
       titulo="Despesas cadastradas"
-      dados={todosOsCustos}
+      dados={displayedItems}
       salvarItem={salvarItem}
       removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
       abrirModal={handleAbrirModal}
@@ -1263,10 +1238,10 @@ function Despesas() {
         />
       )}
       renderCard={renderCard}
-      itensPorPagina={itensPorPagina}
+  itensPorPagina={displayedItems.length}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
-      painelLateral={<PainelCustoOperacional isMobileVersion={isMobile && activeMobileTab === 1} />}
+  painelLateral={painelLateralEl}
       enableMobileTabs={true}
       mobileTabs={mobileTabs}
       activeMobileTab={activeMobileTab}
@@ -1276,6 +1251,7 @@ function Despesas() {
       filtroTipo={filtroTipo}
       setFiltroTipo={setFiltroTipo}
     />
+    </>
   );
 }
 

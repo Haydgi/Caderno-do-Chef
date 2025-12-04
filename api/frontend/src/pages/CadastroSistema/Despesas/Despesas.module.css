@@ -250,19 +250,7 @@
   }
 }
 
-.cardImposto {
-  box-shadow: 0 4px 16px rgba(255, 165, 0, 0.08);
-  background: linear-gradient(135deg, #3d2c4e 0%, #4b2e5e 100%);
-  color: #fff;
-  font-family: inherit;
-  font-size: 1rem;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1.6rem;
-  border-radius: 15px;
-}
+/* cardImposto removido; imposto e despesa usam cardDespesa para estilo unificado */
 
 /* Forçar remoção de qualquer scroll horizontal do SweetAlert2 */
 :global(body.swal2-shown) {
