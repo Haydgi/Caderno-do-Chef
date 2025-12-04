@@ -39,7 +39,7 @@ dotenv.config();
 
 // Validação de variáveis de ambiente críticas
 const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'SECRET_JWT'];
-const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const missingEnvVars = requiredEnvVars.filter(varName => typeof process.env[varName] === 'undefined');
 if (missingEnvVars.length > 0) {
   console.error('❌ Variáveis de ambiente faltando:', missingEnvVars.join(', '));
   process.exit(1);
