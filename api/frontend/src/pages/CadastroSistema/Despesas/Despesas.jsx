@@ -430,7 +430,8 @@ function Despesas() {
           className={`${styles.cardDespesa} ${hoveredKey === `imposto-${imposto.id}` ? styles.cardDespesaHovered : ''}`}
           style={{
             cursor: 'pointer',
-            width: '85%',
+            width: '100%',
+            maxWidth: '520px',
             margin: '0 auto',
             /* roxo mais escuro apenas para imposto */
             background: ' rgba(79, 58, 111, 1)',
@@ -624,7 +625,8 @@ function Despesas() {
           }}
           style={{
             cursor: 'pointer',
-            width: '85%',
+            width: '100%',
+            maxWidth: '520px',
             margin: '0 auto'
           }}
           ref={setCardRef(`despesa-${despesa.id}`)}

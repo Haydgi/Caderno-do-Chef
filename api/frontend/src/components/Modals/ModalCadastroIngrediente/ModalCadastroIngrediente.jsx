@@ -29,11 +29,25 @@ function ModalCadastroIngrediente({ onClose, onSave }) {
     "Temperos e Condimentos",
   ];
 
-  const handleClose = () => setIsClosing(true);
+  const handleClose = () => {
+    setIsClosing(true);
+    // Reseta o formulário ao cancelar
+    setForm({
+      nome: "",
+      custo: "",
+      categoria: "",
+      unidade: "",
+      taxaDesperdicio: "",
+    });
+    setCamposInvalidos({});
+  };
 
   useEffect(() => {
     if (isClosing) {
-      const timer = setTimeout(() => onClose(), 300);
+      const timer = setTimeout(() => {
+        onClose();
+        setIsClosing(false); // Reseta o estado para próxima abertura
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isClosing, onClose]);
@@ -175,7 +189,7 @@ function ModalCadastroIngrediente({ onClose, onSave }) {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button className={styles.btnCancel} onClick={handleClose}>
+              <button type="button" className={styles.btnCancel} onClick={handleClose} disabled={isSubmitting}>
                 Cancelar
               </button>
               <button type="submit" className={styles.btnSave} disabled={isSubmitting}>

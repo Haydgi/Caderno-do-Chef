@@ -142,6 +142,8 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   width: 100%;
+  /* Garantir largura consistente mesmo quando existir apenas um card */
+  max-width: 520px;
   margin: 0 auto;
   min-height: 90px; /* altura mínima para não cortar conteúdo */
   display: flex;
@@ -149,6 +151,14 @@
   justify-content: space-between;
   word-break: break-word;
   overflow-wrap: break-word;
+}
+
+/* Força largura fixa dos cards em telas maiores para evitar encolhimento isolado */
+@media (min-width: 800px) {
+  .cardDespesa {
+    width: 520px;
+    flex: 0 0 520px;
+  }
 }
 
 .cardDespesa:hover {
@@ -241,6 +251,8 @@
     padding: 8px 5px;
     min-height: 70px; /* altura mínima para não cortar conteúdo no mobile */
     margin-top: 8px !important;
+    max-width: 100%;
+
   }
 
   .Trash {

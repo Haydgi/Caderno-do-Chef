@@ -28,6 +28,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
   const [isClosing, setIsClosing] = useState(false);
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [despesas, setDespesas] = useState([]);
+  const [despesasLoading, setDespesasLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categorias = [
     "Carnes", "Peixes e Frutos do Mar", "Massas", "Grãos",
@@ -257,28 +259,36 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     });
   };
 
-  useEffect(() => {
-    async function fetchDespesas() {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/api/despesas/calculo", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) {
-          console.error("Erro ao buscar despesas para cálculo:", res.status);
-          setDespesas([]);
-          return;
-        }
-        const data = await res.json();
-        setDespesas(Array.isArray(data) ? data : []);
-        console.log("Despesas carregadas para cálculo:", data);
-      } catch (err) {
-        console.error("Erro ao buscar despesas:", err);
+  // Função reutilizável para buscar despesas (retorna o array)
+  async function fetchDespesas() {
+    setDespesasLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:3001/api/despesas/calculo", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        console.error("Erro ao buscar despesas para cálculo:", res.status);
         setDespesas([]);
+        return [];
       }
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : [];
+      setDespesas(arr);
+      console.log("Despesas carregadas para cálculo:", arr);
+      return arr;
+    } catch (err) {
+      console.error("Erro ao buscar despesas:", err);
+      setDespesas([]);
+      return [];
+    } finally {
+      setDespesasLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchDespesas();
   }, []);
 
@@ -326,17 +336,24 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Carregue despesas do banco se ainda não estiverem carregadas
-    if (!despesas || despesas.length === 0) {
-      toast.error("Despesas não carregadas. Tente novamente.");
-      return;
+    // Garanta que temos despesas: se não houver, tente buscar antes de abortar
+    let despesasToUse = Array.isArray(despesas) ? despesas : [];
+    if (!despesasToUse || despesasToUse.length === 0) {
+      const fetched = await fetchDespesas();
+      despesasToUse = Array.isArray(fetched) ? fetched : [];
+      if (!despesasToUse || despesasToUse.length === 0) {
+        toast.error("Despesas não carregadas. Tente novamente.");
+        return;
+      }
     }
+
+    setIsSubmitting(true);
 
     // Log ingredientes e despesas
     console.log("==== Ingredientes selecionados ====");
     console.table(ingredientesSelecionados);
     console.log("==== Despesas carregadas do banco ====");
-    console.table(despesas);
+    console.table(despesasToUse);
 
     // Log detalhado do cálculo dos ingredientes
     ingredientesSelecionados.forEach((ing, idx) => {
@@ -361,7 +378,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     });
 
     // Log detalhado do cálculo operacional
-    despesas.forEach((desp, idx) => {
+    despesasToUse.forEach((desp, idx) => {
       const custoMinuto = calcularCustoPorMinutoDespesa(desp);
       console.log(
         `Despesa #${idx + 1}:`,
@@ -385,7 +402,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
         )
       })),
       tempo_preparo_min,
-      despesas
+      despesas: despesasToUse
     });
 
     console.log("==== Resultado final do cálculo ====");
@@ -464,6 +481,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
           isNaN(ing.Quantidade_Utilizada)
         ) {
           toast.error("Preencha todos os ingredientes corretamente!");
+          setIsSubmitting(false);
           return;
         }
       }
@@ -485,6 +503,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
       handleClose();
     } catch (err) {
       toast.error(err.message || "Erro ao atualizar receita!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -906,7 +926,13 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
         <div className={styles.modalFooter}>
           <button className={styles.btnCancel} onClick={handleClose}>Cancelar</button>
-          <button className={styles.btnSave} onClick={handleSubmit}>Salvar</button>
+          <button
+            className={styles.btnSave}
+            onClick={handleSubmit}
+            disabled={despesasLoading || isSubmitting}
+          >
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
+          </button>
         </div>
       </div>
     </div>

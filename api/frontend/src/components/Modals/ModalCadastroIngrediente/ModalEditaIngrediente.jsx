@@ -41,11 +41,17 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
     }
   }, [ingrediente]);
 
-  const handleClose = () => setIsClosing(true);
+  const handleClose = () => {
+    setIsClosing(true);
+    setCamposInvalidos({});
+  };
 
   useEffect(() => {
     if (isClosing) {
-      const timer = setTimeout(() => onClose(), 300);
+      const timer = setTimeout(() => {
+        onClose();
+        setIsClosing(false); // Reseta o estado para próxima abertura
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isClosing, onClose]);
@@ -209,8 +215,8 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
         </div>
 
         <div className={styles.modalFooter}>
-          <button className={styles.btnCancel} onClick={handleClose}>Cancelar</button>
-          <button className={styles.btnSave} onClick={handleSubmit}>Salvar</button>
+          <button type="button" className={styles.btnCancel} onClick={handleClose}>Cancelar</button>
+          <button type="button" className={styles.btnSave} onClick={handleSubmit}>Salvar</button>
         </div>
       </div>
     </div>
