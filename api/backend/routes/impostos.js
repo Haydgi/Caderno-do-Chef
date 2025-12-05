@@ -140,6 +140,42 @@ router.get('/', gerenteOuAcima, async (req, res) => {
   }
 });
 
+// GET - Histórico detalhado de um imposto específico (Gerente ou acima)
+router.get('/:id/historico', gerenteOuAcima, async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || Number.isNaN(Number(id))) {
+    return res.status(400).json({ error: MSGS.idInvalido });
+  }
+
+  try {
+    const [impostoRows] = await db.query(
+      'SELECT ID_Imposto, ID_Usuario, Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio, Data_Atualizacao FROM impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+
+    if (impostoRows.length === 0) {
+      return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
+    }
+
+    const [historico] = await db.query(
+      `SELECT ID_Historico, Valor, DATE_FORMAT(Data_Registro, '%Y-%m-%d') AS Data_Registro
+       FROM historico_impostos
+       WHERE ID_Imposto = ?
+       ORDER BY Data_Registro DESC, ID_Historico DESC`,
+      [id]
+    );
+
+    res.status(200).json({
+      imposto: impostoRows[0],
+      historico
+    });
+  } catch (error) {
+    console.error('Erro ao buscar histórico do imposto:', error);
+    res.status(500).json({ error: MSGS.erroBuscar });
+  }
+});
+
 // PUT - Atualizar imposto (Gerente ou acima)
 router.put('/:id', gerenteOuAcima, async (req, res) => {
   const { id } = req.params;
@@ -235,6 +271,217 @@ router.put('/:id', gerenteOuAcima, async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error('Erro ao atualizar imposto:', error);
+    res.status(500).json({ error: MSGS.erroAtualizar });
+  } finally {
+    connection.release();
+  }
+});
+
+// POST - Adicionar novo registro ao histórico de um imposto (Gerente ou acima)
+router.post('/:id/historico', gerenteOuAcima, async (req, res) => {
+  const { id } = req.params;
+  const { valor, data } = req.body;
+
+  if (!id || Number.isNaN(Number(id))) {
+    return res.status(400).json({ error: MSGS.idInvalido });
+  }
+
+  const valorNumerico = Number(valor);
+  if (Number.isNaN(valorNumerico) || valorNumerico <= 0) {
+    return res.status(400).json({ error: MSGS.camposFaltando });
+  }
+
+  const dataRegistro = data && /^\d{4}-\d{2}-\d{2}$/.test(data) ? data : null;
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [impostoRows] = await connection.query(
+      'SELECT ID_Imposto, ID_Usuario FROM impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+
+    if (impostoRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
+    }
+
+    const { ID_Usuario } = impostoRows[0];
+
+    await connection.query(
+      'INSERT INTO historico_impostos (ID_Imposto, Valor, Data_Registro) VALUES (?, ?, ?)',
+      [id, valorNumerico, dataRegistro || new Date()]
+    );
+
+    const [historico] = await connection.query(
+      'SELECT AVG(Valor) AS media FROM historico_impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+    const novaMedia = historico[0].media;
+
+    await connection.query(
+      'UPDATE impostos SET Valor_Medio = ? WHERE ID_Imposto = ?',
+      [novaMedia, id]
+    );
+
+    await connection.commit();
+
+    limparCacheDespesas(ID_Usuario);
+    await atualizaReceitasPorDespesa(ID_Usuario);
+
+    res.status(201).json({
+      message: 'Registro histórico criado com sucesso',
+      valorMedio: novaMedia
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erro ao adicionar histórico de imposto:', error);
+    res.status(500).json({ error: MSGS.erroAtualizar });
+  } finally {
+    connection.release();
+  }
+});
+
+// PUT - Editar valor de um registro do histórico (Gerente ou acima)
+router.put('/:id/historico/:histId', gerenteOuAcima, async (req, res) => {
+  const { id, histId } = req.params;
+  const { valor } = req.body;
+
+  if (!id || Number.isNaN(Number(id)) || !histId || Number.isNaN(Number(histId))) {
+    return res.status(400).json({ error: MSGS.idInvalido });
+  }
+
+  const valorNumerico = Number(valor);
+  if (Number.isNaN(valorNumerico)) {
+    return res.status(400).json({ error: MSGS.camposFaltando });
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [impostoRows] = await connection.query(
+      'SELECT ID_Imposto, ID_Usuario FROM impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+
+    if (impostoRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
+    }
+
+    const { ID_Usuario } = impostoRows[0];
+
+    const [historicoRows] = await connection.query(
+      'SELECT ID_Historico FROM historico_impostos WHERE ID_Historico = ? AND ID_Imposto = ?',
+      [histId, id]
+    );
+
+    if (historicoRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Registro histórico não encontrado' });
+    }
+
+    await connection.query(
+      'UPDATE historico_impostos SET Valor = ? WHERE ID_Historico = ? AND ID_Imposto = ?',
+      [valorNumerico, histId, id]
+    );
+
+    const [historicoMedia] = await connection.query(
+      'SELECT AVG(Valor) AS media FROM historico_impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+    const novaMedia = historicoMedia[0].media;
+
+    await connection.query(
+      'UPDATE impostos SET Valor_Medio = ? WHERE ID_Imposto = ?',
+      [novaMedia, id]
+    );
+
+    await connection.commit();
+
+    limparCacheDespesas(ID_Usuario);
+    await atualizaReceitasPorDespesa(ID_Usuario);
+
+    res.status(200).json({
+      message: 'Registro histórico atualizado com sucesso',
+      valorMedio: novaMedia
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erro ao atualizar histórico do imposto:', error);
+    res.status(500).json({ error: MSGS.erroAtualizar });
+  } finally {
+    connection.release();
+  }
+});
+
+// DELETE - Remover registro do histórico (Gerente ou acima)
+router.delete('/:id/historico/:histId', gerenteOuAcima, async (req, res) => {
+  const { id, histId } = req.params;
+
+  if (!id || Number.isNaN(Number(id)) || !histId || Number.isNaN(Number(histId))) {
+    return res.status(400).json({ error: MSGS.idInvalido });
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [impostoRows] = await connection.query(
+      'SELECT ID_Imposto, ID_Usuario FROM impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+
+    if (impostoRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: MSGS.impostoNaoEncontrado });
+    }
+
+    const { ID_Usuario } = impostoRows[0];
+
+    const [historicoRows] = await connection.query(
+      'SELECT ID_Historico FROM historico_impostos WHERE ID_Historico = ? AND ID_Imposto = ?',
+      [histId, id]
+    );
+
+    if (historicoRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Registro histórico não encontrado' });
+    }
+
+    await connection.query(
+      'DELETE FROM historico_impostos WHERE ID_Historico = ? AND ID_Imposto = ?',
+      [histId, id]
+    );
+
+    const [historicoMedia] = await connection.query(
+      'SELECT AVG(Valor) AS media FROM historico_impostos WHERE ID_Imposto = ?',
+      [id]
+    );
+    const novaMedia = historicoMedia[0].media || 0;
+
+    await connection.query(
+      'UPDATE impostos SET Valor_Medio = ? WHERE ID_Imposto = ?',
+      [novaMedia, id]
+    );
+
+    await connection.commit();
+
+    limparCacheDespesas(ID_Usuario);
+    await atualizaReceitasPorDespesa(ID_Usuario);
+
+    res.status(200).json({
+      message: 'Registro histórico removido com sucesso',
+      valorMedio: novaMedia
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Erro ao remover histórico do imposto:', error);
     res.status(500).json({ error: MSGS.erroAtualizar });
   } finally {
     connection.release();

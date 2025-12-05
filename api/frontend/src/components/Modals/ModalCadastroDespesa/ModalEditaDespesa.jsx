@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroDespesa.module.css";
-import { IoWalletSharp } from "react-icons/io5";
+import { FaInfoCircle } from "react-icons/fa";
 
 function ModalEditaDespesa({ despesa, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -53,21 +53,33 @@ function ModalEditaDespesa({ despesa, onClose, onSave }) {
 
   const handleSubmit = () => {
     const campos = {};
-    if (!form.nome.trim()) campos.nome = true;
-    if (!form.custoMensal) campos.custoMensal = true;
-    if (!form.tempoOperacional) campos.tempoOperacional = true;
+    let mensagemErro = null;
+
+    const nomeTrim = form.nome.trim();
+    const custoValor = parseFloat(form.custoMensal.replace(",", "."));
+    const tempoValor = parseFloat(form.tempoOperacional.replace(",", "."));
+
+    if (!nomeTrim) campos.nome = true;
+    if (!form.custoMensal || Number.isNaN(custoValor)) campos.custoMensal = true;
+
+    if (!form.tempoOperacional || Number.isNaN(tempoValor)) {
+      campos.tempoOperacional = true;
+    } else if (tempoValor < 1 || tempoValor > 24) {
+      campos.tempoOperacional = true;
+      mensagemErro = "Tempo operacional deve ser um valor entre 1 e 24 horas.";
+    }
 
     if (Object.keys(campos).length > 0) {
       setCamposInvalidos(campos);
-      toast.error("Preencha todos os campos obrigatórios!");
+      toast.error(mensagemErro || "Preencha todos os campos obrigatórios!");
       return;
     }
 
     const despesaAtualizada = {
       id: despesa.id, // importante para o PUT
-      nome: form.nome.trim(),
-      custoMensal: parseFloat(form.custoMensal.replace(",", ".")),
-      tempoOperacional: parseFloat(form.tempoOperacional.replace(",", ".")),
+      nome: nomeTrim,
+      custoMensal: custoValor,
+      tempoOperacional: tempoValor,
     };
 
     onSave?.(despesaAtualizada); // essa função externa deve fazer o PUT
@@ -105,7 +117,6 @@ function ModalEditaDespesa({ despesa, onClose, onSave }) {
       <div className={`${styles.modalContainer} shadow`}>
         <div className={styles.modalHeader}>
           <div className={styles.headerIconTitle}>
-            <IoWalletSharp className={styles.walletIcon} />
             <h5>Editar Despesa</h5>
           </div>
           <button onClick={handleClose} className={styles.btnClose}>
@@ -139,7 +150,15 @@ function ModalEditaDespesa({ despesa, onClose, onSave }) {
             </div>
 
             <div className={styles.formGroup}>
-              <label>Tempo Operacional (horas)</label>
+              <label className={styles.labelWithInfo}>
+                Tempo Operacional (horas)
+                <span className={styles.infoWrapper} tabIndex={0}>
+                  <FaInfoCircle className={styles.infoIcon} aria-hidden="true" />
+                  <span className={styles.tooltip} role="tooltip">
+                    Nesse campo insira quantas horas por dia você mantém essa despesa gastando. Exemplos: Luz 24h ou Funcionários 8h.
+                  </span>
+                </span>
+              </label>
               <input
                 name="tempoOperacional"
                 autoComplete="off"

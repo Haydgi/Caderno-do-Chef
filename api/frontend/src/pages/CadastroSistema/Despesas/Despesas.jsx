@@ -7,6 +7,7 @@ import { showPermissionDeniedOnce } from '../../../utils/permissionToast';
 import ModalCadastroDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalCadastroDespesa';
 import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalEditaDespesa';
 import ModalCadastroImposto from '../../../components/Modals/ModalCadastroImposto/ModalCadastroImposto';
+import ModalEditarImposto from '../../../components/Modals/ModalCadastroImposto/ModalEditarImposto';
 import ModalSelecaoTipoDespesa from '../../../components/Modals/ModalSelecaoTipoDespesa';
 import styles from './Despesas.module.css';
 import { FaMoneyBillWave, FaTrash, FaRegClock, FaHandHoldingUsd } from 'react-icons/fa';
@@ -24,8 +25,10 @@ function Despesas() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalImposto, setMostrarModalImposto] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+  const [mostrarModalEditarImposto, setMostrarModalEditarImposto] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState(null);
   const [despesaSelecionada, setDespesaSelecionada] = useState(null);
+  const [impostoSelecionado, setImpostoSelecionado] = useState(null);
   // Estado para sincronizar hover entre cards e painel
   // Usar chave composta para evitar colisão de IDs entre despesas e impostos
   const [hoveredKey, setHoveredKey] = useState(null);
@@ -289,85 +292,10 @@ function Despesas() {
     }
   };
 
-  // Função para editar imposto (usa Swal para formulário simples) e atualizar via API
-  const editarImposto = async (imposto) => {
-    // evita erros com valores nulos
-    const safeNome = imposto?.Nome_Imposto ?? '';
-    // Prefill: se houver Valor_Medio use-o; caso contrário, derive a partir de custoMensal (convertendo para anual se necessário)
-    const inferredValor = imposto?.Valor_Medio ?? (imposto?.custoMensal != null
-      ? (String((imposto?.Frequencia || '').toLowerCase()) === 'anual' ? Number(imposto.custoMensal) * 12 : Number(imposto.custoMensal))
-      : '');
-    const safeValor = inferredValor ?? '';
-    const frequenciaAtual = (imposto?.Frequencia || '').toLowerCase();
-
-    const { value: dados } = await Swal.fire({
-      title: 'Editar Imposto',
-      showCancelButton: true,
-      confirmButtonText: 'Salvar',
-      cancelButtonText: 'Cancelar',
-      focusConfirm: false,
-      buttonsStyling: false,
-      customClass: {
-        popup: styles.swalPopup,
-        content: styles.swalContent,
-        confirmButton: `${styles.swalConfirm} ${styles.swalConfirmGreen}`,
-        cancelButton: styles.swalCancel
-      },
-      showClass: { popup: styles.swalPopupEnter },
-      hideClass: { popup: styles.swalPopupExit },
-      html: `
-        <div class="card" style="border-radius:12px; overflow:hidden; box-shadow:none;">
-          <div class="card-body p-3" style="background:transparent;">
-            <div class="mb-3">
-              <label for="swal-nome" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Nome do imposto</label>
-              <input id="swal-nome" class="form-control" placeholder="Ex: DAS" value="${safeNome}" />
-            </div>
-
-            <div class="row g-2">
-              <div class="col">
-                <label for="swal-valor" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Valor a pagar</label>
-                <input id="swal-valor" type="number" step="0.01" class="form-control" placeholder="Valor (no período selecionado)" value="${safeValor}" />
-                <small class="text-muted" style="display:block; margin-top:6px; font-size:0.82rem">
-                  Digite o valor exato a ser pago no período selecionado.
-                </small>
-              </div>
-
-              <div class="col-auto" style="min-width:140px;">
-                <label for="swal-frequencia" class="form-label" style="font-size:0.9rem; color:var(--text-muted, rgba(0,0,0,0.6))">Frequência</label>
-                <select id="swal-frequencia" class="form-select">
-                  <option value="mensal" ${frequenciaAtual === 'mensal' ? 'selected' : ''}>Mensal</option>
-                  <option value="anual" ${frequenciaAtual === 'anual' ? 'selected' : ''}>Anual</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      `,
-      preConfirm: () => {
-        const nome = document.getElementById('swal-nome')?.value || '';
-        const valor = document.getElementById('swal-valor')?.value || '';
-        const frequencia = document.getElementById('swal-frequencia')?.value || 'mensal';
-
-        if (!nome || !valor) {
-          Swal.showValidationMessage('Nome e Valor são obrigatórios');
-          return false;
-        }
-
-        return { Nome_Imposto: nome, Valor_Medio: parseFloat(valor), Frequencia: frequencia };
-      }
-    });
-
-    if (dados) {
-      try {
-        // usa ID preferencialmente do campo ID_Imposto se existir
-        const impostoId = imposto?.ID_Imposto || imposto?.id || imposto?.ID || imposto?._id;
-        await atualizarImposto(impostoId, dados);
-        // atualizar estado/local conforme sua implementação
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Erro', 'Não foi possível atualizar o imposto', 'error');
-      }
-    }
+  // Abrir modal avançado de edição de imposto com histórico
+  const editarImposto = (imposto) => {
+    setImpostoSelecionado(imposto);
+    setMostrarModalEditarImposto(true);
   };
 
   const atualizarImposto = async (id, dados) => {
@@ -446,7 +374,9 @@ function Despesas() {
     setMostrarModal(false);
     setMostrarModalImposto(false);
     setMostrarModalEditar(false);
+    setMostrarModalEditarImposto(false);
     setItemSelecionado(null);
+    setImpostoSelecionado(null);
   };
 
   const handleSelecaoTipo = (tipo) => {
@@ -1192,6 +1122,21 @@ function Despesas() {
 
   return (
     <>
+      {/* Modal de edição de imposto com histórico */}
+      {mostrarModalEditarImposto && impostoSelecionado && (
+        <ModalEditarImposto
+          imposto={impostoSelecionado}
+          open={mostrarModalEditarImposto}
+          onClose={() => {
+            setMostrarModalEditarImposto(false);
+            setImpostoSelecionado(null);
+          }}
+          onUpdated={async () => {
+            // Recarrega impostos para refletir alterações
+            await fetchImpostos(termoBusca);
+          }}
+        />
+      )}
       {hasMore && (
         <>
           <style>{`@keyframes floatDown{0%{transform:translateY(0)}100%{transform:translateY(8px)}}`}</style>

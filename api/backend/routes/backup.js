@@ -38,7 +38,8 @@ router.get('/export', async (req, res) => {
   const [receitasRaw] = await db.query('SELECT * FROM receitas');
   const receitas = receitasRaw.map(r => ({ ...r, imagem_URL: '' }));
     const [despesas] = await db.query('SELECT * FROM despesas');
-    const impostos = await safeQuery('SELECT * FROM impostos');
+  const impostos = await safeQuery('SELECT * FROM impostos');
+  const historicoImpostos = await safeQuery('SELECT * FROM historico_impostos');
     const ingredientesReceita = await safeQuery('SELECT * FROM ingredientes_receita');
     const historicoAlteracoes = await safeQuery('SELECT * FROM historico_alteracoes');
 
@@ -54,7 +55,8 @@ router.get('/export', async (req, res) => {
   archive.append(toCSV(receitas), { name: 'receitas.csv' }); // imagem_URL removida
     archive.append(toCSV(despesas), { name: 'despesas.csv' });
     if (impostos.length) archive.append(toCSV(impostos), { name: 'impostos.csv' });
-    if (ingredientesReceita.length) archive.append(toCSV(ingredientesReceita), { name: 'ingredientes_receita.csv' });
+  if (ingredientesReceita.length) archive.append(toCSV(ingredientesReceita), { name: 'ingredientes_receita.csv' });
+  if (historicoImpostos.length) archive.append(toCSV(historicoImpostos), { name: 'historico_impostos.csv' });
     if (historicoAlteracoes.length) archive.append(toCSV(historicoAlteracoes), { name: 'historico_alteracoes.csv' });
 
     await archive.finalize();
@@ -130,14 +132,36 @@ router.post('/import', upload.single('arquivo'), async (req, res) => {
     // ==========================
     // Validação básica antes de limpar dados
     // ==========================
-    const receitasCSV = dados['receitas'] || [];
-    const ingredientesCSV = dados['ingredientes'] || [];
+  const receitasCSV = dados['receitas'] || [];
+  const ingredientesCSV = dados['ingredientes'] || [];
+  const impostosCSV = dados['impostos'] || [];
+  const historicoImpCSV = dados['historico_impostos'] || [];
 
     if (receitasCSV.some(r => !r.Nome_Receita)) {
       return res.status(400).json({ error: 'CSV receitas possui linhas sem Nome_Receita.' });
     }
     if (ingredientesCSV.some(i => !i.Nome_Ingrediente)) {
       return res.status(400).json({ error: 'CSV ingredientes possui linhas sem Nome_Ingrediente.' });
+    }
+
+    // Validação opcional para impostos/histórico quando presentes no backup
+    if (impostosCSV.length && historicoImpCSV.length) {
+      const idsImpostosNoCSV = new Set(
+        impostosCSV
+          .map(i => Number(i.ID_Imposto))
+          .filter(n => !Number.isNaN(n))
+      );
+      const inconsistentes = historicoImpCSV.filter(h => {
+        const id = Number(h.ID_Imposto);
+        if (Number.isNaN(id)) return true;
+        return !idsImpostosNoCSV.has(id);
+      });
+      if (inconsistentes.length) {
+        return res.status(400).json({
+          error: 'Inconsistência: historico_impostos referencia IDs de impostos ausentes no backup.',
+          detalhes: { inconsistentes: inconsistentes.length }
+        });
+      }
     }
 
     // ==========================
@@ -250,15 +274,19 @@ router.post('/import', upload.single('arquivo'), async (req, res) => {
 
     console.log('[backup/import] Iniciando inserção de impostos');
     let impostosCount = 0;
+    const impostoMap = new Map(); // oldId -> newId
     for (const row of dados['impostos'] || []) {
       const { Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio } = row;
       if (!Nome_Imposto) continue;
       try {
-        await conn.query(
+        const [ins] = await conn.query(
           `INSERT INTO impostos (ID_Usuario, Nome_Imposto, Categoria_Imposto, Frequencia, Valor_Medio)
            VALUES (?, ?, ?, ?, ?)`,
           [userId, Nome_Imposto, Categoria_Imposto||null, Frequencia||null, Number(Valor_Medio)||0]
         );
+        // Mapeia ID antigo para novo (se presente no CSV)
+        const oldId = Number(row.ID_Imposto);
+        if (!Number.isNaN(oldId)) impostoMap.set(oldId, ins.insertId);
         impostosCount++;
       } catch (e) {
         console.error('[backup/import] Erro inserindo imposto linha:', row, 'erro:', e.code, e.message);
@@ -267,12 +295,35 @@ router.post('/import', upload.single('arquivo'), async (req, res) => {
     }
 
     // histórico de impostos (opcional) caso esteja no zip
+    let historicoImpostosCount = 0;
     if (Array.isArray(dados['historico_impostos']) && dados['historico_impostos'].length) {
       console.log('[backup/import] Iniciando inserção de historico_impostos');
       for (const row of dados['historico_impostos']) {
-        if (!row.ID_Imposto || !row.Valor) continue; // requer ID_Imposto antigo e Valor
-        // Não há como mapear ID_Imposto antigo para novo sem guardar map: criamos após inserir impostos acima
-        // Criar map de impostos pelo nome para resolver novos IDs
+        const oldImpId = Number(row.ID_Imposto);
+        const newImpId = impostoMap.get(oldImpId);
+        const valor = Number(row.Valor);
+        const data = row.Data_Registro ? new Date(row.Data_Registro) : null;
+        if (!newImpId || Number.isNaN(valor)) continue;
+        try {
+          await conn.query(
+            `INSERT INTO historico_impostos (ID_Imposto, Valor, Data_Registro) VALUES (?, ?, ?)`,
+            [newImpId, valor, data || new Date()]
+          );
+          historicoImpostosCount++;
+        } catch (e) {
+          console.error('[backup/import] Erro inserindo historico_impostos linha:', row, 'erro:', e.message);
+          throw e;
+        }
+      }
+
+      // Atualiza valor médio dos impostos com base no histórico importado
+      try {
+        await conn.query(
+          `UPDATE impostos i
+           SET i.Valor_Medio = COALESCE((SELECT AVG(h.Valor) FROM historico_impostos h WHERE h.ID_Imposto = i.ID_Imposto), i.Valor_Medio)`
+        );
+      } catch (e) {
+        console.warn('[backup/import] Aviso ao atualizar Valor_Medio após histórico:', e.message);
       }
     }
 
@@ -348,7 +399,14 @@ router.post('/import', upload.single('arquivo'), async (req, res) => {
     }
 
   await conn.commit();
-  res.json({ message: 'Importação concluída', receitas: receitaMap.size, ingredientes: ingredienteMap.size, despesas: despesasCount + impostosCount });
+  res.json({
+    message: 'Importação concluída',
+    receitas: receitaMap.size,
+    ingredientes: ingredienteMap.size,
+    despesas: despesasCount,
+    impostos: impostosCount,
+    historicoImpostos: historicoImpostosCount || 0
+  });
   } catch (err) {
     await conn.rollback();
     console.error('Erro na importação backup (rollback):', {

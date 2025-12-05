@@ -156,7 +156,15 @@ export default function ImportExportButton() {
       const resp = await axios.post(`${baseUrl}/api/backup/import`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success(`Backup importado! Receitas: ${resp.data.receitas} | Ingredientes: ${resp.data.ingredientes} | Despesas: ${resp.data.despesas}`);
+      const d = resp.data || {};
+      const resumo = [
+        `Receitas: ${d.receitas ?? 0}`,
+        `Ingredientes: ${d.ingredientes ?? 0}`,
+        `Despesas: ${d.despesas ?? 0}`,
+        `Impostos: ${d.impostos ?? 0}`,
+        `Hist. Impostos: ${d.historicoImpostos ?? 0}`
+      ].join(' | ');
+      toast.success(`Backup importado! ${resumo}`);
     } catch (err) {
       console.error('Erro import backup:', err);
       toast.error(err.response?.data?.error || 'Falha ao importar backup');

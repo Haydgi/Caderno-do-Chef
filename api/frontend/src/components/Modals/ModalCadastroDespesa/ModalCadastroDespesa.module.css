@@ -16,10 +16,9 @@
 .modalContainer {
   background: var(--white-smoke);
   color: var(--rich-black);
-  width: 400px;
-  height: 520px;
-  border-radius: 12px;
-  padding: 20px;
+  width: 600px;
+  border-radius: 16px;
+  padding: 28px 28px 24px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: fadeIn 0.3s ease-in-out;
@@ -27,28 +26,17 @@
 
 .modalHeader {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   border-bottom: 2px solid var(--rich-black);
-  padding-bottom: 10px;
-  padding-left: 30px;
-  margin-bottom: 10px;
-  gap: 0;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .headerIconTitle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   flex: 1;
-  gap: 8px;
-}
-
-.walletIcon {
-  font-size: 64px;
-  color: var(--ultra-violet, #5f4b8b);
-  margin-bottom: -8px;
+  display: flex;
+  justify-content: center;
 }
 
 .modalHeader h5 {
@@ -88,7 +76,7 @@
 }
 
 .modalBody {
-  padding: 10px 0px;
+  padding: 4px 0 0;
   font-size: 18px;
 }
 
@@ -98,7 +86,7 @@
   gap: 15px;
   padding-top: 20px;
   margin-top: 10px;
-  border-top: 2px solid ;
+  border-top: 2px solid var(--rich-black);
 }
 
 .btnCancel {
@@ -210,14 +198,14 @@
 }
 
 .formGrid { 
-  justify-content: space-between; /* Espaçamento uniforme entre os campos */
-  gap: 20px; /* Espaçamento horizontal entre os campos */
-  padding-left: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
 .formGroup {
   flex: 1; /* Cada campo ocupa o mesmo espaço */
-  max-width: 90%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   padding-bottom: 10px;;
@@ -227,10 +215,87 @@
   padding-bottom: 10px;
 }
 
+.labelWithInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoIcon {
+  font-size: 1.05rem;
+  color: var(--ultra-violet, #5f4b8b);
+  cursor: help;
+  line-height: 1;
+}
+
+.infoWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(23, 21, 28, 0.95);
+  color: var(--white-smoke);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  width: min(260px, 70vw);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
+  text-align: center;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(23, 21, 28, 0.95) transparent transparent transparent;
+}
+
+.infoWrapper:hover .tooltip,
+.infoWrapper:focus-within .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.infoWrapper:focus-visible {
+  outline: 2px solid var(--tangerine);
+  outline-offset: 4px;
+}
+
 .colSpan2 {
   grid-column: span 2;
 }
 
 .erroInput {
   border: 2px solid var(--imperial-red) !important;
+}
+
+@media (max-width: 560px) {
+  .modalContainer {
+    width: min(90vw, 450px);
+    padding: 24px 20px 20px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .colSpan2 {
+    grid-column: span 1;
+  }
 }

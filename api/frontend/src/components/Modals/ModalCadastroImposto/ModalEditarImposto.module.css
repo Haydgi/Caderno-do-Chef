@@ -1,0 +1,350 @@
+@import '../../../Styles/global.css';
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1080;
+	padding: 1.5rem;
+}
+
+.modalContainer {
+	background: var(--white-smoke);
+	color: var(--rich-black);
+	width: 100%;
+	max-width: 760px;
+	border-radius: 14px;
+	padding: 24px;
+	box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+	position: relative;
+	animation: fadeIn 0.25s ease-in-out;
+	overflow: hidden;
+}
+
+.modalHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 2px solid var(--rich-black);
+	padding-bottom: 14px;
+	margin-bottom: 24px;
+}
+
+.modalHeader h5 {
+	font-size: 2.2rem;
+	font-family: 'Lobster Two', cursive;
+	margin: 0;
+	color: var(--rich-black);
+}
+
+.btnClose {
+	background-color: var(--white-smoke);
+	border: none;
+	font-size: 1.6rem;
+	color: var(--ultra-violet);
+	cursor: pointer;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+	transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+	padding-bottom: 4px;
+}
+
+.btnClose:hover {
+	transform: scale(1.08);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.btnClose:focus-visible {
+	outline: 2px solid var(--tangerine);
+	outline-offset: 2px;
+}
+
+.modalBody {
+	padding-right: 8px;
+	max-height: 68vh;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.section {
+	background: var(--white-smoke);
+	border: 2px solid rgba(23, 21, 28, 0.08);
+	border-radius: 12px;
+	padding: 18px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.sectionTitle {
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: var(--rich-black);
+}
+
+.formGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.formGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.formGroup label {
+	font-weight: 600;
+	font-size: 0.95rem;
+	color: var(--rich-black);
+}
+
+.input,
+.select,
+.readonlyInput {
+	width: 100%;
+	border-radius: 10px;
+	border: 2px solid rgba(23, 21, 28, 0.12);
+	background: var(--white-smoke);
+	color: var(--rich-black);
+	padding: 0.7rem 0.95rem;
+	font-size: 0.95rem;
+	transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+	border-color: var(--ultra-violet);
+	box-shadow: 0 0 0 3px rgba(142, 84, 233, 0.15);
+	outline: none;
+}
+
+.readonlyInput {
+	background: rgba(244, 244, 248, 0.9);
+	cursor: not-allowed;
+	font-weight: 600;
+}
+
+.historyList {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-height: 240px;
+	overflow-y: auto;
+}
+
+.historyRow {
+	display: grid;
+	grid-template-columns: 1fr 1fr auto;
+	gap: 12px;
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid rgba(23, 21, 28, 0.12);
+	border-radius: 10px;
+	padding: 12px;
+	align-items: center;
+}
+
+.historyDate {
+	background: rgba(244, 244, 248, 0.9);
+}
+
+.historyValue {
+	font-weight: 600;
+}
+
+.historyActions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+.btnAction {
+	border: none;
+	border-radius: 10px;
+	padding: 0.55rem 1rem;
+	font-weight: 700;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	color: var(--white-smoke);
+	position: relative;
+	overflow: hidden;
+	z-index: 0;
+}
+
+.btnAction::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -75%;
+	width: 150%;
+	height: 100%;
+	background: linear-gradient(120deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 60%);
+	transform: skewX(-20deg);
+	transition: left 0.45s ease-in-out;
+	z-index: -1;
+}
+
+.btnAction:hover::before {
+	left: 110%;
+}
+
+.btnSalvarHistorico {
+	background: linear-gradient(to right, #4caf50, var(--dark-pastel-green));
+}
+
+.btnSalvarHistorico:hover {
+	transform: scale(1.04);
+	box-shadow: 0 8px 18px rgba(76, 175, 80, 0.25);
+}
+
+.btnExcluirHistorico {
+	background: linear-gradient(to right, #f44336, var(--imperial-red));
+}
+
+.btnExcluirHistorico:hover {
+	transform: scale(1.04);
+	box-shadow: 0 8px 18px rgba(244, 67, 54, 0.25);
+}
+
+.btnAdicionar {
+	align-self: flex-end;
+	background: linear-gradient(to right, #2196f3, #4178ff);
+	color: var(--white-smoke);
+	margin-top: 8px;
+}
+
+.btnAdicionar:hover {
+	transform: scale(1.04);
+	box-shadow: 0 10px 20px rgba(33, 150, 243, 0.28);
+}
+
+.modalFooter {
+	display: flex;
+	justify-content: flex-end;
+	gap: 16px;
+	padding-top: 20px;
+	margin-top: 28px;
+	border-top: 2px solid var(--rich-black);
+}
+
+.btnFooter {
+	border: none;
+	border-radius: 12px;
+	padding: 10px 24px;
+	font-weight: 700;
+	font-size: 0.95rem;
+	cursor: pointer;
+	background: transparent;
+	position: relative;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btnCancel {
+	background: linear-gradient(to right, #f44336, var(--imperial-red));
+	background-size: 200% 100%;
+	background-position: right;
+	color: var(--white-smoke);
+	box-shadow: 0 4px 12px rgba(244, 67, 54, 0.25);
+}
+
+.btnCancel:hover {
+	background-position: left;
+	transform: scale(1.05);
+	box-shadow: 0 6px 16px rgba(244, 67, 54, 0.35);
+}
+
+.btnSave {
+	background: linear-gradient(to right, #4caf50, var(--dark-pastel-green));
+	background-size: 200% 100%;
+	background-position: right;
+	color: var(--white-smoke);
+	box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+}
+
+.btnSave:hover {
+	background-position: left;
+	transform: scale(1.05);
+	box-shadow: 0 6px 16px rgba(76, 175, 80, 0.35);
+}
+
+.helperText {
+	font-size: 0.8rem;
+	color: rgba(23, 21, 28, 0.6);
+}
+
+.emptyMessage,
+.loadingMessage {
+	font-size: 0.9rem;
+	color: rgba(23, 21, 28, 0.7);
+	text-align: center;
+	padding: 12px 0;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@media (max-width: 720px) {
+	.modalContainer {
+		max-width: 95%;
+		padding: 20px;
+	}
+
+	.modalHeader h5 {
+		font-size: 1.9rem;
+	}
+
+	.formGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.historyRow {
+		grid-template-columns: 1fr;
+	}
+
+	.historyActions {
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 480px) {
+	.modalContainer {
+		padding: 16px;
+	}
+
+	.modalHeader h5 {
+		font-size: 1.6rem;
+	}
+
+	.btnClose {
+		width: 34px;
+		height: 34px;
+		font-size: 1.3rem;
+	}
+}
