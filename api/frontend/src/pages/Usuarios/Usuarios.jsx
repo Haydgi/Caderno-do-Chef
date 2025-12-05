@@ -218,7 +218,7 @@ export default function Usuarios() {
     <div className={itensStyles.pageContent}>
       <div className="container mt-4">
       <div className="d-flex align-items-center justify-content-between mb-3">
-        <h2 className={`${itensStyles.title} m-0`}>Configurações de Usuários</h2>
+        <h2 className={`${itensStyles.title}`}>Configurações de Usuários</h2>
         <div className="d-flex align-items-center">
           <div className={itensStyles.searchBarContainer}>
             <input

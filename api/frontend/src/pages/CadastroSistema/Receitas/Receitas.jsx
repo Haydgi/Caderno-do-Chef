@@ -37,6 +37,8 @@ function Receitas() {
         setItensPorPagina(4);
       } else if (window.innerWidth <= 991) {
         setItensPorPagina(6);
+      } else if (window.innerWidth <= 1200) {
+        setItensPorPagina(12);
       } else {
         setItensPorPagina(8);
       }

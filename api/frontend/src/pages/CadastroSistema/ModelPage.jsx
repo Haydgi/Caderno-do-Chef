@@ -338,7 +338,7 @@ function ModelPage({
                           )}
                         </div>
                       ) : (
-                        <div className="row">
+                        <div className={`row ${styles.cardsRow}`}>
                           {dadosExibidos.map(renderCard)}
                         </div>
                       )}
@@ -384,7 +384,7 @@ function ModelPage({
                         )}
                       </div>
                     ) : (
-                      <div className="row">
+                      <div className={`row ${styles.cardsRow}`}>
                         {dadosExibidos.map(renderCard)}
                       </div>
                     )}

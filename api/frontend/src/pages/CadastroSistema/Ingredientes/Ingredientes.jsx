@@ -37,6 +37,8 @@ function Ingredientes() {
         setItensPorPagina(6);
       } else if (largura < 992) {
         setItensPorPagina(9);
+      } else if (largura < 1201) {
+        setItensPorPagina(16);
       } else {
         setItensPorPagina(12);
       }
