@@ -47,8 +47,11 @@ const upload = multer({
     const allowedTypes = /jpeg|jpg|png/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) cb(null, true);
-    else cb(new Error(MSGS.arquivoInvalido));
+    // Evita lançar erro que causa 500: marque validação falhada e rejeite o arquivo
+    if (extname && mimetype) return cb(null, true);
+    // Sinaliza o erro para o handler da rota e rejeita o upload (sem salvar o arquivo)
+    req.fileValidationError = MSGS.arquivoInvalido;
+    return cb(null, false);
   }
 });
 
@@ -58,6 +61,10 @@ router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) =
   console.log('Body recebido:', req.body);
   console.log('Arquivo recebido:', req.file);
   console.log('Usuário autenticado:', req.user);
+  // Se a validação do arquivo falhou no fileFilter, informe ao cliente
+  if (req.fileValidationError) {
+    return res.status(400).json({ error: req.fileValidationError });
+  }
   
   try {
     let {

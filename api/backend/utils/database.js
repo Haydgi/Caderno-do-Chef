@@ -3,7 +3,7 @@
  */
 import db from '../database/connection.js';
 import logger from './logger.js';
-
+ 
 /**
  * Executa uma função dentro de uma transação
  * @param {Function} callback - Função que recebe a connection como parâmetro
