@@ -42,3 +42,4 @@ Thumbs.db
 
 # documentable WARP (não versioner)
 WARP.md
+api/backend/.env

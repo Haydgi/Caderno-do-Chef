@@ -150,3 +150,13 @@
     font-size: 1.7rem;
   }
 }
+
+/* Desloca os painéis (Usuários / Meu Perfil) 50px para a direita entre 992px e 1200px */
+@media (min-width: 992px) and (max-width: 1200px) {
+  .title {
+    margin-left: 50px !important;
+  }
+  .costPanel {
+    margin-left: 50px !important;
+  }
+}

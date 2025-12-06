@@ -82,6 +82,13 @@
   -webkit-overflow-scrolling: touch;
   /* subtract header/footer + internal paddings from viewport height */
   max-height: calc(95vh - 200px);
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.modalBody::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .modalFooter {
@@ -232,6 +239,13 @@ textarea {
   max-height: 200px;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.suggestionsList::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .suggestionsList li {
@@ -251,6 +265,13 @@ textarea {
   border-radius: 10px;
   background-color: var(--white);
   border: 1px solid var(--rich-black);
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.ingredientesBox::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .tabelaCabecalho {

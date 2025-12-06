@@ -772,6 +772,21 @@
   }
 }
 
+/* desloca apenas o grid de cards para a direita entre 992px e 1200px */
+@media (min-width: 992px) and (max-width: 1200px) {
+  .title {
+    margin-left: 50px;
+  }
+  
+  .cardsRow {
+   margin-left: 20px !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+    transition: margin-left 0.2s ease;
+  }
+}
+
 
 
 
