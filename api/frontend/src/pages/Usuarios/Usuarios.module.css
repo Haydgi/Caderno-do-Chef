@@ -89,6 +89,19 @@
   color: #fff;
 }
 
+/* ===== Meu Perfil: tamanho fixo e scroll interno no mobile ===== */
+@media (max-width: 768px) {
+  .perfilPanel {
+    max-height: calc(60vh - 100px); /* reduz 300px da altura do painel em mobile */
+    overflow: hidden; /* esconder overflow geral; o body cuidará do scroll */
+  }
+  .perfilBody {
+    max-height: calc(60vh - 100px - 58px); /* aplica mesma redução e desconta header aproximado */
+    overflow-y: auto; /* rolagem interna para ver os campos */
+    padding: 0.75rem 0.75rem; /* compacta padding para mobile */
+  }
+}
+
 /* Tabela com tema violeta translúcido */
 .tableViolet {
   margin: 0;

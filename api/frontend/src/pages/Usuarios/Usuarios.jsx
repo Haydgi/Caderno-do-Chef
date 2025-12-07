@@ -309,11 +309,11 @@ export default function Usuarios() {
       )}
 
       {/* Meu Perfil - agora após a lista de usuários */}
-      <div className={`${styles.costPanel} mt-4`}>
+      <div className={`${styles.costPanel} ${styles.perfilPanel} mt-4`}>
         <div className={styles.costPanelHeader}>
           <h5 className="mb-0">Meu Perfil</h5>
         </div>
-        <div className={styles.costPanelBody}>
+        <div className={`${styles.costPanelBody} ${styles.perfilBody}`}>
           {meLoading ? (
             <div className="text-white-50">Carregando seu perfil...</div>
           ) : (

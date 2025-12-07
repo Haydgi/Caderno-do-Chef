@@ -413,7 +413,8 @@ function Despesas() {
           isMobile
             ? {
               width: 'calc(100% - 20px)',
-              marginBottom: '1rem',
+              marginBottom: '25px',
+              marginTop: '25px',
               marginLeft: '10px',
               marginRight: '10px',
             }
@@ -538,35 +539,38 @@ function Despesas() {
               </div>
             </div>
           </div>
-          {/* Breakdown de custos + Custo operacional juntos (igual ao card de despesas) */}
+          {/* Breakdown de custos + Custo operacional juntos (no mobile ocultar o breakdown) */}
           <div className="d-flex align-items-center justify-content-between" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px', padding: '0.5rem', marginTop: '0.2rem' }}>
-            <div style={{ flex: 1 }}>
-              <div className="text-center mb-1">
-                <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
-              </div>
-              <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
-                <div className="text-center" style={{ flex: 1 }}>
-                  <small className="text-white-50">Por dia:</small>
-                  <div className="text-white fw-semibold">
-                    R$ {(Number(imposto.custoMensal) / 30).toFixed(2)}
+            {!isMobile && (
+              <div style={{ flex: 1 }}>
+                <div className="text-center mb-1">
+                  <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
+                </div>
+                <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
+                  <div className="text-center" style={{ flex: 1 }}>
+                    <small className="text-white-50">Por dia:</small>
+                    <div className="text-white fw-semibold">
+                      R$ {(Number(imposto.custoMensal) / 30).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="text-center" style={{ flex: 1 }}>
+                    <small className="text-white-50">Por hora:</small>
+                    <div className="text-white fw-semibold">
+                      R$ {((Number(imposto.custoMensal) / 30) / Number(imposto.tempoOperacional || 24)).toFixed(2)}
+                    </div>
                   </div>
                 </div>
-                <div className="text-center" style={{ flex: 1 }}>
-                  <small className="text-white-50">Por hora:</small>
-                  <div className="text-white fw-semibold">
-                    R$ {((Number(imposto.custoMensal) / 30) / Number(imposto.tempoOperacional || 24)).toFixed(2)}
-                  </div>
-                </div>
               </div>
-            </div>
+            )}
             <div style={{
               background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2))',
               borderRadius: '8px',
               padding: '0.5rem 0.7rem',
               border: '1px solid rgba(255, 215, 0, 0.3)',
-              marginLeft: '0.7rem',
+              marginLeft: isMobile ? '0' : '0.7rem',
               minWidth: '120px',
-              textAlign: 'center'
+              textAlign: 'center',
+              width: isMobile ? '100%' : 'auto'
             }}>
               <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
                 <FaHandHoldingUsd style={{ marginRight: '6px', color: 'var(--tangerine)' }} /> Imposto
@@ -596,7 +600,8 @@ function Despesas() {
           isMobile
             ? {
               width: 'calc(100% - 20px)',
-              marginBottom: '1rem',
+              marginBottom: '25px',
+              marginTop: '25px',
               marginLeft: '10px',
               marginRight: '10px',
             }
@@ -702,35 +707,38 @@ function Despesas() {
             </div>
           </div>
 
-          {/* Breakdown de custos + Custo operacional juntos */}
+          {/* Breakdown de custos + Custo operacional juntos (no mobile ocultar o breakdown) */}
           <div className="d-flex align-items-center justify-content-between" style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '8px', padding: '0.5rem', marginTop: '0.2rem' }}>
-            <div style={{ flex: 1 }}>
-              <div className="text-center mb-1">
-                <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
-              </div>
-              <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
-                <div className="text-center" style={{ flex: 1 }}>
-                  <small className="text-white-50">Por dia:</small>
-                  <div className="text-white fw-semibold">
-                    R$ {(Number(despesa.custoMensal) / 30).toFixed(2)}
+            {!isMobile && (
+              <div style={{ flex: 1 }}>
+                <div className="text-center mb-1">
+                  <small className="text-white-50" style={{ fontSize: '0.9rem' }}>BREAKDOWN DE CUSTOS</small>
+                </div>
+                <div className="d-flex justify-content-between" style={{ fontSize: '1.0rem' }}>
+                  <div className="text-center" style={{ flex: 1 }}>
+                    <small className="text-white-50">Por dia:</small>
+                    <div className="text-white fw-semibold">
+                      R$ {(Number(despesa.custoMensal) / 30).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="text-center" style={{ flex: 1 }}>
+                    <small className="text-white-50">Por hora:</small>
+                    <div className="text-white fw-semibold">
+                      R$ {((Number(despesa.custoMensal) / 30) / Number(despesa.tempoOperacional)).toFixed(2)}
+                    </div>
                   </div>
                 </div>
-                <div className="text-center" style={{ flex: 1 }}>
-                  <small className="text-white-50">Por hora:</small>
-                  <div className="text-white fw-semibold">
-                    R$ {((Number(despesa.custoMensal) / 30) / Number(despesa.tempoOperacional)).toFixed(2)}
-                  </div>
-                </div>
               </div>
-            </div>
+            )}
             <div style={{
               background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2))',
               borderRadius: '8px',
               padding: '0.5rem 0.7rem',
               border: '1px solid rgba(255, 215, 0, 0.3)',
-              marginLeft: '0.7rem',
+              marginLeft: isMobile ? '0' : '0.7rem',
               minWidth: '120px',
-              textAlign: 'center'
+              textAlign: 'center',
+              width: isMobile ? '100%' : 'auto'
             }}>
               <div className="fw-bold mb-1" style={{ fontSize: '0.85rem', color: 'var(--sunset)' }}>
                 <FaMoneyBillWave style={{ marginRight: '6px', color: 'var(--sunset)' }} /> Despesa Operacional
@@ -933,10 +941,13 @@ function Despesas() {
                       ) : (
                         <FaMoneyBillWave style={{ color: 'var(--sunset)', marginRight: '6px' }} />
                       )}
+                      {/* No mobile, manter o nome; ocultar apenas o rótulo adicional */}
                       {item.nome}
-                      <span style={{ fontSize: '0.75rem', marginLeft: '8px', color: '#FFD700' }}>
-                        {item.tipo === 'imposto' ? 'Imposto' : 'Despesa Operacional'}
-                      </span>
+                      {!isMobileVersion && (
+                        <span style={{ fontSize: '0.75rem', marginLeft: '8px', color: '#FFD700' }}>
+                          {item.tipo === 'imposto' ? 'Imposto' : 'Despesa Operacional'}
+                        </span>
+                      )}
                     </span>
                     <span
                       className="fw-bold px-2 py-1 rounded"
@@ -1040,38 +1051,6 @@ function Despesas() {
         {/* Footer sticky para mobile */}
         {isMobileVersion && (
           <div className="mobile-cost-footer">
-            {/* Seção de soma no mobile - visual original */}
-            {todosOsCustos.length > 1 && (
-              <div
-                className="p-3 rounded"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)'
-                }}
-              >
-                <div className="d-flex justify-content-between align-items-center">
-                  <span className="fw-semibold" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Soma Total:
-                  </span>
-                  <span
-                    className="fw-bold"
-                    style={{
-                      fontSize: '0.85rem',
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontFamily: 'monospace'
-                    }}
-                  >
-                    {todosOsCustos.map((item) => {
-                      const custoMinuto = calcularCustoOperacional(item.custoMensal, item.tempoOperacional);
-                      return custoMinuto.toFixed(3);
-                    }).join(' + ')} =
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Resultado final */}
             <div className="text-center">
               <h6
@@ -1184,8 +1163,8 @@ function Despesas() {
           }}
         />
       )}
-      renderCard={renderCard}
-  itensPorPagina={displayedItems.length}
+    renderCard={renderCard}
+  itensPorPagina={isMobile ? 2 : displayedItems.length}
       termoBusca={termoBusca}
       setTermoBusca={setTermoBusca}
   painelLateral={painelLateralEl}

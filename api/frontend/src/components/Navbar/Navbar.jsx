@@ -174,13 +174,7 @@ export default function Navbar({ onLogout }) {
                 <MdShoppingCart style={{ verticalAlign: "middle", marginRight: 6 }} /> Ingredientes
               </NavLink>
             </li>
-            {role === 'Proprietário' && (
-              <li className="nav-item">
-                <NavLink to="/relatorios" className="nav-link" onClick={() => setMenuAberto(false)}>
-                  <MdCloudUpload style={{ verticalAlign: "middle", marginRight: 6 }} /> Exportar/Importar
-                </NavLink>
-              </li>
-            )}
+            {/* Removido do menu mobile: Exportar/Importar */}
             {role !== 'Funcionário' && (
               <li className="nav-item">
                 <NavLink to="/despesas" className="nav-link" onClick={() => setMenuAberto(false)}>

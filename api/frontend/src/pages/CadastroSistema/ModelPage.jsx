@@ -120,7 +120,11 @@ function ModelPage({
         <div className="container mt-4">
           {/* Título e barra de pesquisa/botão na mesma linha */}
           <div className="d-flex align-items-center justify-content-between mb-3">
-            <h2 className={`${styles.title}`}>{titulo}</h2>
+            <h2 className={`${styles.title}`}
+              style={{ fontSize: isMobile ? '1.25rem' : undefined }}
+            >
+              {titulo}
+            </h2>
             <div className="d-flex align-items-center gap-2">
               {isMobile ? (
                 <button
