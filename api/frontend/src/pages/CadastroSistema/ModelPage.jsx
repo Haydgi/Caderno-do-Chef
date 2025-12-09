@@ -360,38 +360,38 @@ function ModelPage({
                 // Layout desktop padrão
                 <>
                   {/* Coluna esquerda - Cards */}
-          <div className={painelLateral ? "col-md-6" : "col-12"}>
-            <div className={painelLateral ? 'quiet-scrollbar' : ''} style={painelLateral ? { maxHeight: 'calc(64vh + 125px)', overflowY: 'auto', paddingRight: '12px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '-8px' } : {}}>
-                    {dados.length === 0 ? (
-                      <div
-                        id="sem-dados"
-                        className={`${styles.emptyState}`}
-                        style={painelLateral ? { marginRight: '150px' } : {}}
-                      >
-                        <p style={{ fontWeight: 'normal' }}>
-                          {termoBusca && termoBusca.trim() !== ""
-                            ? "Nenhum item encontrado para sua busca."
-                            : "Não há itens cadastrados"}
-                        </p>
-                        {!desabilitarBotaoAdicionar && (
-                          <button
-                            className={`${styles.btnDetails} btnUltraViolet btn`}
-                            onClick={abrirModal}
-                          >
-                            <p className={styles.btnText}>
-                              <i className="bi bi-plus-circle me-2"></i>
-                              {termoBusca && termoBusca.trim() !== ""
-                                ? "Criar Item"
-                                : "Criar o Primeiro Item"}
-                            </p>
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div className={`row ${styles.cardsRow}`}>
-                        {dadosExibidos.map(renderCard)}
-                      </div>
-                    )}
+                  <div className={painelLateral ? "col-md-6" : "col-12"}>
+                    <div className={painelLateral ? 'quiet-scrollbar' : ''} style={painelLateral ? { maxHeight: 'calc(64vh + 115px)', overflowY: 'auto', paddingRight: '12px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '-8px' } : {}}>
+                      {dados.length === 0 ? (
+                        <div
+                          id="sem-dados"
+                          className={`${styles.emptyState}`}
+                          style={painelLateral ? { marginRight: '150px' } : {}}
+                        >
+                          <p style={{ fontWeight: 'normal' }}>
+                            {termoBusca && termoBusca.trim() !== ""
+                              ? "Nenhum item encontrado para sua busca."
+                              : "Não há itens cadastrados"}
+                          </p>
+                          {!desabilitarBotaoAdicionar && (
+                            <button
+                              className={`${styles.btnDetails} btnUltraViolet btn`}
+                              onClick={abrirModal}
+                            >
+                              <p className={styles.btnText}>
+                                <i className="bi bi-plus-circle me-2"></i>
+                                {termoBusca && termoBusca.trim() !== ""
+                                  ? "Criar Item"
+                                  : "Criar o Primeiro Item"}
+                              </p>
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className={`row ${styles.cardsRow}`}>
+                          {dadosExibidos.map(renderCard)}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -414,17 +414,18 @@ function ModelPage({
 
                   {/* Coluna direita - Painel do Cálculo de Despesas */}
                   {painelLateral && (
-                    <div className="col-md-5 position-relative">
+                    <div className="col-md-6 position-relative">
                       <div
                         className="position-absolute d-flex"
                         style={{
-                          left: '0',
+                          left: '50px',
                           right: '0',
-                          top: '-14px',
+                          top: '-8px',
                           width: '100%',
+                          height: '100%',
                           justifyContent: 'center',
                           boxSizing: 'border-box',
-                          paddingLeft: '8px',
+                          paddingLeft: '16px',
                           paddingRight: '8px'
                         }}
                       >

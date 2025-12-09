@@ -1,3 +1,22 @@
+/* Scrollbar sempre visível para a seção de detalhamento */
+:global(.custom-scrollbar) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.5);
+}
+
+:global(.custom-scrollbar::-webkit-scrollbar) {
+  width: 8px;
+}
+
+:global(.custom-scrollbar::-webkit-scrollbar-thumb) {
+  background: rgba(255,255,255,0.5) !important;
+  border-radius: 8px;
+}
+
+:global(.custom-scrollbar::-webkit-scrollbar-thumb:active) {
+  background: rgba(255,255,255,0.5) !important;
+}
+
 /* Evita corte da palavra Imposto no label do card */
 .cardDespesa .fw-bold.mb-1 {
   word-break: break-word;
@@ -75,6 +94,10 @@
   padding-right: 8px;
   /* Para evitar scroll horizontal */
   overflow-x: hidden;
+  /* Background whitesmoke para a área dos cards de impostos */
+  background-color: rgb(212, 19, 19);
+  border-radius: 12px;
+  padding: 12px;
 }
 
 /* Global quiet scrollbar: thin, low-contrast and more visible on hover */
@@ -97,11 +120,6 @@
   /* purple thumb for a subtle theme match */
   background: var(--ultra-violet, #6c4f99);
   border-radius: 8px;
-  transition: background .12s ease;
-}
-
-:global(.quiet-scrollbar:hover::-webkit-scrollbar-thumb) {
-  background: rgba(0,0,0,0.18);
 }
 
 /* Scrollbar customizada para o painel de impostos */

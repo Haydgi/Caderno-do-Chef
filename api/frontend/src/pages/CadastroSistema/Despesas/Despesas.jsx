@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import PropTypes from 'prop-types';
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
@@ -27,7 +28,6 @@ function Despesas() {
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [mostrarModalEditarImposto, setMostrarModalEditarImposto] = useState(false);
   const [itemSelecionado, setItemSelecionado] = useState(null);
-  const [despesaSelecionada, setDespesaSelecionada] = useState(null);
   const [impostoSelecionado, setImpostoSelecionado] = useState(null);
   // Estado para sincronizar hover entre cards e painel
   // Usar chave composta para evitar colisão de IDs entre despesas e impostos
@@ -38,6 +38,10 @@ function Despesas() {
   // Estado de ordenação e filtro
   const [ordenacao, setOrdenacao] = useState('nome-asc'); // Padrão: ordem alfabética crescente
   const [filtroTipo, setFiltroTipo] = useState('todos'); // todos, despesas, impostos
+  // Controle de busca para evitar respostas antigas sobrescrevendo o estado
+  const termoBuscaRef = useRef('');
+  const despesasRequestIdRef = useRef(0);
+  const impostosRequestIdRef = useRef(0);
 
   // Ajustar estado mobile baseado no tamanho da tela
   useEffect(() => {
@@ -54,7 +58,12 @@ function Despesas() {
 
   const getToken = () => localStorage.getItem('token');
 
-  const fetchDespesas = async (termo = '') => {
+  useEffect(() => {
+    termoBuscaRef.current = termoBusca;
+  }, [termoBusca]);
+
+  const fetchDespesas = useCallback(async (termo = termoBuscaRef.current || '') => {
+    const requestId = ++despesasRequestIdRef.current;
     const token = getToken();
     if (!token) {
       console.log('Sem token, não busca despesas');
@@ -101,18 +110,23 @@ function Despesas() {
       }));
 
       console.log('Despesas normalizadas:', despesasNormalizadas);
-      setDespesas(despesasNormalizadas);
+      if (requestId === despesasRequestIdRef.current) {
+        setDespesas(despesasNormalizadas);
+      }
     } catch (error) {
       console.error('Erro no fetchDespesas:', error);
-      setDespesas([]);
+      if (requestId === despesasRequestIdRef.current) {
+        setDespesas([]);
+      }
       // Evita mensagem duplicada quando já foi 403
       if (!(error?.message && error.message.includes('403'))) {
         toast.error('Falha ao buscar despesas.');
       }
     }
-  };
+  }, []);
 
-  const fetchImpostos = async (termo = '') => {
+  const fetchImpostos = useCallback(async (termo = termoBuscaRef.current || '') => {
+    const requestId = ++impostosRequestIdRef.current;
     const token = getToken();
     if (!token) return;
 
@@ -148,13 +162,17 @@ function Despesas() {
         custoMensal: item.Frequencia === 'anual' ? item.Valor_Medio / 12 : item.Valor_Medio,
         tempoOperacional: 24, // Impostos impactam o custo 24h por dia
       }));
-      setImpostos(impostosNormalizados);
+      if (requestId === impostosRequestIdRef.current) {
+        setImpostos(impostosNormalizados);
+      }
     } catch (error) {
       console.error('Erro no fetchImpostos:', error);
-      setImpostos([]);
+      if (requestId === impostosRequestIdRef.current) {
+        setImpostos([]);
+      }
       toast.error('Falha ao buscar impostos.');
     }
-  };
+  }, []);
 
   // Combina, filtra e ordena despesas e impostos
   const todosOsCustos = useMemo(() => {
@@ -166,6 +184,15 @@ function Despesas() {
       custos = despesas;
     } else if (filtroTipo === 'impostos') {
       custos = impostos;
+    }
+
+    // Filtro defensivo no cliente para garantir que apenas nomes que contenham o termo apareçam
+    const termo = (termoBusca || '').trim().toLowerCase();
+    if (termo) {
+      custos = custos.filter((item) => {
+        const nome = (item.nome || item.Nome_Despesa || item.Nome_Imposto || '').toLowerCase();
+        return nome.includes(termo);
+      });
     }
 
     // Ordenar conforme selecionado
@@ -205,8 +232,7 @@ function Despesas() {
   }, [despesas, impostos, filtroTipo, ordenacao]);
 
   // Hook para scroll infinito com 20 itens por vez
-  const { displayedItems, hasMore, scrollContainerRef, loadMore } = useInfiniteScroll(todosOsCustos, 20);
-  const [highlightedKey, setHighlightedKey] = useState(null);
+  const { displayedItems, hasMore } = useInfiniteScroll(todosOsCustos, 20);
   const cardRefs = React.useRef({});
   const setCardRef = (key) => (el) => { if (el) cardRefs.current[key] = el; };
 
@@ -230,12 +256,12 @@ function Despesas() {
     } else {
       fetchData();
     }
-  }, [API_URL, termoBusca]);
+  }, [fetchDespesas, fetchImpostos, termoBusca]);
 
   useEffect(() => {
     fetchDespesas('');
     fetchImpostos('');
-  }, []);
+  }, [fetchDespesas, fetchImpostos]);
 
   const salvarItem = async () => {
     await fetchDespesas();
@@ -266,7 +292,6 @@ function Despesas() {
       await fetchDespesas();
 
       setMostrarModalEditar(false);
-      setDespesaSelecionada(null);
       toast.success('Despesa atualizada com sucesso!');
     } catch (err) {
       console.error(err);
@@ -289,6 +314,7 @@ function Despesas() {
       setDespesas(prev => prev.filter(d => d.id !== id));
       toast.success('Despesa removida com sucesso!');
     } catch (err) {
+      console.error(err);
       toast.error('Erro ao remover despesa.');
     }
   };
@@ -297,48 +323,6 @@ function Despesas() {
   const editarImposto = (imposto) => {
     setImpostoSelecionado(imposto);
     setMostrarModalEditarImposto(true);
-  };
-
-  const atualizarImposto = async (id, dados) => {
-    const token = getToken();
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/api/impostos/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          Nome_Imposto: dados.Nome_Imposto,
-          Valor_Medio: String(dados.Valor_Medio),
-          Frequencia: dados.Frequencia
-        })
-      });
-
-      if (!res.ok) throw new Error('Erro ao atualizar imposto');
-
-      // Atualiza o estado local imediatamente com o valor EXATO digitado pelo usuário
-      setImpostos(prev => prev.map(i => {
-        if (i.id !== id) return i;
-        const valor = Number(dados.Valor_Medio);
-        const freq = dados.Frequencia;
-        return {
-          ...i,
-          Nome_Imposto: dados.Nome_Imposto,
-          Valor_Medio: valor,
-          Frequencia: freq,
-          custoMensal: freq === 'anual' ? valor / 12 : valor
-        };
-      }));
-
-      // Não faz novo fetchImpostos() aqui para evitar que o backend sobrescreva o valor exibido.
-      toast.success('Imposto atualizado com sucesso!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Erro ao atualizar imposto.');
-    }
   };
 
   const removerImposto = async (id) => {
@@ -443,8 +427,13 @@ function Despesas() {
             // abre edição do imposto
             editarImposto(imposto);
           }}
-          onMouseEnter={() => setHoveredKey(`imposto-${imposto.id}`)}
-          onMouseLeave={() => setHoveredKey(null)}
+          onMouseEnter={() => {
+            setHoveredKey(`imposto-${imposto.id}`);
+          }}
+          onMouseLeave={() => {
+            if (hoveredKey === `imposto-${imposto.id}`) setHoveredKey(null);
+          }}
+          ref={setCardRef(`imposto-${imposto.id}`)}
         >
           <i
             className={styles.Trash}
@@ -623,11 +612,9 @@ function Despesas() {
           }}
           onMouseEnter={() => {
             setHoveredKey(`despesa-${despesa.id}`);
-            setHighlightedKey(`despesa-${despesa.id}`);
           }}
           onMouseLeave={() => {
             if (hoveredKey === `despesa-${despesa.id}`) setHoveredKey(null);
-            setHighlightedKey(null);
           }}
           style={{
             cursor: 'pointer',
@@ -854,7 +841,7 @@ function Despesas() {
           borderRadius: '12px',
           overflow: 'hidden',
           width: '100%',
-          maxWidth: '520px',
+          maxWidth: '600px',
           boxSizing: 'border-box'
         }}
       >
@@ -878,9 +865,9 @@ function Despesas() {
           </div>
         )}
 
-  <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: 'calc(64vh + 125px)', overflowY: 'auto' }}>
+        <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: 'calc(64vh + 125px)', overflowY: 'auto' }}>
           {/* Seção de detalhamento */}
-          <div className={isMobileVersion ? "mb-2" : "mb-4"}>
+          <div className={isMobileVersion ? "mb-2" : "mb-5"}>
             <h6
               className={isMobileVersion ? "mb-2 fw-semibold" : "mb-3 fw-semibold"}
               style={{
@@ -894,16 +881,89 @@ function Despesas() {
               {isMobileVersion ? 'Detalhamento' : 'Detalhamento por Despesa'}
             </h6>
 
+            {/* Legenda mais evidente e diferente dos cards */}
+            <div
+              className="mb-3"
+              style={{
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))',
+                padding: '0.75rem 0.9rem',
+                borderRadius: '10px',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.9rem',
+                justifyContent: 'space-between',
+                border: '1px dashed rgba(255,255,255,0.3)',
+                boxShadow: '0 6px 14px rgba(0,0,0,0.08)',
+                flexWrap: 'wrap'
+              }}
+            >
+              <span style={{
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '0.78rem'
+              }}>
+                Legenda
+              </span>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.9rem',
+                justifyContent: 'flex-end',
+                flex: 1,
+                minWidth: '260px'
+              }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.28rem 0.6rem',
+                  borderRadius: '999px',
+                  background: 'rgba(255,255,255,0.14)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: 'rgba(255,255,255,0.95)'
+                }}>
+                  <FaMoneyBillWave style={{ color: 'var(--sunset)', fontSize: '1rem' }} />
+                  Despesa Operacional
+                </span>
+
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.28rem 0.6rem',
+                  borderRadius: '999px',
+                  background: 'rgba(255,255,255,0.14)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: 'rgba(255,255,255,0.95)'
+                }}>
+                  <FaHandHoldingUsd style={{ color: 'var(--tangerine)', fontSize: '1rem' }} />
+                  Imposto
+                </span>
+              </div>
+            </div>
+
             <div
               className="custom-scrollbar"
               style={isMobileVersion ? {
-                  maxHeight: 'calc(60vh - 200px)',
-                  overflowY: 'auto',
-                  paddingRight: '10px'
-                } : {
-                maxHeight: '200px',
-                overflowY: 'auto',
-                paddingRight: '10px'
+                maxHeight: 'calc(60vh - 200px)',
+                overflowY: 'scroll',
+                paddingRight: '10px',
+                marginTop: '0.8rem',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(255,255,255,0.5)'
+              } : {
+                maxHeight: '240px',
+                overflowY: 'scroll',
+                paddingRight: '10px',
+                marginTop: '0.8rem',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(255,255,255,0.5) rgba(255,255,255,0.1)'
               }}
             >
               {itens.map((item) => {
@@ -922,12 +982,10 @@ function Despesas() {
                     }}
                     onMouseEnter={() => {
                       setHoveredKey(key);
-                      setHighlightedKey(key);
                       ensureVisible(key);
                     }}
                     onMouseLeave={() => {
                       if (hoveredKey === key) setHoveredKey(null);
-                      setHighlightedKey(null);
                     }}
                   >
                     <span
@@ -962,25 +1020,19 @@ function Despesas() {
             </div>
           </div>
 
-          {/* Legenda */}
-          <div className="mb-3" style={{ background: 'rgba(255,255,255,0.07)', padding: '0.5rem', borderRadius: '8px' }}>
-            <FaMoneyBillWave style={{ color: 'var(--sunset)', marginRight: '6px' }} /> Despesa Operacional &nbsp;|
-            <FaHandHoldingUsd style={{ color: 'var(--tangerine)', marginLeft: '12px', marginRight: '6px' }} /> Imposto
-
-          </div>
-
           {/* Seção de soma - apenas no desktop */}
           {itens.length > 1 && !isMobileVersion && (
             <div
-              className="mb-4 p-3 rounded"
+              className="mb-2 p-3 rounded"
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.3)'
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                marginTop: '0.5rem'
               }}
             >
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-semibold" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+              <div className="d-flex flex-column">
+                <span className="fw-semibold mb-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
                   <i className="bi bi-plus-circle me-2"></i>
                   Soma Total:
                 </span>
@@ -989,7 +1041,10 @@ function Despesas() {
                   style={{
                     fontSize: '0.85rem',
                     color: 'rgba(255, 255, 255, 0.8)',
-                    fontFamily: 'monospace'
+                    fontFamily: 'monospace',
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    overflowX: 'auto'
                   }}
                 >
                   {itens.map((item) => {
@@ -1004,12 +1059,13 @@ function Despesas() {
           {/* Resultado final - condicional baseado na versão */}
           {!isMobileVersion && (
             <div
-              className="text-center p-4 rounded-3"
+              className="text-center p-3 rounded-3"
               style={{
                 background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
                 backdropFilter: 'blur(15px)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                marginTop: '1rem'
               }}
             >
               <h6
@@ -1081,6 +1137,12 @@ function Despesas() {
     </>
   ));
 
+  PainelCustoOperacional.displayName = 'PainelCustoOperacional';
+  PainelCustoOperacional.propTypes = {
+    isMobileVersion: PropTypes.bool,
+    itens: PropTypes.array
+  };
+
   // Configuração das tabs mobile
   const mobileTabs = [
     {
@@ -1117,62 +1179,62 @@ function Despesas() {
       {hasMore && (
         <>
           <style>{`@keyframes floatDown{0%{transform:translateY(0)}100%{transform:translateY(8px)}}`}</style>
-          <div style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',alignItems:'center',gap:'8px',color:'rgba(255,255,255,0.8)'}}>
+          <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.8)' }}>
             <i className="bi bi-arrow-down" style={{ fontSize: '1.4rem', animation: 'floatDown 1.2s ease-in-out infinite alternate' }}></i>
             <span style={{ fontSize: '0.9rem' }}>Role para carregar mais itens</span>
           </div>
         </>
       )}
-    <ModelPage
-      titulo="Despesas cadastradas"
-      dados={displayedItems}
-      salvarItem={salvarItem}
-      removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
-      abrirModal={handleAbrirModal}
-      fecharModal={handleFecharModais}
-      fecharModalEditar={() => { setMostrarModalEditar(false); setItemSelecionado(null); }}
-      mostrarModal={mostrarModal || mostrarModalImposto || mostrarModalSelecao}
-      mostrarModalEditar={mostrarModalEditar}
-      ModalCadastro={() => {
-        if (mostrarModalSelecao) {
-          return <ModalSelecaoTipoDespesa onSelect={handleSelecaoTipo} onClose={handleFecharModais} />;
-        }
-        if (mostrarModal) {
-          return <ModalCadastroDespesa onClose={handleFecharModais} onSave={salvarItem} />;
-        }
-        if (mostrarModalImposto) {
-          return <ModalCadastroImposto onClose={handleFecharModais} onSave={salvarItem} />;
-        }
-        return null;
-      }}
-      ModalEditar={({ onClose, onSave }) => (
-        <ModalEditaDespesa
-          despesa={itemSelecionado}
-          onClose={() => {
-            onClose?.();
-            setItemSelecionado(null);
-          }}
-          onSave={(despesaAtualizada) => {
-            atualizarDespesa(despesaAtualizada);
-            // Após atualização, dispara onSave para sincronizar lista
-            onSave?.();
-          }}
-        />
-      )}
-    renderCard={renderCard}
-  itensPorPagina={isMobile ? 2 : displayedItems.length}
-      termoBusca={termoBusca}
-      setTermoBusca={setTermoBusca}
-  painelLateral={painelLateralEl}
-      enableMobileTabs={true}
-      mobileTabs={mobileTabs}
-      activeMobileTab={activeMobileTab}
-      setActiveMobileTab={setActiveMobileTab}
-      ordenacao={ordenacao}
-      setOrdenacao={setOrdenacao}
-      filtroTipo={filtroTipo}
-      setFiltroTipo={setFiltroTipo}
-    />
+      <ModelPage
+        titulo="Despesas cadastradas"
+        dados={displayedItems}
+        salvarItem={salvarItem}
+        removerItem={(id, tipo) => tipo === 'imposto' ? removerImposto(id) : removerDespesa(id)}
+        abrirModal={handleAbrirModal}
+        fecharModal={handleFecharModais}
+        fecharModalEditar={() => { setMostrarModalEditar(false); setItemSelecionado(null); }}
+        mostrarModal={mostrarModal || mostrarModalImposto || mostrarModalSelecao}
+        mostrarModalEditar={mostrarModalEditar}
+        ModalCadastro={() => {
+          if (mostrarModalSelecao) {
+            return <ModalSelecaoTipoDespesa onSelect={handleSelecaoTipo} onClose={handleFecharModais} />;
+          }
+          if (mostrarModal) {
+            return <ModalCadastroDespesa onClose={handleFecharModais} onSave={salvarItem} />;
+          }
+          if (mostrarModalImposto) {
+            return <ModalCadastroImposto onClose={handleFecharModais} onSave={salvarItem} />;
+          }
+          return null;
+        }}
+        ModalEditar={({ onClose, onSave }) => (
+          <ModalEditaDespesa
+            despesa={itemSelecionado}
+            onClose={() => {
+              onClose?.();
+              setItemSelecionado(null);
+            }}
+            onSave={(despesaAtualizada) => {
+              atualizarDespesa(despesaAtualizada);
+              // Após atualização, dispara onSave para sincronizar lista
+              onSave?.();
+            }}
+          />
+        )}
+        renderCard={renderCard}
+        itensPorPagina={isMobile ? 2 : displayedItems.length}
+        termoBusca={termoBusca}
+        setTermoBusca={setTermoBusca}
+        painelLateral={painelLateralEl}
+        enableMobileTabs={true}
+        mobileTabs={mobileTabs}
+        activeMobileTab={activeMobileTab}
+        setActiveMobileTab={setActiveMobileTab}
+        ordenacao={ordenacao}
+        setOrdenacao={setOrdenacao}
+        filtroTipo={filtroTipo}
+        setFiltroTipo={setFiltroTipo}
+      />
     </>
   );
 }
