@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
@@ -10,6 +10,7 @@ import 'react-quill/dist/quill.snow.css';
 import { ALLOWED_RECIPE_CATEGORIES } from '../../../utils/recipeCategories';
 
 function ModalEditaReceita({ onClose, onSave, receita }) {
+  const fileInputRef = useRef(null);
   const [form, setForm] = useState({
     imagem: null,
     nome: "",
@@ -563,13 +564,17 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
               {/* Coluna da imagem */}
               <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
                 <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
-                <label
-                  htmlFor="imagemInputEdit"
+                <div
                   className={styles.imageUploadContainer}
                   style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    const input = document.getElementById('imagemInputEdit');
-                    if (input) input.click();
+                  onClick={() => fileInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
                   }}
                 >
                   {(() => {
@@ -631,9 +636,10 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                       );
                     }
                   })()}
-                </label>
+                </div>
                 <input
                   id="imagemInputEdit"
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
@@ -644,7 +650,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-secondary flex-fill"
-                      onClick={() => document.getElementById('imagemInputEdit').click()}
+                      onClick={() => fileInputRef.current?.click()}
                       title="Editar imagem"
                     >
                       <i className="bi bi-pencil"></i>
@@ -658,8 +664,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                           imagem: null,
                           imagemRemovida: true
                         }));
-                        const input = document.getElementById('imagemInputEdit');
-                        if (input) input.value = '';
+                        if (fileInputRef.current) fileInputRef.current.value = '';
                         toast.info('Imagem removida');
                       }}
                       title="Remover imagem"
@@ -689,7 +694,6 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
               {/* Categoria */}
               <div className={`${styles.formGroup} mt-2`}>
                 <label>
-                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
                   Categoria
                 </label>
                 <select
@@ -766,7 +770,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
               <div>
                 <div className={`${styles.formGroup} ${styles.suggestionsContainer}`}>
                   <label className="mb-1">
-                    <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                    <span className={`${styles.requiredAsterisk} ${styles.requiredAsteriskBelow}`} data-tooltip="Este item é obrigatório.">*</span>
                     Buscar Ingrediente
                   </label>
                   <input

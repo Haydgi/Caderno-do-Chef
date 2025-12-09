@@ -12,7 +12,7 @@ import { ALLOWED_RECIPE_CATEGORIES } from '../../../utils/recipeCategories';
 
 function ModalCadastroReceita({ onClose, onSave, }) {
 
-  const fileInputRef = useRef(null); // <-- aqui
+  const fileInputRef = useRef(null);
 
 
   const [form, setForm] = useState({
@@ -468,7 +468,18 @@ function ModalCadastroReceita({ onClose, onSave, }) {
               {/* Coluna da imagem */}
               <div className={`${styles.imageFormGroup} align-items-center mb-3`}>
                 <label className="mb-2" style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--rich-black)' }}>Imagem da Receita</label>
-                <label htmlFor="imagemInput" className={styles.imageUploadContainer}>
+                <div
+                  className={styles.imageUploadContainer}
+                  onClick={() => fileInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                >
                   {form.imagem_URL ? (
                     <div className={styles.imagePreview}>
                       <div
@@ -490,7 +501,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                       <span style={{ fontSize: '0.7rem', color: '#888' }}>JPG, JPEG ou PNG (até 5MB)</span>
                     </div>
                   )}
-                </label>
+                </div>
                 <input
                   id="imagemInput"
                   ref={fileInputRef}
@@ -504,7 +515,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-secondary flex-fill"
-                      onClick={() => document.getElementById('imagemInput').click()}
+                      onClick={() => fileInputRef.current?.click()}
                       title="Editar imagem"
                     >
                       <i className="bi bi-pencil"></i>
@@ -548,7 +559,6 @@ function ModalCadastroReceita({ onClose, onSave, }) {
               {/* Categoria */}
               <div className={`${styles.formGroup} mt-2`}>
                 <label>
-                  <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
                   Categoria
                 </label>
                 <select
@@ -627,7 +637,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
 
                 <div className={`${styles.formGroup} ${styles.suggestionsContainer}`}>
                   <label className="mb-1">
-                    <span className={styles.requiredAsterisk} data-tooltip="Este item é obrigatório.">*</span>
+                    <span className={`${styles.requiredAsterisk} ${styles.requiredAsteriskBelow}`} data-tooltip="Este item é obrigatório.">*</span>
                     Buscar Ingrediente
                   </label>
                   <input
