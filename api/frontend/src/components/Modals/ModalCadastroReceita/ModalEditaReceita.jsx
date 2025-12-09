@@ -5,6 +5,7 @@ import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
 import { GiKnifeFork } from "react-icons/gi";
 import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
+import { getApiBaseUrl } from "../../../utils/api";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { ALLOWED_RECIPE_CATEGORIES } from '../../../utils/recipeCategories';
@@ -40,7 +41,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     async function fetchIngredientes() {
       try {
         const token = localStorage.getItem("token");
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const baseUrl = getApiBaseUrl();
         const res = await fetch(`${baseUrl}/api/ingredientes?limit=1000`, {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -72,7 +73,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     async function fetchReceitaDetalhada() {
       try {
         const token = localStorage.getItem("token");
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const baseUrl = getApiBaseUrl();
         const id = receita.ID_Receita || receita.id;
 
         console.log('🔄 Buscando receita detalhada com ID:', id);
@@ -262,7 +263,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
     setDespesasLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:3001/api/despesas/calculo", {
+      const baseUrl = getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/api/despesas/calculo`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -413,7 +415,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
 
     try {
       const token = localStorage.getItem("token");
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = getApiBaseUrl();
       const formData = new FormData();
       formData.append('Nome_Receita', form.nome || "");
       formData.append('Descricao', form.descricao || "");
@@ -606,7 +608,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                       );
                     } else if (form.imagem && typeof form.imagem === 'string' && form.imagem.trim() !== "" && !form.imagemRemovida) {
                       // Corrige quando o backend já envia a URL completa (ex: https://host/uploads/arquivo.jpg)
-                      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                      const baseUrl = getApiBaseUrl();
                       const raw = form.imagem.trim();
                       const imageUrl = raw.startsWith('http') ? raw : `${baseUrl}/uploads/${raw}`;
                       console.log('✅ Mostrando imagem existente (resolvida):', imageUrl);
@@ -781,7 +783,8 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                     onFocus={async () => {
                       try {
                         const token = localStorage.getItem("token");
-                        const res = await fetch("http://localhost:3001/api/ingredientes?limit=1000", {
+                        const baseUrl = getApiBaseUrl();
+                        const res = await fetch(`${baseUrl}/api/ingredientes?limit=1000`, {
                           headers: {
                             "Authorization": `Bearer ${token}`,
                           },

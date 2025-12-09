@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { getApiBaseUrl } from "../../../utils/api";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroDespesa.module.css";
 import { FaInfoCircle } from "react-icons/fa";
@@ -89,7 +90,8 @@ function ModalEditaDespesa({ despesa, onClose, onSave }) {
   const salvarDespesa = async (despesaEditada) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3001/api/despesas/${despesaEditada.id}`, {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/despesas/${despesaEditada.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",

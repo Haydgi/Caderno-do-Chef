@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { getApiBaseUrl } from "../../../utils/api";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroIngrediente.module.css";
 
@@ -106,7 +107,7 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
     };
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const API_URL = getApiBaseUrl();
       const response = await fetch(`${API_URL}/api/ingredientes/${ingrediente.id}`, {
         method: "PUT",
         headers: {

@@ -8,6 +8,7 @@ import { GiKnifeFork } from "react-icons/gi";
 import Swal from "sweetalert2";
 import { toast } from 'react-toastify';
 import { showPermissionDeniedOnce } from '../../../utils/permissionToast';
+import { getApiBaseUrl } from '../../../utils/api';
 import styles from './Receitas.module.css';
 
 function Receitas() {
@@ -23,7 +24,7 @@ function Receitas() {
   const [ordenacao, setOrdenacao] = useState('nome-asc'); // Ordenação padrão alfabética
   const [filtroCategoria, setFiltroCategoria] = useState('todas'); // Filtro de categoria
 
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const baseUrl = getApiBaseUrl();
   const apiUrl = `${baseUrl}/api/receitas`;
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
@@ -434,11 +435,11 @@ function Receitas() {
 
               <div className="d-flex justify-content-between fs-6 mb-2" style={{ fontSize: '0.85rem' }}>
                 <span>
-                  <i className="bi bi-clock" style={{ marginRight: '4px' }}></i>
+                  <i className={`bi bi-clock ${styles.iconeSunset}`} style={{ marginRight: '4px' }}></i>
                   {receita.Tempo_Preparo ?? 0} min
                 </span>
                 <span>
-                  <i className="bi bi-currency-dollar" style={{ marginRight: '4px' }}></i>
+                  <i className={`bi bi-currency-dollar ${styles.iconeSunset}`} style={{ marginRight: '4px' }}></i>
                   {receita.Porcentagem_De_Lucro ?? 0}%
                 </span>
               </div>

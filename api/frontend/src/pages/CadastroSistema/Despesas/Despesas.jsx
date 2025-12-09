@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import ModelPage from '../ModelPage';
 import { showPermissionDeniedOnce } from '../../../utils/permissionToast';
+import { getApiBaseUrl } from '../../../utils/api';
 import ModalCadastroDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalCadastroDespesa';
 import ModalEditaDespesa from '../../../components/Modals/ModalCadastroDespesa/ModalEditaDespesa';
 import ModalCadastroImposto from '../../../components/Modals/ModalCadastroImposto/ModalCadastroImposto';
@@ -16,7 +17,7 @@ import { MdOutlineCalendarMonth } from 'react-icons/md';
 import { BiMoneyWithdraw, BiRepeat } from "react-icons/bi";
 import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = getApiBaseUrl();
 
 function Despesas() {
   const [termoBusca, setTermoBusca] = useState('');
@@ -186,14 +187,8 @@ function Despesas() {
       custos = impostos;
     }
 
-    // Filtro defensivo no cliente para garantir que apenas nomes que contenham o termo apareçam
-    const termo = (termoBusca || '').trim().toLowerCase();
-    if (termo) {
-      custos = custos.filter((item) => {
-        const nome = (item.nome || item.Nome_Despesa || item.Nome_Imposto || '').toLowerCase();
-        return nome.includes(termo);
-      });
-    }
+    // NOTA: O filtro por termo de busca é feito no backend (fetchDespesas/fetchImpostos)
+    // Não é necessário filtrar novamente aqui no frontend
 
     // Ordenar conforme selecionado
     // Evitar mutação in-place: sempre ordenar uma cópia
@@ -229,7 +224,7 @@ function Despesas() {
           new Date(b.data || b.Data_Atualizacao) - new Date(a.data || a.Data_Atualizacao)
         );
     }
-  }, [despesas, impostos, filtroTipo, ordenacao]);
+  }, [despesas, impostos, filtroTipo, ordenacao, termoBusca]);
 
   // Hook para scroll infinito com 20 itens por vez
   const { displayedItems, hasMore } = useInfiniteScroll(todosOsCustos, 20);
@@ -257,11 +252,6 @@ function Despesas() {
       fetchData();
     }
   }, [fetchDespesas, fetchImpostos, termoBusca]);
-
-  useEffect(() => {
-    fetchDespesas('');
-    fetchImpostos('');
-  }, [fetchDespesas, fetchImpostos]);
 
   const salvarItem = async () => {
     await fetchDespesas();
@@ -392,7 +382,7 @@ function Despesas() {
 
     return (
       <div
-        key={imposto.id}
+        key={`${imposto.tipo}-${imposto.id}`}
         className={isMobile ? "col-12 mb-3" : "col-12"}
         style={
           isMobile
@@ -584,7 +574,7 @@ function Despesas() {
 
     return (
       <div
-        key={despesa.id}
+        key={`${despesa.tipo}-${despesa.id}`}
         className={isMobile ? "col-12 mb-3" : "col-12"}
         style={
           isMobile

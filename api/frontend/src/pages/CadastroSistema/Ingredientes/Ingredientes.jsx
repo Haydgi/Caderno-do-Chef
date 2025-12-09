@@ -11,9 +11,12 @@ import { GiMeat, GiFruitBowl, GiPumpkin, GiPeanut, GiWrappedSweet } from "react-
 import { CiWheat, CiDroplet } from "react-icons/ci";
 import { LuMilk } from "react-icons/lu";
 import { TbSalt } from "react-icons/tb";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaTag, FaPercentage } from "react-icons/fa";
+import { BiCategoryAlt } from "react-icons/bi";
+import { MdDeleteSweep } from "react-icons/md";
+import { getApiBaseUrl } from '../../../utils/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = getApiBaseUrl();
 
 function Ingredientes() {
   // 1. Estado do termo de busca e ingredientes
@@ -216,9 +219,33 @@ function Ingredientes() {
       >
         <div className={styles.cardIcon}>{ingrediente.icone}</div>
         <h5 className={styles.cardTitle}>{ingrediente.nome}</h5>
-        <p className={styles.cardPrice}>
-          R$ {(ingrediente.preco || 0).toFixed(2).replace('.', ',')}/{ingrediente.unidadeCompra}
-        </p>
+        
+        {/* Informações do ingrediente com ícones */}
+        <div className={styles.cardInfo}>
+          {/* Linha 1: Categoria e Taxa de Desperdício */}
+          <div className={styles.infoRow}>
+            <div className={styles.infoItem} title={`Categoria: ${ingrediente.categoria || 'N/A'}`}>
+              <BiCategoryAlt className={styles.infoIcon} />
+              <span className={styles.infoText}>
+                {ingrediente.categoria ? (ingrediente.categoria.length > 12 ? ingrediente.categoria.substring(0, 12) + '...' : ingrediente.categoria) : 'N/A'}
+              </span>
+            </div>
+            <div className={`${styles.infoItem} ${styles.infoItemRight}`} title={`Taxa de Desperdício: ${(ingrediente.Indice_de_Desperdicio || 0).toFixed(1)}%`}>
+              <MdDeleteSweep className={styles.infoIcon} />
+              <span className={styles.infoText}>
+                {(ingrediente.Indice_de_Desperdicio || 0).toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          {/* Linha 2: Custo */}
+          <div className={styles.infoItem} title={`Custo: R$ ${(ingrediente.preco || 0).toFixed(2).replace('.', ',')}/${ingrediente.unidadeCompra}`}>
+            <FaTag className={`${styles.infoIcon} ${styles.infoIconSmall}`} />
+            <span className={styles.infoText}>
+              R$ {(ingrediente.preco || 0).toFixed(2).replace('.', ',')}/{ingrediente.unidadeCompra}
+            </span>
+          </div>
+        </div>
+        
         <div className={styles.cardAction}>
           <i
             className={styles.Trash}

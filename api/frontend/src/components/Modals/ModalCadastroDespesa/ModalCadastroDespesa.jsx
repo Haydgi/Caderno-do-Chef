@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { getApiBaseUrl } from "../../../utils/api";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroDespesa.module.css";
 import { FaInfoCircle } from "react-icons/fa";
@@ -83,7 +84,8 @@ function ModalCadastroDespesa({ onClose, onSave }) {
         return;
       }
 
-      const response = await fetch("http://localhost:3001/api/despesas", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/despesas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import { getApiBaseUrl } from '../../../utils/api';
 import styles from './ModalCadastroImposto.module.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
 const ModalCadastroImposto = ({ onClose, onSave }) => {
+    const API_URL = getApiBaseUrl();
     const [nome, setNome] = useState(null);
     const [categoria, setCategoria] = useState('');
     const [frequencia, setFrequencia] = useState('mensal');

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
 import { GiKnifeFork } from "react-icons/gi";
+import { getApiBaseUrl } from "../../../utils/api";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -32,7 +33,7 @@ function ModalVisualizarReceita({ onClose, receita }) {
         async function fetchDespesas() {
             try {
                 const token = localStorage.getItem("token");
-                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const baseUrl = getApiBaseUrl();
                 const response = await fetch(`${baseUrl}/api/despesas/calculo`, {
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -77,7 +78,7 @@ function ModalVisualizarReceita({ onClose, receita }) {
             // Buscar ingredientes da receita
             try {
                 const token = localStorage.getItem("token");
-                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const baseUrl = getApiBaseUrl();
                 const idReceita = receita.ID_Receita || receita.id;
 
                 const response = await fetch(`${baseUrl}/api/receita-detalhada/${idReceita}`, {

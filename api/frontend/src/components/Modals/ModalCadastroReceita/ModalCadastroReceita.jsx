@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
+import { getApiBaseUrl } from "../../../utils/api";
 import "../../../Styles/global.css";
 import styles from "./ModalCadastroReceita.module.css";
 import { FaTrash } from 'react-icons/fa';
@@ -227,7 +228,8 @@ function ModalCadastroReceita({ onClose, onSave, }) {
         console.log(`${pair[0]}: ${pair[1]}`);
       }
 
-      const response = await fetch("http://localhost:3001/api/receitas", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/receitas`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -262,7 +264,8 @@ function ModalCadastroReceita({ onClose, onSave, }) {
   const buscarIngredientesDoBanco = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/ingredientes?limit=1000", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/ingredientes?limit=1000`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -318,7 +321,8 @@ function ModalCadastroReceita({ onClose, onSave, }) {
   const buscarDespesasDoBanco = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/api/despesas/calculo", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/despesas/calculo`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },

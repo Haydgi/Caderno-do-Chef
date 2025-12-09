@@ -4,6 +4,7 @@ import { MdCloudUpload, MdCloudDownload, MdClose, MdPictureAsPdf, MdBackup } fro
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { getApiBaseUrl } from '../../utils/api';
 import styles from './ImportExportButton.module.css';
 import { exportBackupNow } from '../../utils/exportBackup';
 
@@ -41,7 +42,7 @@ export default function ImportExportButton() {
       toast.info(`Gerando arquivo ${formato.toUpperCase()}...`);
       
       const token = localStorage.getItem('token');
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = getApiBaseUrl();
       const response = await axios.get(
         `${baseUrl}/api/exportar-dados?formato=${formato}`,
         {
@@ -75,7 +76,7 @@ export default function ImportExportButton() {
     try {
       const token = localStorage.getItem('token');
       const userId = Number(localStorage.getItem('userId'));
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = getApiBaseUrl();
 
       // Buscar lista de ingredientes do usuário
       const listaResp = await axios.get(`${baseUrl}/api/ingredientes?usuario=${userId}&limit=10000`, {
@@ -150,7 +151,7 @@ export default function ImportExportButton() {
       setBackupBusy(true);
       toast.info('Validando e importando backup (aguarde)...');
       const token = localStorage.getItem('token');
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = getApiBaseUrl();
       const formData = new FormData();
       formData.append('arquivo', file);
       const resp = await axios.post(`${baseUrl}/api/backup/import`, formData, {
@@ -186,7 +187,7 @@ export default function ImportExportButton() {
 
     try {
       const token = localStorage.getItem('token');
-      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const baseUrl = getApiBaseUrl();
       const response = await axios.post(
         `${baseUrl}/api/importar-dados`,
         formData,

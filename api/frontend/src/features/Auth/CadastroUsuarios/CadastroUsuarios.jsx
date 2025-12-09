@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Password from "../PswdLogic.jsx";
 import { useNavigate } from "react-router-dom";
+import { getApiBaseUrl } from "../../../utils/api";
 import "../../../Styles/global.css";
 import "../globalAuth.css";
 import styles from "./CadastroUsuarios.module.css";
@@ -85,7 +86,8 @@ export default function Cadastro() {
     };
     
     try {
-      const response = await fetch("http://localhost:3001/api/cadastrar", {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/cadastrar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

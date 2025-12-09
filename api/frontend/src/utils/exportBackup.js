@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getApiBaseUrl } from './api';
 
 // Exporta backup completo em .zip (reutilizável em qualquer lugar da UI)
 export async function exportBackupNow() {
   try {
     toast.info('Gerando backup completo...');
     const token = localStorage.getItem('token');
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const baseUrl = getApiBaseUrl();
     const resp = await axios.get(`${baseUrl}/api/backup/export`, {
       headers: { Authorization: `Bearer ${token}` },
       responseType: 'blob'

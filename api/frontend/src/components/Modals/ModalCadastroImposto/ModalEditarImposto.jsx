@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { getApiBaseUrl } from '../../../utils/api';
 import styles from './ModalEditarImposto.module.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = getApiBaseUrl();
 
 const sanitizeNumericInput = (value = '') => value.replace(/[^0-9.,]/g, '');
 
@@ -273,18 +274,6 @@ const ModalEditarImposto = ({ open, onClose, imposto, onUpdated }) => {
 
     const handleExcluirHistorico = async (histId) => {
         if (!imposto?.id) return;
-
-        const confirm = await Swal.fire({
-            title: 'Remover pagamento?',
-            text: 'Essa ação não pode ser desfeita.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, remover',
-            cancelButtonText: 'Cancelar',
-            reverseButtons: true,
-        });
-
-        if (!confirm.isConfirmed) return;
 
         const token = getToken();
         if (!token) {

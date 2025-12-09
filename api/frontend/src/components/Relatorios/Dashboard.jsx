@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
 import ProfitChart from './ProfitChart';
 import TimeChart from './TimeChart';
 import RecipeCount from './RecipeCount';
@@ -49,7 +50,8 @@ const Dashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/export-dashboard', {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/export-dashboard`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

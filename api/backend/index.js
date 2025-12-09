@@ -47,6 +47,13 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0'; // Permite acesso de outros dispositivos na rede
+
+console.log('🔧 Configurações do servidor:');
+console.log(`   HOST: ${HOST}`);
+console.log(`   PORT: ${PORT}`);
+console.log(`   DB_HOST: ${process.env.DB_HOST}`);
+console.log(`   DB_NAME: ${process.env.DB_NAME}`);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +65,12 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('✌️ Diretório uploads criado:', uploadsDir);
 }
 
+// Middleware de logging para debug
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'undefined'}`);
+  next();
+});
+
 // Headers de segurança
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -67,11 +80,39 @@ app.use(helmet({
 // Compressão de respostas HTTP
 app.use(compression());
 
+// CORS configurado para permitir múltiplas origens (localhost + IP da rede)
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      // Permite requisições sem origin (ex: Postman, requisições do mesmo servidor, aplicativos móveis)
+      if (!origin) {
+        return callback(null, true);
+      }
+      
+      // Lista de origens permitidas
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+      ];
+      
+      // Adiciona IPs locais dinamicamente (192.168.x.x, 10.x.x.x, etc)
+      const localIpPattern = /^http:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}):(5173|5174|3000|3001)$/;
+      
+      // Verifica se a origem está permitida
+      if (allowedOrigins.includes(origin) || localIpPattern.test(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`⚠️  Origem bloqueada pelo CORS: ${origin}`);
+        callback(new Error(`Origem não permitida pelo CORS: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
+    optionsSuccessStatus: 200, // Para navegadores antigos
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cache-Control', 'Pragma', 'Expires'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range']
   })
 );
 
@@ -175,10 +216,11 @@ app.use(notFoundHandler);
 // Middleware global de tratamento de erros
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Servidor rodando em http://${HOST}:${PORT}`);
   console.log(`📁 Uploads servidos de: ${path.join(__dirname, "uploads")}`);
   console.log(`🔒 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Acessível na rede local via IP da máquina`);
 });
 
 // Graceful shutdown

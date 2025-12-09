@@ -1,8 +1,19 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-// Configurar base URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// Configurar base URL - usa localhost ou IP dinâmico
+// Se acessado via localhost, usa localhost. Se via IP, usa o IP do host
+const getBaseURL = () => {
+  const hostname = window.location.hostname;
+  // Se for localhost ou 127.0.0.1, usa localhost para evitar problemas de CORS
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  // Caso contrário, usa o IP do hostname
+  return `http://${hostname}:3001`;
+};
+
+axios.defaults.baseURL = getBaseURL();
 
 // Interceptor para incluir token em todas as requisições
 axios.interceptors.request.use(

@@ -175,11 +175,15 @@
   background-color: var(--ultra-violet); /* Fundo roxo */
   color: var(--white-smoke); /* Texto branco */
   border-radius: 12px;
-  padding: 20px;
+  padding: 15px;
   text-align: center;
   position: relative;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .cardProduto:hover {
@@ -189,16 +193,25 @@
 
 /* Ícone do card */
 .cardIcon {
-  font-size: 3rem; /* Tamanho do ícone */
-  margin-bottom: 10px;
+  font-size: 2.5rem; /* Tamanho do ícone reduzido */
+  margin-bottom: 8px;
+  margin-top: -5px;
   color: var(--floral-white); /* Cor do ícone */
 }
 
 /* Título do card */
 .cardTitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Preço do card */
@@ -207,12 +220,77 @@
   color: var(--floral-white); /* Cor do texto */
 }
 
-/* Ação do card (ícone de edição) */
+/* Container de informações do card */
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 0;
+  flex: 1;
+}
+
+/* Linha de informações (para agrupar items na mesma linha) */
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Item de informação */
+.infoItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--floral-white);
+  padding: 2px 0;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* Ícone de informação */
+.infoIcon {
+  font-size: 1.3rem;
+  color: var(--sunset);
+  flex-shrink: 0;
+  min-width: 14px;
+}
+
+/* Ícone de informação pequeno (para custo) */
+.infoIconSmall {
+  font-size: 0.95rem;
+}
+
+/* Item de informação alinhado à direita */
+.infoItemRight {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.infoItemRight .infoText {
+  text-align: right;
+}
+
+/* Texto de informação */
+.infoText {
+  color: var(--floral-white);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.0rem;
+}
+
+/* Ação do card (ícone de lixeira) */
 .cardAction {
   position: absolute;
   bottom: 10px;
   right: 10px;
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--floral-white);
   cursor: pointer;
   transition: color 0.3s ease;
@@ -363,7 +441,7 @@
 }
 
 .Trash{
-    font-size: 25px;
+    font-size: 20px;
 }
 
 /* Segunda definição removida para evitar conflitos */
@@ -619,14 +697,54 @@
   }
 
   .cardProduto {
-    padding: 2px;
+    padding: 12px;
     width: 100%;
     max-width: 280px;
-    max-height: 140px;
+    min-height: 160px;
     margin: 0 auto;
   }
 
+  .cardIcon {
+    font-size: 2rem;
+    margin-bottom: 6px;
+  }
 
+  .cardTitle {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+
+  .cardInfo {
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .infoRow {
+    gap: 6px;
+  }
+
+  .infoItem {
+    font-size: 0.7rem;
+    gap: 4px;
+    padding: 1px 0;
+  }
+
+  .infoIcon {
+    font-size: 1.1rem;
+    min-width: 12px;
+  }
+
+  .infoIconSmall {
+    font-size: 0.9rem;
+  }
+
+  .infoText {
+    font-size: 1.0rem;
+  }
+
+  .cardAction {
+    font-size: 0.9rem;
+  }
 
   .active {
     background-color: var(--sunset); /* Fundo para o item ativo */

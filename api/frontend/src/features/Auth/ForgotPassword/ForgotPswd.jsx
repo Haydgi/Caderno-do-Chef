@@ -5,7 +5,7 @@ import "../globalAuth.css";
 import styles from "./ForgotPswd.module.css";
 import Password, { validarSenha, validarConfirmacaoSenha } from "../PswdLogic.jsx";
 import { toast } from "react-toastify";
-import axios from "axios";
+import axios from "../../../config/axios";
 
 export default function ForgotPassword() {
   const [senha, setSenha] = useState("");
@@ -32,7 +32,7 @@ export default function ForgotPassword() {
 
   const validarToken = async (tokenUrl) => {
     try {
-      const response = await axios.get(`http://localhost:3001/api/validar-token/${tokenUrl}`);
+      const response = await axios.get(`/api/validar-token/${tokenUrl}`);
       if (response.data.valido) {
         setTokenValido(true);
       } else {
@@ -69,7 +69,7 @@ export default function ForgotPassword() {
     setCarregando(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/resetar-senha', {
+      const response = await axios.post('/api/resetar-senha', {
         token,
         novaSenha: senha
       });

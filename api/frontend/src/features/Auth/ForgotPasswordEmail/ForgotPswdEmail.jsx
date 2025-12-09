@@ -4,7 +4,7 @@ import styles from "./ForgotPswdEmail.module.css";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import axios from "../../../config/axios";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function ForgotPassword() {
     setCarregando(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/recuperar-senha', {
+      const response = await axios.post('/api/recuperar-senha', {
         email: email
       });
 

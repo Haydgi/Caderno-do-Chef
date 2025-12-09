@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two&display=swap');
+
 .modalOverlay {
     position: fixed;
     top: 0;
@@ -25,12 +27,19 @@
 
 /* Título cursivo com estilo consistente com os outros modais */
 .modalTitle {
-    font-family: 'Poppins', cursive;
-    font-size: 1.8rem;
+    font-family: "Lobster Two", cursive;
+    font-size: 2.2rem;
     font-weight: 600;
     color: #333;
     margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.8);
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
+
+
 
 /* Container das opções */
 .optionsContainer {
@@ -80,6 +89,11 @@
 /* Container do botão de fechar */
 .closeButtonContainer {
     margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid rgba(0, 0, 0, 0.8);
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Botão de fechar com cor #3085d6 */
