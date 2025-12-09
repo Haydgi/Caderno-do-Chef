@@ -20,6 +20,7 @@ function ModalCadastroIngrediente({ onClose, onSave }) {
     "Carnes",
     "Doces",
     "Farináceos",
+    "Grãos",
     "Frutas",
     "Laticínios",
     "Legumes e Verduras",

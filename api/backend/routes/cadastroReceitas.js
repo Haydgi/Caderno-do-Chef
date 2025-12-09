@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 import { gerenteOuAcima, funcionarioOuAcima } from '../middleware/permissions.js';
+import { ALLOWED_RECIPE_CATEGORIES } from '../utils/constants.js';
 
 // Para funcionar com ESModules
 const __filename = fileURLToPath(import.meta.url);
@@ -107,6 +108,17 @@ router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) =
 
     const imagem_URL = req.file ? req.file.filename : '';
 
+    // Validação de categoria permitida (opcional: categoria pode ser nula)
+    if (Categoria) {
+      const categoriaSanitizada = String(Categoria).trim();
+      if (!ALLOWED_RECIPE_CATEGORIES.includes(categoriaSanitizada)) {
+        return res.status(400).json({ error: `Categoria inválida. Use uma das categorias permitidas: ${ALLOWED_RECIPE_CATEGORIES.join(', ')}` });
+      }
+      Categoria = categoriaSanitizada;
+    } else {
+      Categoria = null;
+    }
+
     // Inserir receita
     const [result] = await db.query(`
       INSERT INTO receitas (
@@ -120,7 +132,7 @@ router.post('/', gerenteOuAcima, upload.single('imagem_URL'), async (req, res) =
       Tempo_Preparo,
       Custo_Total_Ingredientes,
       Porcentagem_De_Lucro,
-      Categoria || null,
+      Categoria,
       imagem_URL
     ]);
 
@@ -365,13 +377,23 @@ router.put('/:id', gerenteOuAcima, upload.single('imagem_URL'), async (req, res)
         imagem_URL = ?
       WHERE ID_Receita = ?
     `;
+
+    // Validação de categoria permitida ao atualizar
+    let categoriaParaSalvar = null;
+    if (Categoria) {
+      const categoriaSanitizada = String(Categoria).trim();
+      if (!ALLOWED_RECIPE_CATEGORIES.includes(categoriaSanitizada)) {
+        return res.status(400).json({ error: `Categoria inválida. Use uma das categorias permitidas: ${ALLOWED_RECIPE_CATEGORIES.join(', ')}` });
+      }
+      categoriaParaSalvar = categoriaSanitizada;
+    }
     await db.query(updateQuery, [
       Nome_Receita || null,
       Descricao || null,
       Tempo_Preparo || 0,
       Custo_Total_Ingredientes || 0,
       Porcentagem_De_Lucro || 0,
-      Categoria || null,
+      categoriaParaSalvar,
       imagemParaSalvar,
       idNum
     ]);

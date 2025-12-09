@@ -19,6 +19,7 @@ function ModalEditaIngrediente({ onClose, onSave, ingrediente }) {
     "Carnes",
     "Doces",
     "Farináceos",
+    "Grãos",
     "Frutas",
     "Laticínios",
     "Legumes e Verduras",

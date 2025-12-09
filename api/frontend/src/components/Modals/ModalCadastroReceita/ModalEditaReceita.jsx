@@ -7,6 +7,7 @@ import { GiKnifeFork } from "react-icons/gi";
 import { showPermissionDeniedOnce } from "../../../utils/permissionToast";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { ALLOWED_RECIPE_CATEGORIES } from '../../../utils/recipeCategories';
 
 function ModalEditaReceita({ onClose, onSave, receita }) {
   const [form, setForm] = useState({
@@ -31,11 +32,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
   const [despesasLoading, setDespesasLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categorias = [
-    "Carnes", "Peixes e Frutos do Mar", "Massas", "Grãos",
-    "Doces", "Sobremesas", "Bolos e Tortas", "Pães e Biscoitos", "Sopas e Caldos",
-    "Molhos e Pastas", "Bebidas", "Vegano", "Vegetariano", "Sem Glúten", "Sem Lactose"
-  ];
+  const categorias = ALLOWED_RECIPE_CATEGORIES;
 
   // Busque ingredientes do banco ao montar o modal
   useEffect(() => {

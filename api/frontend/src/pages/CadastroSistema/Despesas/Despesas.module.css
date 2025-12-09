@@ -70,7 +70,7 @@
 /* Painel de impostos com scroll vertical se necessário */
 .impostos-cards-panel {
   /* lower impostos panel height so it lines up better with the surrounding cards */
-  max-height: 46vh;
+  max-height: calc(46vh + 125px);
   overflow-y: auto;
   padding-right: 8px;
   /* Para evitar scroll horizontal */
@@ -136,7 +136,7 @@
   background-color: var(--ultra-violet); /* Fundo roxo */
   color: var(--white-smoke); /* Texto branco */
   border-radius: 10px;
-  padding: 12px 10px; /* confortável para o conteúdo */
+  padding: 8px 8px; /* reduzir padding para diminuir altura */
   text-align: center;
   position: relative;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
@@ -145,7 +145,7 @@
   /* Garantir largura consistente mesmo quando existir apenas um card */
   max-width: 520px;
   margin: 0 auto;
-  min-height: 90px; /* altura mínima para não cortar conteúdo */
+  min-height: 70px; /* reduzir altura mínima */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -228,6 +228,11 @@
   position: relative;
   z-index: 1;
   overflow-x: auto;
+  /* permitir scroll vertical com limite de altura maior */
+  max-height: calc(64vh + 125px) !important;
+  overflow-y: auto;
+  /* aumentar ocupação vertical total da linha de cards em +120px */
+  padding-bottom: 120px;
 }
 
 /* Responsividade */
@@ -248,8 +253,8 @@
 
 @media (max-width: 576px) {
   .cardDespesa {
-    padding: 8px 5px;
-    min-height: 70px; /* altura mínima para não cortar conteúdo no mobile */
+    padding: 6px 5px; /* reduzir padding no mobile */
+    min-height: 56px; /* reduzir altura mínima no mobile */
     margin-top: 8px !important;
     max-width: 100%;
 

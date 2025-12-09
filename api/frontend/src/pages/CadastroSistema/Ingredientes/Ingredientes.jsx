@@ -54,6 +54,7 @@ function Ingredientes() {
     Carnes: <GiMeat />,
     Doces: <GiWrappedSweet />,
     Farináceos: <CiWheat />,
+    Grãos: <CiWheat />,
     Frutas: <GiFruitBowl />,
     Laticínios: <LuMilk />,
     "Legumes e Verduras": <GiPumpkin />,

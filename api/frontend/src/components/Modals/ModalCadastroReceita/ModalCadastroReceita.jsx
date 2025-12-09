@@ -8,6 +8,7 @@ import axios from "axios";
 import { GiKnifeFork } from "react-icons/gi";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { ALLOWED_RECIPE_CATEGORIES } from '../../../utils/recipeCategories';
 
 function ModalCadastroReceita({ onClose, onSave, }) {
 
@@ -33,11 +34,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
   const [camposInvalidos, setCamposInvalidos] = useState({});
   const [custoTotalIngredientes, setCustoTotalIngredientes] = useState(0);
   const [despesas, setDespesas] = useState([]);
-  const categorias = [
-    "Carnes", "Peixes e Frutos do Mar", "Massas", "Grãos",
-    "Doces", "Sobremesas", "Bolos e Tortas", "Pães e Biscoitos", "Sopas e Caldos",
-    "Molhos e Pastas", "Bebidas", "Vegano", "Vegetariano", "Sem Glúten", "Sem Lactose"
-  ];
+  const categorias = ALLOWED_RECIPE_CATEGORIES;
 
   const [ingredientesDisponiveis, setIngredientesDisponiveis] = useState([]);
   const [ingredientesBanco, setIngredientesBanco] = useState([]);

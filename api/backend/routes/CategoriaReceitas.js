@@ -2,6 +2,7 @@
 import express from 'express';
 import db from '../database/connection.js';
 import { proprietarioOuGerente } from '../middleware/permissions.js';
+import { ALLOWED_RECIPE_CATEGORIES } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -25,15 +26,31 @@ router.get('/categorias', proprietarioOuGerente, async (req, res) => {
     `;
 
     const [results] = await db.query(query, [idUsuario]);
-    // Se não houver resultados, retorna array vazio com 200 para evitar erro no gráfico
-    if (!Array.isArray(results) || results.length === 0) {
-      return res.status(200).json([]);
+    // Mapeia apenas categorias permitidas e inclui zero para ausentes
+    const countsMap = new Map();
+    if (Array.isArray(results)) {
+      for (const row of results) {
+        const name = String(row.name || '').trim();
+        const value = Number(row.value) || 0;
+        if (ALLOWED_RECIPE_CATEGORIES.includes(name)) {
+          countsMap.set(name, value);
+        }
+      }
     }
-    res.status(200).json(results);
+    const payload = ALLOWED_RECIPE_CATEGORIES.map(cat => ({
+      name: cat,
+      value: countsMap.get(cat) || 0
+    }));
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('Erro ao buscar categorias de receitas:', error);
     res.status(500).json({ error: 'Erro ao buscar dados' });
   }
+});
+
+// Endpoint auxiliar: lista de categorias permitidas (sem contagem)
+router.get('/categorias/permitidas', proprietarioOuGerente, (req, res) => {
+  return res.status(200).json(ALLOWED_RECIPE_CATEGORIES);
 });
 
 export default router;

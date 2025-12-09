@@ -169,27 +169,28 @@ function Despesas() {
     }
 
     // Ordenar conforme selecionado
+    // Evitar mutação in-place: sempre ordenar uma cópia
     switch (ordenacao) {
       case 'nome-asc':
-        return custos.sort((a, b) => {
+        return [...custos].sort((a, b) => {
           const nomeA = (a.nome || a.Nome_imposto || '').toLowerCase();
           const nomeB = (b.nome || b.Nome_imposto || '').toLowerCase();
           return nomeA.localeCompare(nomeB);
         });
       case 'nome-desc':
-        return custos.sort((a, b) => {
+        return [...custos].sort((a, b) => {
           const nomeA = (a.nome || a.Nome_imposto || '').toLowerCase();
           const nomeB = (b.nome || b.Nome_imposto || '').toLowerCase();
           return nomeB.localeCompare(nomeA);
         });
       case 'preco-asc':
-        return custos.sort((a, b) => {
+        return [...custos].sort((a, b) => {
           const valorA = parseFloat(a.custoMensal || a.Custo_Mensal || a.valor || a.Valor_imposto || 0);
           const valorB = parseFloat(b.custoMensal || b.Custo_Mensal || b.valor || b.Valor_imposto || 0);
           return valorA - valorB;
         });
       case 'preco-desc':
-        return custos.sort((a, b) => {
+        return [...custos].sort((a, b) => {
           const valorA = parseFloat(a.custoMensal || a.Custo_Mensal || a.valor || a.Valor_imposto || 0);
           const valorB = parseFloat(b.custoMensal || b.Custo_Mensal || b.valor || b.Valor_imposto || 0);
           return valorB - valorA;
@@ -197,7 +198,7 @@ function Despesas() {
       case 'padrao':
       default:
         // Último cadastrado (data mais recente primeiro)
-        return custos.sort((a, b) =>
+        return [...custos].sort((a, b) =>
           new Date(b.data || b.Data_Atualizacao) - new Date(a.data || a.Data_Atualizacao)
         );
     }
@@ -432,7 +433,7 @@ function Despesas() {
           style={{
             cursor: 'pointer',
             width: '100%',
-            maxWidth: '520px',
+            miWidth: '520px',
             margin: '0 auto',
             /* roxo mais escuro apenas para imposto */
             background: ' rgba(79, 58, 111, 1)',
@@ -808,7 +809,7 @@ function Despesas() {
             display: flex;
             flex-direction: column;
             height: auto;
-            max-height: 60vh; /* manter mesmo comportamento de altura do desktop */
+            max-height: calc(60vh + 125px); /* aumentado em 125px */
             margin: -5px auto 0 auto;
           }
 
@@ -820,7 +821,7 @@ function Despesas() {
             min-height: 100px;
             /* usar o mesmo limite que a versão desktop para manter consistência
               aqui diminuímos o máximo interno para que a lista role como no desktop */
-            max-height: calc(60vh - 120px); /* deixa espaço para footer e header */
+            max-height: calc(60vh - 120px); /* revertido */
             -webkit-overflow-scrolling: touch;
           }
           
@@ -849,7 +850,7 @@ function Despesas() {
           position: 'relative',
           background: 'linear-gradient(135deg, var(--ultra-violet) 0%, var(--ultra-violet) 100%)',
           minHeight: '220px',
-          maxHeight: '64vh',
+          maxHeight: 'calc(64vh + 125px)', /* aumentado em 125px */
           borderRadius: '12px',
           overflow: 'hidden',
           width: '100%',
@@ -877,7 +878,7 @@ function Despesas() {
           </div>
         )}
 
-  <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
+  <div className={isMobileVersion ? "mobile-cost-content" : "card-body text-white quiet-scrollbar"} style={isMobileVersion ? { padding: '1rem' } : { padding: '1rem', maxHeight: 'calc(64vh + 125px)', overflowY: 'auto' }}>
           {/* Seção de detalhamento */}
           <div className={isMobileVersion ? "mb-2" : "mb-4"}>
             <h6
@@ -943,11 +944,6 @@ function Despesas() {
                       )}
                       {/* No mobile, manter o nome; ocultar apenas o rótulo adicional */}
                       {item.nome}
-                      {!isMobileVersion && (
-                        <span style={{ fontSize: '0.75rem', marginLeft: '8px', color: '#FFD700' }}>
-                          {item.tipo === 'imposto' ? 'Imposto' : 'Despesa Operacional'}
-                        </span>
-                      )}
                     </span>
                     <span
                       className="fw-bold px-2 py-1 rounded"

@@ -360,8 +360,8 @@ function ModelPage({
                 // Layout desktop padrão
                 <>
                   {/* Coluna esquerda - Cards */}
-                  <div className={painelLateral ? "col-md-6" : "col-12"}>
-                      <div className={painelLateral ? 'quiet-scrollbar' : ''} style={painelLateral ? { maxHeight: '64vh', overflowY: 'auto', paddingRight: '12px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '-8px' } : {}}>
+          <div className={painelLateral ? "col-md-6" : "col-12"}>
+            <div className={painelLateral ? 'quiet-scrollbar' : ''} style={painelLateral ? { maxHeight: 'calc(64vh + 125px)', overflowY: 'auto', paddingRight: '12px', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', marginTop: '-8px' } : {}}>
                     {dados.length === 0 ? (
                       <div
                         id="sem-dados"
@@ -402,7 +402,7 @@ function ModelPage({
                         style={{
                           position: 'absolute',
                           right: '0px',
-                          height: '64vh',
+                          height: 'calc(64vh + 125px)',
                           width: '2px',
                           backgroundColor: '#67477A',
                           opacity: 0.4,

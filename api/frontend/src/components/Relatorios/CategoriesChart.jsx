@@ -36,8 +36,9 @@ const CategoriesChart = ({ userId }) => {
       <h4 className={styles['chart-title']}>Distribuição de Receitas por Categoria</h4>
       <ResponsiveContainer width="100%" height={200}>
         <PieChart>
+          {/* Filtra categorias não utilizadas (valor 0) para evitar aglomeração no gráfico */}
           <Pie
-            data={data}
+            data={data.filter((d) => d && Number(d.value) > 0)}
             cx="50%"
             cy="50%"
             innerRadius={50}
@@ -46,7 +47,9 @@ const CategoriesChart = ({ userId }) => {
             dataKey="value"
             label={({ name }) => name}
           >
-            {data.map((_, index) => (
+            {data
+              .filter((d) => d && Number(d.value) > 0)
+              .map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
