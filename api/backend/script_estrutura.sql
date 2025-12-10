@@ -207,7 +207,8 @@ CREATE TABLE `usuario` (
   `Telefone` varchar(20) NOT NULL,
   `tipo_usuario` enum('Proprietário','Gerente','Funcionário') NOT NULL,
   `Data` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`ID_Usuario`)
+  PRIMARY KEY (`ID_Usuario`),
+  UNIQUE KEY `unique_email` (`Email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
