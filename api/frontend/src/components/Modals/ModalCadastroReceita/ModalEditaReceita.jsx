@@ -759,7 +759,7 @@ function ModalEditaReceita({ onClose, onSave, receita }) {
                   modules={{
                     toolbar: [
                       ['bold', 'italic', 'underline'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                       ['clean']
                     ]
                   }}

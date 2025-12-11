@@ -626,7 +626,7 @@ function ModalCadastroReceita({ onClose, onSave, }) {
                   modules={{
                     toolbar: [
                       ['bold', 'italic', 'underline'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                       ['clean']
                     ]
                   }}

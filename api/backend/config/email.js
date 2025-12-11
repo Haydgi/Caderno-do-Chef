@@ -1,11 +1,15 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+// Garantir que as variáveis de ambiente estão carregadas
+dotenv.config();
 
 // Configuração do transportador de email
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE || 'gmail', // Gmail, Outlook, etc.
   auth: {
     user: process.env.EMAIL_USER, // Seu email
-    pass: process.env.EMAIL_PASS  // Senha de aplicativo (não a senha normal)
+    pass: process.env.EMAIL_PASSWORD  // Senha de aplicativo (não a senha normal)
   },
   tls: {
     rejectUnauthorized: false // Aceita certificados autoassinados em desenvolvimento
